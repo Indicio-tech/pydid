@@ -19,9 +19,13 @@ def verification_material(value):
 
 class VerificationMethod:
     """Representation of DID Document Verification Methods."""
-    Schema = Schema({
-        "id": All(str, DIDUrl.validate),
-        "type": str,
-        "controller": All(str, DID.validate),
-        All(str, verification_material): Union(str, dict)
-    }, required=True)
+
+    Schema = Schema(
+        {
+            "id": All(str, DIDUrl.validate),
+            "type": str,
+            "controller": All(str, DID.validate),
+            All(str, verification_material): Union(str, dict),
+        },
+        required=True,
+    )
