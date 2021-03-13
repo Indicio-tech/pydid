@@ -7,9 +7,15 @@ from ..did_url import DIDUrl
 
 class VerificationRelationship:
     """Verification Relationship."""
-    Schema = Schema([
-        Union(
-            DIDUrl.validate, VerificationMethod.Schema,
-            discriminant=lambda val, alt: [alt[0]] if isinstance(val, str) else [alt[1]]
-        )
-    ])
+
+    Schema = Schema(
+        [
+            Union(
+                DIDUrl.validate,
+                VerificationMethod.Schema,
+                discriminant=lambda val, alt: [alt[0]]
+                if isinstance(val, str)
+                else [alt[1]],
+            )
+        ]
+    )
