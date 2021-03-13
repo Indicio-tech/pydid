@@ -17,7 +17,9 @@ if __name__ == '__main__':
         name='pydid',
         version='0.1.0',
         author='Daniel Bluhm <daniel.bluhm@sovrin.org>',
-        description='Python library for representing Decentralized Identifiers and Documents',
+        description=(
+            'Python library for representing Decentralized Identifiers and Documents'
+        ),
         long_description=LONG_DESCRIPTION,
         long_description_content_type='text/markdown',
         url='https://github.com/indicio-tech/pydid',
