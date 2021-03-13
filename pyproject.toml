@@ -1,0 +1,35 @@
+[tool.black]
+
+[tool.flake8]
+# https://github.com/ambv/black#line-length
+max-line-length = 90
+exclude = "*/tests/**"
+extend_ignore = "D202, W503"
+per_file_ignores = "*/__init__.py:D104"
+
+[tool.pytest.ini_options]
+addopts = "-p no:warnings"
+
+[tool.poetry]
+name = "pydid"
+version = "0.1.0"
+description = "Python library for validation, constructing, and representing DIDs and DID Documents"
+authors = ["Daniel Bluhm <dbluhm@pm.me>"]
+license = "Apache 2.0"
+
+[tool.poetry.dependencies]
+python = "^3.6.9"
+voluptuous = "^0.12.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.2"
+black = "^20.8b1"
+poetry = "^1.1.5"
+flakehell = "^0.9.0"
+pytest-flake8 = "^1.0.7"
+pre-commit = "^2.11.1"
+flake9 = "^3.8.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

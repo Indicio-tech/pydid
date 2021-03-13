@@ -6,3 +6,12 @@ repos:
     - id: commitlint
       stages: [commit-msg]
       additional_dependencies: ['@commitlint/config-conventional']
+- repo: https://github.com/psf/black
+  rev: stable
+  hooks:
+  - id: black
+- repo: https://gitlab.com/retnikt/flake9
+  rev: 3.8.3.post1
+  hooks:
+  - id: flake8
+    additional_dependencies: ['toml']
