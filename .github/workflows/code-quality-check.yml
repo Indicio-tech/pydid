@@ -10,6 +10,22 @@ on:
     branches: [ main ]
 
 jobs:
+  commit-check:
+    name: Conventional Commits Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Commitsar Action
+        uses: aevea/commitsar@v0.16.0
+
+  format:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Black Code Formatter
+        uses: lgeiger/black-action@v1.0.1
+        args: "--check pydid"
+
   build:
 
     runs-on: ubuntu-latest
