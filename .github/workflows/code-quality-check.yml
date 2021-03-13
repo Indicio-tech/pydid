@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python package
+name: Code Quality Check
 
 on:
   push:
@@ -18,10 +18,6 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
 
     steps:
-    - name: Black Check
-      uses: jpetrucciani/black-check@20.8b1
-      with:
-          path: pydid
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
