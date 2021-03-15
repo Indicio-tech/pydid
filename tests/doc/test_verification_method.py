@@ -3,6 +3,8 @@
 import pytest
 
 from voluptuous import MultipleInvalid
+from pydid.did_url import DIDUrl
+from pydid.did import DID
 from pydid.doc.verification_method import VerificationMethod
 from pydid.doc.verification_method_options import VerificationMethodOptions
 
@@ -78,6 +80,12 @@ def test_serialization(vmethod_raw):
 def test_serialization_x(invalid_vmethod_raw):
     with pytest.raises(MultipleInvalid):
         VerificationMethod.deserialize(invalid_vmethod_raw)
+
+
+def test_deserialized_member_types():
+    vmethod = VerificationMethod.deserialize(VMETHOD0)
+    assert isinstance(vmethod.id, DIDUrl)
+    assert isinstance(vmethod.controller, DID)
 
 
 def test_option_allow_type_list():

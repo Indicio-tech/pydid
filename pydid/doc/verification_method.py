@@ -1,7 +1,8 @@
 """DID Doc Verification Method."""
 
 from typing import Any, Set
-from voluptuous import Schema, All, Invalid, Union
+from voluptuous import Schema, All, Invalid, Union, Coerce
+from voluptuous import validate as validate_args
 from ..did import DID
 from ..did_url import DIDUrl
 from . import DIDDocError
@@ -84,8 +85,9 @@ class VerificationMethod:
         required=True,
     )
 
+    @validate_args(id_=DIDUrl.parse, controller=Coerce(DID))
     def __init__(
-        self, id_: DIDUrl, suite: VerificationSuite, controller: DIDUrl, material: Any
+        self, id_: DIDUrl, suite: VerificationSuite, controller: DID, material: Any
     ):
         """Initialize VerificationMethod."""
         self._id = id_
