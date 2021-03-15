@@ -14,7 +14,10 @@ SERVICE1 = {
     "type": "did-communication",
     "serviceEndpoint": "https://agents-r-us.com",
     "recipientKeys": ["did:example:123#keys-1"],
-    "routingKeys": ["did:key:z6MksQ35B5bwZDQq4QKuhQW2Sv6dcqwg4PqcSFf67pdgrtjB"],
+    "routingKeys": [
+        "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+        "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+    ],
 }
 
 SERVICES = [SERVICE0, SERVICE1]
