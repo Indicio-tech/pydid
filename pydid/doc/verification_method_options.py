@@ -45,7 +45,3 @@ class VerificationMethodOptions(Enum):
     def mapper(self):
         """Return the mapper for this option. Alias to enum value."""
         return self.value[1]
-
-
-allow_type_list = VerificationMethodOptions.allow_type_list
-allow_controller_list = VerificationMethodOptions.allow_controller_list

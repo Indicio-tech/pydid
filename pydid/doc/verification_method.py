@@ -7,6 +7,18 @@ from ..did_url import DIDUrl
 from . import DIDDocError
 from .verification_method_options import VerificationMethodOptions
 
+allow_type_list = VerificationMethodOptions.allow_type_list
+allow_controller_list = VerificationMethodOptions.allow_controller_list
+allow_missing_controller = VerificationMethodOptions.allow_missing_controller
+
+__all__ = [
+    "VerificationSuite",
+    "VerificationMethod",
+    "allow_type_list",
+    "allow_controller_list",
+    "allow_missing_controller",
+]
+
 
 class InvalidVerificationMaterial(DIDDocError, Invalid):
     """Error raised when verification material is invalid."""
