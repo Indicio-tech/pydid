@@ -12,7 +12,7 @@ class VerificationRelationship:
         [
             Union(
                 DIDUrl.validate,
-                VerificationMethod.Schema,
+                VerificationMethod.validate,
                 discriminant=lambda val, alt: [alt[0]]
                 if isinstance(val, str)
                 else [alt[1]],

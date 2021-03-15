@@ -4,18 +4,19 @@ import pytest
 
 from voluptuous import MultipleInvalid
 from pydid.doc.verification_method import VerificationMethod
+from pydid.doc.verification_method_options import VerificationMethodOptions
 
 VMETHOD0 = {
     "id": "did:example:123#keys-1",
     "type": "Ed25519Signature2018",
     "controller": "did:example:123",
-    "publicKeyBase58": "12345"
+    "publicKeyBase58": "12345",
 }
 VMETHOD1 = {
     "id": "did:example:123#keys-1",
     "type": "Ed25519Signature2018",
     "controller": "did:example:123",
-    "publicKeyPem": "12345"
+    "publicKeyPem": "12345",
 }
 VMETHOD2 = {
     "id": "did:example:123#keys-1",
@@ -25,12 +26,10 @@ VMETHOD2 = {
         "crv": "Ed25519",
         "x": "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ",
         "kty": "OKP",
-        "kid": "_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A"
-    }
+        "kid": "_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A",
+    },
 }
-VMETHODS = [
-    VMETHOD0, VMETHOD1, VMETHOD2
-]
+VMETHODS = [VMETHOD0, VMETHOD1, VMETHOD2]
 
 INVALID_VMETHOD0 = {
     "id": "did:example:123#keys-1",
@@ -42,13 +41,13 @@ INVALID_VMETHOD1 = {
     "id": "did:example:123#keys-1",
     "type": "Ed25519Signature2018",
     "controller": "did:example:123",
-    "something": "random"
+    "something": "random",
 }
 INVALID_VMETHOD2 = {
     "id": "did:example:123",
     "type": "Ed25519Signature2018",
     "controller": "did:example:123",
-    "publicKeyPem": "12345"
+    "publicKeyPem": "12345",
 }
 
 INVALID_VMETHODS = [
@@ -60,10 +59,60 @@ INVALID_VMETHODS = [
 
 @pytest.mark.parametrize("vmethod", VMETHODS)
 def test_validates_valid(vmethod):
-    VerificationMethod.Schema(vmethod)
+    VerificationMethod.validate(vmethod)
 
 
 @pytest.mark.parametrize("vmethod", INVALID_VMETHODS)
 def test_fails_validate_invalid(vmethod):
     with pytest.raises(MultipleInvalid):
-        VerificationMethod.Schema(vmethod)
+        VerificationMethod.validate(vmethod)
+
+
+@pytest.mark.parametrize("vmethod_raw", VMETHODS)
+def test_serialization(vmethod_raw):
+    vmethod = VerificationMethod.deserialize(vmethod_raw)
+    assert vmethod.serialize() == vmethod_raw
+
+
+@pytest.mark.parametrize("invalid_vmethod_raw", INVALID_VMETHODS)
+def test_serialization_x(invalid_vmethod_raw):
+    with pytest.raises(MultipleInvalid):
+        VerificationMethod.deserialize(invalid_vmethod_raw)
+
+
+def test_option_allow_type_list():
+    vmethod = VerificationMethod.deserialize(
+        {
+            "id": "did:example:123#keys-1",
+            "type": ["Ed25519Signature2018"],
+            "controller": "did:example:123",
+            "publicKeyBase58": "12345",
+        },
+        options={VerificationMethodOptions.allow_type_list},
+    )
+    assert vmethod.type == "Ed25519Signature2018"
+
+
+def test_option_allow_controller_list():
+    vmethod = VerificationMethod.deserialize(
+        {
+            "id": "did:example:123#keys-1",
+            "type": "Ed25519Signature2018",
+            "controller": ["did:example:123"],
+            "publicKeyBase58": "12345",
+        },
+        options={VerificationMethodOptions.allow_controller_list},
+    )
+    assert vmethod.controller == "did:example:123"
+
+
+def test_option_allow_missing_controller():
+    vmethod = VerificationMethod.deserialize(
+        {
+            "id": "did:example:123#keys-1",
+            "type": "Ed25519Signature2018",
+            "publicKeyBase58": "12345",
+        },
+        options={VerificationMethodOptions.allow_missing_controller},
+    )
+    assert vmethod.controller == "did:example:123"
