@@ -133,12 +133,15 @@ class VerificationMethod:
         cls, value: dict, *, options: Set[VerificationMethodOptions] = None
     ):
         """Deserialize into VerificationMethod."""
-        options = options or set()
-        for option in sorted(options, key=lambda item: item.priority):
-            value = option.mapper(value)
+        # Apply options
+        if options:
+            for option in sorted(options, key=lambda item: item.priority):
+                value = option.mapper(value)
 
+        # Perform validation
         value = cls.validate(value)
 
+        # Hydrate object
         suite = VerificationSuite.derive(value["type"], **value)
         material = value[suite.verification_material_prop]
         return cls(
