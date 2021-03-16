@@ -1,6 +1,6 @@
 """Verification Relationship"""
 
-from voluptuous import Schema, Union
+from voluptuous import Schema, Union, All
 from .verification_method import VerificationMethod
 from ..did_url import DIDUrl
 
@@ -8,14 +8,11 @@ from ..did_url import DIDUrl
 class VerificationRelationship:
     """Verification Relationship."""
 
-    Schema = Schema(
+    validate = Schema(
         [
             Union(
-                DIDUrl.validate,
+                All(str, DIDUrl.validate),
                 VerificationMethod.validate,
-                discriminant=lambda val, alt: [alt[0]]
-                if isinstance(val, str)
-                else [alt[1]],
             )
         ]
     )
