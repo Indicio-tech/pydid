@@ -2,6 +2,7 @@
 
 import pytest
 from voluptuous import MultipleInvalid
+
 from pydid.doc.service import Service
 
 SERVICE0 = {

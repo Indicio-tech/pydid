@@ -1,11 +1,11 @@
 """Test VerificationMethod."""
 
 import pytest
-
 from voluptuous import MultipleInvalid
-from pydid.did_url import DIDUrl
+
 from pydid.did import DID
-from pydid.doc.verification_method import VerificationMethod
+from pydid.did_url import DIDUrl
+from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 from pydid.doc.verification_method_options import VerificationMethodOptions
 
 VMETHOD0 = {
@@ -86,6 +86,27 @@ def test_deserialized_member_types():
     vmethod = VerificationMethod.deserialize(VMETHOD0)
     assert isinstance(vmethod.id, DIDUrl)
     assert isinstance(vmethod.controller, DID)
+
+
+def test_init_mapping():
+    vmethod = VerificationMethod(
+        id_=DIDUrl("did:example:123", fragment="keys-1"),
+        suite=VerificationSuite("TestType", "publicKeyBase58"),
+        controller=DID("did:example:123"),
+        material="12345",
+    )
+    assert isinstance(vmethod.id, DIDUrl)
+    assert str(vmethod.id) == "did:example:123#keys-1"
+    assert isinstance(vmethod.controller, DID)
+    assert str(vmethod.controller) == "did:example:123"
+
+
+def test_init_errors_raised():
+    with pytest.raises(ValueError) as err:
+        VerificationMethod(id_=123, suite=123, controller=123, material="12345")
+        assert "expected DID" in err
+        assert "expected DIDUrl" in err
+        assert "expected VerificationSuite" in err
 
 
 def test_option_allow_type_list():

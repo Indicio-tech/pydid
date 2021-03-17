@@ -1,7 +1,8 @@
 """Validation tools and helpers."""
 
 from functools import wraps
-from voluptuous import validate, MultipleInvalid
+
+from voluptuous import MultipleInvalid, validate
 
 
 def validate_init(*s_args, **s_kwargs):

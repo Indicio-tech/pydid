@@ -1,6 +1,7 @@
 """DID Doc Service."""
 
-from voluptuous import Schema, All, Url, ALLOW_EXTRA
+from voluptuous import ALLOW_EXTRA, All, Schema, Url
+
 from ..did_url import DIDUrl
 
 

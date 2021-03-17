@@ -1,9 +1,10 @@
 """Test DIDComm Service."""
 
 import pytest
-
 from voluptuous import MultipleInvalid
+
 from pydid.doc.didcomm_service import DIDCommService
+
 from .test_service import INVALID_SERVICES as BASE_INVALID_SERVICES
 
 SERVICE0 = {

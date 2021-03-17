@@ -1,8 +1,8 @@
 """Test DIDDocument object."""
 
 import pytest
-
 from voluptuous import MultipleInvalid
+
 from pydid.doc.doc import DIDDocument
 from pydid.doc.verification_method import VerificationMethod
 

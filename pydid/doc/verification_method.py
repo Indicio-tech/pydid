@@ -1,10 +1,12 @@
 """DID Doc Verification Method."""
 
 from typing import Any, Set
-from voluptuous import Schema, All, Invalid, Union, Coerce
-from voluptuous import validate as validate_args
+
+from voluptuous import All, Invalid, Schema, Union
+
 from ..did import DID
 from ..did_url import DIDUrl
+from ..validation import validate_init
 from . import DIDDocError
 from .verification_method_options import VerificationMethodOptions
 
@@ -85,7 +87,7 @@ class VerificationMethod:
         required=True,
     )
 
-    @validate_args(id_=DIDUrl.parse, controller=Coerce(DID))
+    @validate_init(id_=DIDUrl, suite=VerificationSuite, controller=DID)
     def __init__(
         self, id_: DIDUrl, suite: VerificationSuite, controller: DID, material: Any
     ):
@@ -147,8 +149,8 @@ class VerificationMethod:
         suite = VerificationSuite.derive(value["type"], **value)
         material = value[suite.verification_material_prop]
         return cls(
-            id_=value["id"],
-            controller=value["controller"],
+            id_=DIDUrl.parse(value["id"]),
+            controller=DID(value["controller"]),
             suite=suite,
             material=material,
         )

@@ -1,8 +1,10 @@
 """Additional validation options for Verification Methods."""
 
-from typing import Union
 from enum import Enum
-from voluptuous import Schema, All, ALLOW_EXTRA
+from typing import Union
+
+from voluptuous import ALLOW_EXTRA, All, Schema
+
 from ..did_url import DIDUrl
 
 

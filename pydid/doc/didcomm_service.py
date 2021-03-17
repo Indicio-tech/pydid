@@ -2,7 +2,7 @@
 
 from typing import List
 
-from voluptuous import All, Any, PREVENT_EXTRA
+from voluptuous import PREVENT_EXTRA, All, Any
 
 from ..did_url import DIDUrl
 from .service import Service
