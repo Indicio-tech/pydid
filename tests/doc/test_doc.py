@@ -4,6 +4,7 @@ import pytest
 
 from voluptuous import MultipleInvalid
 from pydid.doc.doc import DIDDocument
+from pydid.doc.verification_method import VerificationMethod
 
 DOC0 = {
     "@context": ["https://w3id.org/did/v0.11", "https://w3id.org/veres-one/v1"],
@@ -242,3 +243,18 @@ def test_fails_invalid(doc):
     """Test invalid docs fail."""
     with pytest.raises(MultipleInvalid):
         DIDDocument.validate(doc)
+
+
+@pytest.mark.parametrize("doc_raw", DOCS)
+def test_serialization(doc_raw):
+    """Test serialization and deserialization."""
+    doc = DIDDocument.deserialize(doc_raw)
+    assert doc.serialize() == doc_raw
+
+
+def test_dereference():
+    """Test DID Doc dereferencing a URL."""
+    doc = DIDDocument.deserialize(DOC0)
+    auth0: VerificationMethod = doc.dereference(DOC0["authentication"][0]["id"])
+    assert isinstance(auth0, VerificationMethod)
+    assert auth0.serialize() == DOC0["authentication"][0]
