@@ -45,3 +45,22 @@ class As:
         if value != self.from_value:
             raise Invalid("{} does not match {}".format(value, self.from_value))
         return self.to_value
+
+
+def unwrap_if_list_of_one(value):
+    """Unwrap a value froma list if list is length one."""
+    if value and len(value) == 1:
+        return value[0]
+    return value
+
+
+def single_to_list(value):
+    """Wrap value in list if not already."""
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def serialize(value):
+    """Call serialize on passed value."""
+    return value.serialize()
