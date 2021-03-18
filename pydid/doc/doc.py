@@ -1,8 +1,10 @@
 """DID Document Object."""
 
+import typing
 from typing import List
 
 from voluptuous import ALLOW_EXTRA, All, Coerce, Required, Schema, Union, Url
+from voluptuous import validate as validate_args
 
 from ..did import DID
 from ..did_url import DIDUrl
@@ -10,6 +12,15 @@ from ..validation import As
 from .service import Service
 from .verification_method import VerificationMethod
 from .verification_relationship import VerificationRelationship
+from . import DIDDocError
+
+
+class DuplicateResourceID(DIDDocError):
+    """Raised when IDs in Document are not unique."""
+
+
+class ResourceIDNotFound(DIDDocError):
+    """Raised when Resource ID not found in DID Document."""
 
 
 class DIDDocument:
@@ -61,9 +72,55 @@ class DIDDocument:
         self.capability_delegation = capability_delegation
         self.service = service
 
-    def dereference(self, reference: DIDUrl):
+        self._index = {}
+        self._index_resources()
+
+    def _index_resources(self):
+        """Index resources by ID.
+
+        IDs must be globally unique. Collisions are cause for error.
+        """
+
+        def _indexer(item):
+            if not item:
+                # Attribute isn't set
+                return
+            if isinstance(item, DIDUrl):
+                # We don't index references
+                return
+            if isinstance(item, list):
+                for subitem in item:
+                    _indexer(subitem)
+                    return
+            if isinstance(item, VerificationRelationship):
+                for subitem in item.items:
+                    _indexer(subitem)
+                    return
+
+            assert isinstance(item, (VerificationMethod, Service))
+            if item.id in self._index:
+                raise DuplicateResourceID(
+                    "ID {} already found in Index".format(item.id)
+                )
+
+            self._index[item.id] = item
+
+        for item in (
+            self.verification_method,
+            self.authentication,
+            self.assertion_method,
+            self.key_agreement,
+            self.capability_invocation,
+            self.capability_delegation,
+        ):
+            _indexer(item)
+
+    @validate_args(reference=Union(DIDUrl, All(str, DIDUrl.parse)))
+    def dereference(self, reference: typing.Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
-        return self
+        if reference not in self._index:
+            raise ResourceIDNotFound("ID {} not found in document".format(reference))
+        return self._index[reference]
 
     def serialize(self):
         """Serialize DID Document."""
@@ -92,7 +149,11 @@ class DIDDocument:
             }
         )
         return mapping(
-            {key: value for key, value in self.__dict__.items() if value is not None}
+            {
+                key: value
+                for key, value in self.__dict__.items()
+                if value is not None and not key.startswith("_")
+            }
         )
 
     @classmethod
