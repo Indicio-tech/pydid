@@ -1,5 +1,7 @@
 """Test DIDDocument object."""
 
+import copy
+
 import pytest
 from voluptuous import MultipleInvalid
 
@@ -258,3 +260,20 @@ def test_dereference():
     auth0: VerificationMethod = doc.dereference(DOC0["authentication"][0]["id"])
     assert isinstance(auth0, VerificationMethod)
     assert auth0.serialize() == DOC0["authentication"][0]
+
+
+def test_vmethod_relationships():
+    """Test checking whether a verification method is in a relationship."""
+    doc = DIDDocument.deserialize(DOC0)
+    auth0: VerificationMethod = doc.dereference(DOC0["authentication"][0]["id"])
+    assert isinstance(auth0, VerificationMethod)
+    assert auth0 in doc.authentication
+    assert auth0 not in doc.assertion_method
+
+
+def test_extra_preserved():
+    """Test whether extra attributes are preserved."""
+    doc_raw = copy.deepcopy(DOC6)
+    doc_raw["additionalAttribute"] = {"extra": "junk"}
+    doc = DIDDocument.deserialize(doc_raw)
+    assert "additionalAttribute" in doc.serialize()
