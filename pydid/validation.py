@@ -2,14 +2,15 @@
 
 from functools import wraps
 
-from voluptuous import Invalid, MultipleInvalid, validate
+import voluptuous
+from voluptuous import Invalid, MultipleInvalid
 
 
 def validate_init(*s_args, **s_kwargs):
     """Wrapper around voluptuous.validate decorator for better errors."""
 
     def _validate_init(func):
-        func = validate(*s_args, **s_kwargs)(func)
+        func = voluptuous.validate(*s_args, **s_kwargs)(func)
 
         @wraps(func)
         def _wrapper(*args, **kwargs):
@@ -33,7 +34,7 @@ def validate_init(*s_args, **s_kwargs):
     return _validate_init
 
 
-class As:
+class Into:
     """Validator that always returns a given value."""
 
     def __init__(self, from_value, to_value):

@@ -8,11 +8,12 @@ from voluptuous import validate as validate_args
 
 from ..did import DID
 from ..did_url import DIDUrl
-from ..validation import As
+from ..validation import Into
 from .service import Service
 from .verification_method import VerificationMethod
 from .verification_relationship import VerificationRelationship
 from . import DIDDocError
+from ..validation import unwrap_if_list_of_one, single_to_list, serialize
 
 
 class DuplicateResourceID(DIDDocError):
@@ -71,6 +72,7 @@ class DIDDocument:
         self.capability_invocation = capability_invocation
         self.capability_delegation = capability_delegation
         self.service = service
+        self.extra = extra
 
         self._index = {}
         self._index_resources()
@@ -124,72 +126,60 @@ class DIDDocument:
 
     def serialize(self):
         """Serialize DID Document."""
-
-        def _unwrap_if_list_of_one(value):
-            if value and len(value) == 1:
-                return value[0]
-            return value
-
-        def _serialize(item):
-            return item.serialize()
-
         mapping = Schema(
             {
-                As("context", "@context"): _unwrap_if_list_of_one,
+                Into("context", "@context"): unwrap_if_list_of_one,
                 "id": Coerce(str),
-                As("also_known_as", "alsoKnownAs"): [str],
-                "controller": All([Coerce(str)], _unwrap_if_list_of_one),
-                As("verification_method", "verificationMethod"): [_serialize],
-                "authentication": _serialize,
-                As("assertion_method", "assertionMethod"): _serialize,
-                As("key_agreement", "KeyAgreement"): _serialize,
-                As("capability_invocation", "capabilityInvocation"): _serialize,
-                As("capability_delegation", "capabilityDelegation"): _serialize,
-                "service": _serialize,
-            }
+                Into("also_known_as", "alsoKnownAs"): [str],
+                "controller": All([Coerce(str)], unwrap_if_list_of_one),
+                Into("verification_method", "verificationMethod"): [serialize],
+                "authentication": serialize,
+                Into("assertion_method", "assertionMethod"): serialize,
+                Into("key_agreement", "KeyAgreement"): serialize,
+                Into("capability_invocation", "capabilityInvocation"): serialize,
+                Into("capability_delegation", "capabilityDelegation"): serialize,
+                "service": serialize,
+            },
+            extra=ALLOW_EXTRA,
         )
-        return mapping(
+        value = mapping(
             {
                 key: value
                 for key, value in self.__dict__.items()
-                if value is not None and not key.startswith("_")
+                if value is not None and not key.startswith("_") and not key == "extra"
             }
         )
+        return {**value, **self.extra}
 
     @classmethod
     def deserialize(cls, value: dict):
         """Deserialize DID Document."""
         value = cls.validate(value)
-
-        def _single_to_list(value):
-            if isinstance(value, list):
-                return value
-            return [value]
-
         mapping = Schema(
             {
-                As("id", "id_"): Coerce(DID),
-                As("@context", "context"): _single_to_list,
-                As("alsoKnownAs", "also_known_as"): [str],
-                "controller": All(_single_to_list, [Coerce(DID)]),
-                As("verificationMethod", "verification_method"): [
+                Into("id", "id_"): Coerce(DID),
+                Into("@context", "context"): single_to_list,
+                Into("alsoKnownAs", "also_known_as"): [str],
+                "controller": All(single_to_list, [Coerce(DID)]),
+                Into("verificationMethod", "verification_method"): [
                     VerificationMethod.deserialize
                 ],
                 "authentication": VerificationRelationship.deserialize,
-                As(
+                Into(
                     "assertionMethod", "assertion_method"
                 ): VerificationRelationship.deserialize,
-                As(
+                Into(
                     "keyAgreement", "key_agreement"
                 ): VerificationRelationship.deserialize,
-                As(
+                Into(
                     "capabilityInvocation", "capability_invocation"
                 ): VerificationRelationship.deserialize,
-                As(
+                Into(
                     "capabilityDelegation", "capability_delegation"
                 ): VerificationRelationship.deserialize,
                 "service": [Service.deserialize],
             },
+            extra=ALLOW_EXTRA,
         )
 
         value = mapping(value)
