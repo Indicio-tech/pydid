@@ -121,7 +121,7 @@ DOC2 = {
 DOC3 = {
     "@context": "https://w3id.org/did/v1",
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
-    "controller": ["did:example:123"],
+    "controller": "did:example:123",
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
@@ -159,7 +159,7 @@ DOC3 = {
 DOC4 = {
     "@context": "https://w3id.org/did/v1",
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
-    "controller": ["did:example:123"],
+    "controller": "did:example:123",
     "verificationMethod": [
         {
             "id": "did:example:123#authentication-1",

@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from voluptuous import MultipleInvalid, validate
+from voluptuous import Invalid, MultipleInvalid, validate
 
 
 def validate_init(*s_args, **s_kwargs):
@@ -36,8 +36,12 @@ def validate_init(*s_args, **s_kwargs):
 class As:
     """Validator that always returns a given value."""
 
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, from_value, to_value):
+        self.from_value = from_value
+        self.to_value = to_value
 
-    def __call__(self, _value):
-        return self.value
+    def __call__(self, value):
+        """Validate."""
+        if value != self.from_value:
+            raise Invalid("{} does not match {}".format(value, self.from_value))
+        return self.to_value
