@@ -25,6 +25,13 @@ class VerificationRelationship:
         """Initialize verification relationship."""
         self.items = items
 
+    def __contains__(self, item: VerificationMethod):
+        if not isinstance(item, (DIDUrl, VerificationMethod)):
+            return False
+        return item in self.items or (
+            isinstance(item, VerificationMethod) and item.id in self.items
+        )
+
     def serialize(self):
         """Serialize this relationship."""
 

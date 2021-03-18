@@ -27,3 +27,10 @@ def test_invalid_reference():
 def test_serialization():
     rel = VerificationRelationship.deserialize(RELATIONSHIP0)
     assert rel.serialize() == RELATIONSHIP0
+
+
+def test_contains():
+    rel = VerificationRelationship.deserialize(RELATIONSHIP0)
+    assert rel.items[1] in rel
+    assert rel.items[0] in rel
+    assert "123" not in rel
