@@ -248,6 +248,10 @@ class DIDDocument:
         value = cls.properties.deserialize(value)
         return cls(**value)
 
+    def to_builder(self):
+        """Return a builder from this doc."""
+        return DIDDocumentBuilder.from_doc(self)
+
 
 class VerificationMethodBuilder:
     """VerificationMethod scoped builder."""
@@ -384,8 +388,34 @@ class DIDDocumentBuilder:
         self.also_known_as = also_known_as
         self.controller = controller
         self._verification_methods = []
-        self._relationships = {}
+        self._authentication = VerificationRelationship([])
+        self._assertion_method = VerificationRelationship([])
+        self._key_agreement = VerificationRelationship([])
+        self._capability_invocation = VerificationRelationship([])
+        self._capability_delegation = VerificationRelationship([])
         self._services = []
+
+    @classmethod
+    def from_doc(cls, doc: DIDDocument) -> "DIDDocumentBuilder":
+        """Create a Builder from an existing DIDDocument."""
+        builder = cls(
+            id_=doc.id,
+            context=doc.context,
+            also_known_as=doc.also_known_as,
+            controller=doc.controller,
+        )
+        builder._verification_methods = doc.verification_method
+        builder._authentication = doc.authentication or VerificationRelationship([])
+        builder._assertion_method = doc.assertion_method or VerificationRelationship([])
+        builder._key_agreement = doc.key_agreement or VerificationRelationship([])
+        builder._capability_invocation = (
+            doc.capability_invocation or VerificationRelationship([])
+        )
+        builder._capability_delegation = (
+            doc.capability_delegation or VerificationRelationship([])
+        )
+        builder._services = doc.service
+        return builder
 
     @staticmethod
     def _default_id_generator(base: str) -> Iterable[str]:
@@ -411,7 +441,7 @@ class DIDDocumentBuilder:
     @contextmanager
     def _relationship(
         self,
-        relationship: str,
+        relationship: VerificationRelationship,
         ident_base: str = None,
         id_generator: Iterable[str] = None,
         default_suite: VerificationSuite = None,
@@ -423,7 +453,7 @@ class DIDDocumentBuilder:
             default_suite,
         )
         yield subbuilder
-        self._relationships[relationship] = VerificationRelationship(subbuilder.methods)
+        relationship.items.extend(subbuilder.methods)
 
     @contextmanager
     def authentication(
@@ -433,7 +463,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for authentication relationship."""
         with self._relationship(
-            "authentication", "auth", id_generator, default_suite
+            self._authentication, "auth", id_generator, default_suite
         ) as builder:
             yield builder
 
@@ -445,7 +475,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for assertion_method relationship."""
         with self._relationship(
-            "assertion_method", "assert", id_generator, default_suite
+            self._assertion_method, "assert", id_generator, default_suite
         ) as builder:
             yield builder
 
@@ -457,7 +487,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for key_agreement relationship."""
         with self._relationship(
-            "key_agreement", "key_agreement", id_generator, default_suite
+            self.key_agreement, "key-agreement", id_generator, default_suite
         ) as builder:
             yield builder
 
@@ -469,7 +499,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for capability_invocation relationship."""
         with self._relationship(
-            "capability_invocation",
+            self._capability_invocation,
             "capability-invocation",
             id_generator,
             default_suite,
@@ -484,7 +514,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for capability_delegation relationship."""
         with self._relationship(
-            "capability_delegation",
+            self._capability_delegation,
             "capability-delegation",
             id_generator,
             default_suite,
@@ -508,7 +538,11 @@ class DIDDocumentBuilder:
             context=self.context,
             also_known_as=self.also_known_as,
             controller=self.controller,
-            verification_method=self._verification_methods,
-            **self._relationships,
-            service=self._services
+            verification_method=self._verification_methods or None,
+            authentication=self._authentication or None,
+            assertion_method=self._assertion_method or None,
+            key_agreement=self._key_agreement or None,
+            capability_invocation=self._capability_invocation or None,
+            capability_delegation=self._capability_delegation or None,
+            service=self._services or None,
         )

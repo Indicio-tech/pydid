@@ -25,6 +25,10 @@ class VerificationRelationship:
         """Initialize verification relationship."""
         self.items = items
 
+    def __bool__(self):
+        """Return whether this relationship is empty or not."""
+        return bool(self.items)
+
     def __contains__(self, item: VerificationMethod):
         if not isinstance(item, (DIDUrl, VerificationMethod)):
             return False

@@ -309,3 +309,13 @@ def test_programmatic_construction():
     with builder.services() as services:
         services.add(type_="example", endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
+
+
+def test_builder_from_doc():
+    doc = DIDDocument.deserialize(DOC6)
+    builder = doc.to_builder()
+    with builder.verification_methods() as vmethods:
+        vmethods.add(
+            suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
+        )
+    assert len(builder.build().serialize()["verificationMethod"]) == 2
