@@ -8,7 +8,8 @@ extend_ignore = "D202, W503"
 per_file_ignores = "*/__init__.py:D104"
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings"
+addopts = "-p no:warnings -m 'not int'"
+markers = "int: integration tests"
 
 [tool.poetry]
 name = "pydid"
@@ -27,6 +28,7 @@ black = "^20.8b1"
 poetry = "^1.1.5"
 pre-commit = "^2.11.1"
 flake8 = "^3.9.0"
+requests = "^2.25.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
