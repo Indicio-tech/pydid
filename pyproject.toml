@@ -8,7 +8,7 @@ extend_ignore = "D202, W503"
 per_file_ignores = "*/__init__.py:D104"
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings -m 'not int'"
+addopts = "-p no:warnings -m 'not int' --cov pydid"
 markers = "int: integration tests"
 
 [tool.poetry]
