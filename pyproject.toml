@@ -29,6 +29,7 @@ poetry = "^1.1.5"
 pre-commit = "^2.11.1"
 flake8 = "^3.9.0"
 requests = "^2.25.1"
+pytest-coverage = "^0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
