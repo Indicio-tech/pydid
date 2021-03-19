@@ -62,9 +62,9 @@ class DID:
         """Return a DID URL for this DID."""
         return DIDUrl(self._raw, path, query, fragment)
 
-    def ref(self, ident: str):
+    def ref(self, ident: str) -> DIDUrl:
         """Return a DID reference (URL) for use as an ID in a DID Doc section."""
-        return DIDUrl.as_str(self._raw, fragment=ident)
+        return DIDUrl(self._raw, fragment=ident)
 
     @classmethod
     def is_valid(cls, did: str):

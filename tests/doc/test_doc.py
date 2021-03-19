@@ -5,11 +5,12 @@ import copy
 import pytest
 from voluptuous import MultipleInvalid
 
-from pydid.doc.doc import DIDDocument
-from pydid.doc.verification_method import VerificationMethod
+from pydid.doc.doc import DIDDocument, DIDDocumentBuilder
+from pydid.doc.verification_method import VerificationMethod, VerificationSuite
+from pydid.doc.service import Service
 
 DOC0 = {
-    "@context": ["https://w3id.org/did/v0.11", "https://w3id.org/veres-one/v1"],
+    "@context": "https://w3id.org/did/v0.11",
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
     "authentication": [
         {
@@ -41,6 +42,13 @@ DOC0 = {
             "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
+        }
+    ],
+    "service": [
+        {
+            "id": "did:example:123#service-1",
+            "type": "example",
+            "serviceEndpoint": "https://example.com",
         }
     ],
 }
@@ -196,24 +204,31 @@ DOC5 = {
 }
 
 DOC6 = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": "https://www.w3.org/ns/did/v1",
     "id": "did:example:123",
     "verificationMethod": [
         {
-            "id": "did:example:123#keys-1",
+            "id": "did:example:123#keys-0",
             "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
     ],
     "authentication": [
-        "did:example:123#keys-1",
+        "did:example:123#keys-0",
         {
-            "id": "did:example:123#auth-1",
+            "id": "did:example:123#auth-0",
             "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
+    ],
+    "service": [
+        {
+            "id": "did:example:123#service-0",
+            "type": "example",
+            "serviceEndpoint": "https://example.com",
+        }
     ],
 }
 
@@ -260,6 +275,9 @@ def test_dereference():
     auth0: VerificationMethod = doc.dereference(DOC0["authentication"][0]["id"])
     assert isinstance(auth0, VerificationMethod)
     assert auth0.serialize() == DOC0["authentication"][0]
+    service0: Service = doc.dereference(DOC0["service"][0]["id"])
+    assert isinstance(service0, Service)
+    assert service0.serialize() == DOC0["service"][0]
 
 
 def test_vmethod_relationships():
@@ -277,3 +295,17 @@ def test_extra_preserved():
     doc_raw["additionalAttribute"] = {"extra": "junk"}
     doc = DIDDocument.deserialize(doc_raw)
     assert "additionalAttribute" in doc.serialize()
+
+
+def test_programmatic_construction():
+    ed25519 = VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58")
+    builder = DIDDocumentBuilder("did:example:123")
+    assert builder.context == ["https://www.w3.org/ns/did/v1"]
+    with builder.verification_methods(default_suite=ed25519) as vmethods:
+        vmethod1 = vmethods.add("1234")
+    with builder.authentication(default_suite=ed25519) as auth:
+        auth.reference(vmethod1.id)
+        auth.embed("abcd")
+    with builder.services() as services:
+        services.add(type_="example", endpoint="https://example.com")
+    assert builder.build().serialize() == DOC6
