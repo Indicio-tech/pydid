@@ -1,10 +1,13 @@
 """Validation tools and helpers."""
 
+from abc import ABCMeta, abstractclassmethod, abstractmethod
+from collections import namedtuple
+from enum import Enum, EnumMeta
 from functools import wraps
-from typing import Any
+from typing import Any, Iterable, Set
 
 import voluptuous
-from voluptuous import Invalid, MultipleInvalid, Required, ALLOW_EXTRA
+from voluptuous import ALLOW_EXTRA, Invalid, MultipleInvalid, Required, Schema
 
 
 def validate_init(*s_args, **s_kwargs):
@@ -71,11 +74,16 @@ def serialize(value):
 class Properties:
     """Aggregator of property info for use in validation and serialization."""
 
+    Property = namedtuple(
+        "Property",
+        ["name", "data_key", "required", "validate", "serialize", "deserialize"],
+    )
+
     def __init__(self, required=None, extra=None):
         self.validator = {}
         self.serializer = {}
         self.deserializer = {}
-        self.names = set()
+        self.props = []
         self.extra = extra
         self.required = required
 
@@ -91,21 +99,33 @@ class Properties:
         """Decorator defining field information."""
 
         def _add(func):
-            prop = func.__name__
-            self.names.add(prop)
+            prop = self.Property(
+                func.__name__,
+                data_key,
+                required,
+                validate or object,
+                serialize or validate or object,
+                deserialize or validate or object,
+            )
+            self.props.append(prop)
 
-            key = data_key or prop
+            key = data_key or prop.name
             key = Required(key) if required else key
-            self.validator[key] = validate or object
+            self.validator[key] = prop.validate
             if key:
-                self.serializer[Into(prop, key)] = serialize or validate or object
-                self.deserializer[Into(key, prop)] = deserialize or validate or object
+                self.serializer[Into(prop.name, key)] = prop.serialize
+                self.deserializer[Into(key, prop.name)] = prop.deserialize
             else:
-                self.serializer[key] = serialize or object
-                self.deserializer[key] = deserialize or object
+                self.serializer[key] = prop.serialize
+                self.deserializer[key] = prop.deserialize
             return func
 
         return _add
+
+    @property
+    def names(self):
+        """Return names of properties."""
+        return [prop.name for prop in self.props]
 
     def validate(self, value):
         """Validate properties from value."""
@@ -128,3 +148,33 @@ class Properties:
     def deserialize(self, value):
         """Deserialize properties."""
         return voluptuous.Schema(self.deserializer, extra=ALLOW_EXTRA)(value)
+
+
+class ABCEnumMeta(EnumMeta, ABCMeta):
+    """Metaclass combo for Enum ABCs."""
+
+
+class Option(Enum, metaclass=ABCEnumMeta):
+    """Base class for serialization and validation options."""
+
+    @property
+    @abstractmethod
+    def priority(self) -> int:
+        """Define options application priority."""
+
+    @property
+    @abstractmethod
+    def schema(self) -> Schema:
+        """Define schema applied for option."""
+
+    @abstractclassmethod
+    def apply(cls, value: dict, options: Set["Option"]) -> dict:
+        """Apply options to value."""
+
+    @staticmethod
+    def schemas_in_application_order(options: Set["Option"]) -> Iterable[Schema]:
+        """Return schemas of options in the order they should be applied."""
+        return map(
+            lambda option: option.schema,
+            sorted(options, key=lambda option: option.priority),
+        )

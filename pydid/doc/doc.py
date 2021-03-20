@@ -1,7 +1,7 @@
 """DID Document Object."""
 
 import typing
-from typing import List, Iterable, ContextManager
+from typing import List, Iterable, ContextManager, Set
 from contextlib import contextmanager
 
 from voluptuous import ALLOW_EXTRA, All, Coerce, Union, Url
@@ -13,6 +13,7 @@ from .service import Service
 from .didcomm_service import DIDCommService
 from .verification_method import VerificationMethod, VerificationSuite
 from .verification_relationship import VerificationRelationship
+from .doc_options import DIDDocumentOption
 from . import DIDDocError
 from ..validation import (
     unwrap_if_list_of_one,
@@ -20,6 +21,7 @@ from ..validation import (
     serialize,
     Properties,
     validate_init,
+    Option,
 )
 
 
@@ -242,8 +244,10 @@ class DIDDocument:
         return {**value, **self.extra}
 
     @classmethod
-    def deserialize(cls, value: dict):
+    def deserialize(cls, value: dict, options: Set[Option] = None):
         """Deserialize DID Document."""
+        if options:
+            value = DIDDocumentOption.apply(value, options)
         value = cls.validate(value)
         value = cls.properties.deserialize(value)
         return cls(**value)

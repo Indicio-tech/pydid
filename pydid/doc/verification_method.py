@@ -139,8 +139,7 @@ class VerificationMethod:
         """Deserialize into VerificationMethod."""
         # Apply options
         if options:
-            for option in sorted(options, key=lambda item: item.priority):
-                value = option.mapper(value)
+            value = VerificationMethodOptions.apply(value, options)
 
         # Perform validation
         value = cls.validate(value)

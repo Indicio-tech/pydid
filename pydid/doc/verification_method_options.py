@@ -1,19 +1,20 @@
 """Additional validation options for Verification Methods."""
 
-from enum import Enum
-from typing import Union
+import typing
+from typing import Set
 
-from voluptuous import ALLOW_EXTRA, All, Schema
+from voluptuous import ALLOW_EXTRA, All, Schema, Union
 
 from ..did_url import DIDUrl
+from ..validation import Option
 
 
-def _option_allow_type_list(value: Union[str, list]):
+def _option_allow_type_list(value: typing.Union[str, list]):
     """Provide mapping for allow type list option."""
     return value[0] if isinstance(value, list) else value
 
 
-def _option_allow_controller_list(value: Union[str, list]):
+def _option_allow_controller_list(value: typing.Union[str, list]):
     """Provide mapping for allwo controller list option."""
     return value[0] if isinstance(value, list) else value
 
@@ -24,18 +25,19 @@ def _option_allow_missing_controller(value: dict):
     return value
 
 
-class VerificationMethodOptions(Enum):
+class VerificationMethodOptions(Option):
     """Container for validation options for VerificationMethods."""
 
     allow_type_list = 0, Schema(
-        {"type": All([str], _option_allow_type_list)}, extra=ALLOW_EXTRA
+        {"type": All(Union(str, [str]), _option_allow_type_list)}, extra=ALLOW_EXTRA
     )
     allow_missing_controller = 1, Schema(
         All({"id": All(str, DIDUrl.validate)}, _option_allow_missing_controller),
         extra=ALLOW_EXTRA,
     )
     allow_controller_list = 2, Schema(
-        {"controller": All([str], _option_allow_controller_list)}, extra=ALLOW_EXTRA
+        {"controller": All(Union(str, [str]), _option_allow_controller_list)},
+        extra=ALLOW_EXTRA,
     )
 
     @property
@@ -44,6 +46,11 @@ class VerificationMethodOptions(Enum):
         return self.value[0]
 
     @property
-    def mapper(self):
-        """Return the mapper for this option. Alias to enum value."""
+    def schema(self):
+        """Return the schema defined by option."""
         return self.value[1]
+
+    @classmethod
+    def apply(cls, value, options: Set["VerificationMethodOptions"]):
+        """Apply options to value"""
+        return All(*cls.schemas_in_application_order(options))(value)
