@@ -319,7 +319,3 @@ def test_builder_from_doc():
             suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
         )
     assert len(builder.build().serialize()["verificationMethod"]) == 2
-
-
-def test_deserialization_options():
-    pytest.fail("Not implemented.")

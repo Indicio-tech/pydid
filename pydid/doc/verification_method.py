@@ -2,11 +2,11 @@
 
 from typing import Any, Set
 
-from voluptuous import All, Invalid, Schema, Union
+from voluptuous import All, Invalid, Schema, Union, ALLOW_EXTRA, Coerce, Remove
 
 from ..did import DID
 from ..did_url import DIDUrl
-from ..validation import validate_init
+from ..validation import validate_init, Into
 from . import DIDDocError
 from .verification_method_options import VerificationMethodOptions
 
@@ -85,17 +85,24 @@ class VerificationMethod:
             All(str, verification_material): Union(str, dict),
         },
         required=True,
+        extra=ALLOW_EXTRA,
     )
 
     @validate_init(id_=DIDUrl, suite=VerificationSuite, controller=DID)
     def __init__(
-        self, id_: DIDUrl, suite: VerificationSuite, controller: DID, material: Any
+        self,
+        id_: DIDUrl,
+        suite: VerificationSuite,
+        controller: DID,
+        material: Any,
+        **extra
     ):
         """Initialize VerificationMethod."""
         self._id = id_
         self._suite = suite
         self._controller = controller
         self._material = material
+        self.extra = extra
 
     # pylint: disable=invalid-name
     @property
@@ -130,6 +137,7 @@ class VerificationMethod:
             "type": self.type,
             "controller": self.controller,
             self.suite.verification_material_prop: self.material,
+            **self.extra,
         }
 
     @classmethod
@@ -144,12 +152,25 @@ class VerificationMethod:
         # Perform validation
         value = cls.validate(value)
 
-        # Hydrate object
-        suite = VerificationSuite.derive(value["type"], **value)
-        material = value[suite.verification_material_prop]
-        return cls(
-            id_=DIDUrl.parse(value["id"]),
-            controller=DID(value["controller"]),
-            suite=suite,
-            material=material,
+        def _suite_and_material(value):
+            suite = VerificationSuite.derive(value["type"], **value)
+            material = value[suite.verification_material_prop]
+            value["suite"] = suite
+            value["material"] = material
+            return value
+
+        deserializer = Schema(
+            All(
+                {
+                    Into("id", "id_"): All(str, DIDUrl.parse),
+                    "controller": All(str, Coerce(DID)),
+                },
+                _suite_and_material,
+                {Remove("type"): str, Remove(verification_material): Union(str, dict)},
+            ),
+            extra=ALLOW_EXTRA,
         )
+
+        # Hydrate object
+        value = deserializer(value)
+        return cls(**value)

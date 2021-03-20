@@ -4,7 +4,6 @@ from typing import Set, Type
 
 from voluptuous import Schema, All, ALLOW_EXTRA, Union
 
-from .verification_method import VerificationMethod
 from .verification_method_options import VerificationMethodOptions
 from ..validation import Into, Option
 
@@ -36,7 +35,7 @@ class DIDDocumentOption(Option):
     """
 
     allow_public_key = 0, Schema(
-        {Into("publicKey", "verificationMethod"): [VerificationMethod.validate]},
+        {Into("publicKey", "verificationMethod"): [dict]},
         extra=ALLOW_EXTRA,
     )
 
@@ -59,7 +58,8 @@ class DIDDocumentOption(Option):
                         _options_of_type(VerificationMethodOptions, options)
                     )
                 )
-            )
+            ),
+            extra=ALLOW_EXTRA,
         )
         value = vm_options(value)
 
