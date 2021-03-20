@@ -1,20 +1,19 @@
 """Additional validation options for Verification Methods."""
 
-import typing
-from typing import Set
+from typing import Set, Union
 
-from voluptuous import ALLOW_EXTRA, All, Schema, Union
+from voluptuous import ALLOW_EXTRA, All, Schema, Switch, Required
 
 from ..did_url import DIDUrl
 from ..validation import Option
 
 
-def _option_allow_type_list(value: typing.Union[str, list]):
+def _option_allow_type_list(value: Union[str, list]):
     """Provide mapping for allow type list option."""
     return value[0] if isinstance(value, list) else value
 
 
-def _option_allow_controller_list(value: typing.Union[str, list]):
+def _option_allow_controller_list(value: Union[str, list]):
     """Provide mapping for allwo controller list option."""
     return value[0] if isinstance(value, list) else value
 
@@ -29,14 +28,17 @@ class VerificationMethodOptions(Option):
     """Container for validation options for VerificationMethods."""
 
     allow_type_list = 0, Schema(
-        {"type": All(Union(str, [str]), _option_allow_type_list)}, extra=ALLOW_EXTRA
+        {"type": All(Switch(str, [str]), _option_allow_type_list)}, extra=ALLOW_EXTRA
     )
     allow_missing_controller = 1, Schema(
-        All({"id": All(str, DIDUrl.validate)}, _option_allow_missing_controller),
+        All(
+            {Required("id"): All(str, DIDUrl.validate)},
+            _option_allow_missing_controller,
+        ),
         extra=ALLOW_EXTRA,
     )
     allow_controller_list = 2, Schema(
-        {"controller": All(Union(str, [str]), _option_allow_controller_list)},
+        {"controller": All(Switch(str, [str]), _option_allow_controller_list)},
         extra=ALLOW_EXTRA,
     )
 

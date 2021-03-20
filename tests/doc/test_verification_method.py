@@ -145,3 +145,11 @@ def test_option_allow_missing_controller():
         options={VerificationMethodOptions.allow_missing_controller},
     )
     assert vmethod.controller == "did:example:123"
+    with pytest.raises(MultipleInvalid):
+        vmethod = VerificationMethod.deserialize(
+            {
+                "type": "Ed25519Signature2018",
+                "publicKeyBase58": "12345",
+            },
+            options={VerificationMethodOptions.allow_missing_controller},
+        )
