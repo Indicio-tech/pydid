@@ -81,7 +81,7 @@ class DIDUrl:
         matches = DID_PATTERN.match(url)
 
         if not matches:
-            raise InvalidDIDUrlError("DID could not be parsed from URL {}.".format(url))
+            raise InvalidDIDUrlError("DID could not be parsed from URL {}".format(url))
 
         did = matches.group(0)
         _, url_component = url.split(did)

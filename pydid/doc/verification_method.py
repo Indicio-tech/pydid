@@ -50,6 +50,14 @@ class VerificationSuite:
         self._type = type_
         self._verification_material_prop = verification_material_prop
 
+    def __eq__(self, other):
+        if not isinstance(other, VerificationSuite):
+            return False
+        return (
+            self._type == other._type
+            and self._verification_material_prop == other._verification_material_prop
+        )
+
     @property
     def type(self):
         """Return type."""
@@ -103,6 +111,18 @@ class VerificationMethod:
         self._controller = controller
         self._material = material
         self.extra = extra
+
+    def __eq__(self, other):
+        """Test equality."""
+        if not isinstance(other, VerificationMethod):
+            return False
+        return (
+            self._id == other._id
+            and self._suite == other._suite
+            and self._controller == other._controller
+            and self._material == other._material
+            and self.extra == other.extra
+        )
 
     # pylint: disable=invalid-name
     @property
