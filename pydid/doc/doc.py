@@ -1,32 +1,31 @@
 """DID Document Object."""
 
-import typing
-from typing import List, Iterable, ContextManager, Set
 from contextlib import contextmanager
+from typing import Any, ContextManager, Iterable, List, Set, Union
 
-from voluptuous import ALLOW_EXTRA, All, Coerce, Union, Url
+from voluptuous import ALLOW_EXTRA, All, Coerce, Switch, Url
 from voluptuous import validate as validate_args
 
 from ..did import DID
 from ..did_url import DIDUrl
-from .service import Service
+from ..validation import (
+    Option,
+    Properties,
+    serialize,
+    single_to_list,
+    unwrap_if_list_of_one,
+    validate_init,
+)
+from . import DIDDocError
 from .didcomm_service import DIDCommService
+from .doc_options import DIDDocumentOption
+from .service import Service
 from .verification_method import VerificationMethod, VerificationSuite
 from .verification_relationship import VerificationRelationship
-from .doc_options import DIDDocumentOption
-from . import DIDDocError
-from ..validation import (
-    unwrap_if_list_of_one,
-    single_to_list,
-    serialize,
-    Properties,
-    validate_init,
-    Option,
-)
 
 
-class DuplicateResourceID(DIDDocError):
-    """Raised when IDs in Document are not unique."""
+class IdentifiedResourceMismatch(DIDDocError):
+    """Raised when two or more of the same ID point to differing resources."""
 
 
 class ResourceIDNotFound(DIDDocError):
@@ -40,8 +39,8 @@ class DIDDocument:
 
     def __init__(
         self,
-        id: typing.Union[str, DID],
-        context: List[str],
+        id: Union[str, DID],
+        context: List[Any],
         *,
         also_known_as: List[str] = None,
         controller: List[str] = None,
@@ -74,7 +73,10 @@ class DIDDocument:
     def _index_resources(self):
         """Index resources by ID.
 
-        IDs must be globally unique. Collisions are cause for error.
+        IDs are not guaranteed to be unique within the document.
+        The first instance is stored in the index and subsequent id collisions
+        are checked against the original. If they do not match, an error will
+        be thrown.
         """
 
         def _indexer(item):
@@ -94,9 +96,11 @@ class DIDDocument:
                     return
 
             assert isinstance(item, (VerificationMethod, Service))
-            if item.id in self._index:
-                raise DuplicateResourceID(
-                    "ID {} already found in Index".format(item.id)
+            if item.id in self._index and item != self._index[item.id]:
+                raise IdentifiedResourceMismatch(
+                    "ID {} already found in Index and Items do not match".format(
+                        item.id
+                    )
                 )
 
             self._index[item.id] = item
@@ -116,7 +120,7 @@ class DIDDocument:
     @properties.add(
         data_key="@context",
         required=True,
-        validate=Union(Url(), [Url()]),
+        validate=Switch(Url(), [Url()], dict, [dict]),
         serialize=unwrap_if_list_of_one,
         deserialize=single_to_list,
     )
@@ -143,7 +147,7 @@ class DIDDocument:
 
     @property
     @properties.add(
-        validate=Union(All(str, DID.validate), [DID.validate]),
+        validate=Switch(All(str, DID.validate), [DID.validate]),
         serialize=All([Coerce(str)], unwrap_if_list_of_one),
         deserialize=All(single_to_list, [Coerce(DID)]),
     )
@@ -226,8 +230,8 @@ class DIDDocument:
         """Return service."""
         return self._service
 
-    @validate_args(reference=Union(DIDUrl, All(str, DIDUrl.parse)))
-    def dereference(self, reference: typing.Union[str, DIDUrl]):
+    @validate_args(reference=Switch(DIDUrl, All(str, DIDUrl.parse)))
+    def dereference(self, reference: Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
         if reference not in self._index:
             raise ResourceIDNotFound("ID {} not found in document".format(reference))
@@ -273,7 +277,7 @@ class VerificationMethodBuilder:
 
     def add(
         self,
-        material: typing.Any,
+        material: Any,
         suite: VerificationSuite = None,
         ident: str = None,
         controller: DID = None,
@@ -317,7 +321,7 @@ class RelationshipBuilder:
 
     def embed(
         self,
-        material: typing.Any,
+        material: Any,
         suite: VerificationSuite = None,
         ident: str = None,
         controller: DID = None,
@@ -377,10 +381,10 @@ class DIDDocumentBuilder:
 
     DEFAULT_CONTEXT = ["https://www.w3.org/ns/did/v1"]
 
-    @validate_init(id_=Union(All(str, Coerce(DID)), DID))
+    @validate_init(id_=Switch(All(str, Coerce(DID)), DID))
     def __init__(
         self,
-        id_: typing.Union[str, DID],
+        id_: Union[str, DID],
         context: List[str] = None,
         *,
         also_known_as: List[str] = None,
