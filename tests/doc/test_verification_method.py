@@ -8,6 +8,7 @@ from pydid.doc.verification_method import (
     VerificationMethod,
     VerificationSuite,
     VerificationMethodValidationError,
+    InvalidVerificationMaterial,
 )
 from pydid.doc.verification_method_options import VerificationMethodOptions
 
@@ -60,6 +61,70 @@ INVALID_VMETHODS = [
     INVALID_VMETHOD1,
     INVALID_VMETHOD2,
 ]
+
+
+@pytest.mark.parametrize(
+    "values, prop",
+    [
+        ({"one": "two", "publicKeyPem": "asdf"}, "publicKeyPem"),
+        ({"publicKeyBase58": "asdf"}, "publicKeyBase58"),
+        ({"one": 2, "three": 4, "publicKeyJwk": "asdf"}, "publicKeyJwk"),
+    ],
+)
+def test_suite_derive(values, prop):
+    assert VerificationSuite.derive("type", **values).verification_material_prop == prop
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        {"one": "two", "publiceyPem": "asdf"},
+        {},
+        {"one": 2, "three": 4},
+    ],
+)
+def test_suite_derive_x(values):
+    with pytest.raises(InvalidVerificationMaterial):
+        VerificationSuite.derive("type", **values)
+
+
+@pytest.mark.parametrize(
+    "lhs, rhs",
+    [
+        (
+            VerificationSuite("type", "publiceyPem"),
+            VerificationSuite("type", "publiceyPem"),
+        ),
+        (
+            VerificationSuite("type", "publicKeyBase58"),
+            VerificationSuite("type", "publicKeyBase58"),
+        ),
+    ],
+)
+def test_suite_eq(lhs, rhs):
+    assert lhs == rhs
+
+
+@pytest.mark.parametrize(
+    "lhs, rhs",
+    [
+        (
+            VerificationSuite("type", "publiceyPem"),
+            VerificationSuite("type", "publicKeyBase58"),
+        ),
+        (
+            VerificationSuite("type", "publicKeyBase58"),
+            VerificationSuite("type", "publiceyPem"),
+        ),
+        (
+            VerificationSuite("SomethingElse", "publiceyPem"),
+            VerificationSuite("type", "publiceyPem"),
+        ),
+        (VerificationSuite("type", "publicKeyBase58"), ""),
+    ],
+)
+def test_suite_eq_x(lhs, rhs):
+    assert lhs != rhs
 
 
 @pytest.mark.parametrize("vmethod", VMETHODS)
