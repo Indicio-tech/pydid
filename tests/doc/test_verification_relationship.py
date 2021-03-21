@@ -1,9 +1,9 @@
 """Test VerificationRelationship."""
 
 import pytest
-from voluptuous import MultipleInvalid
 
 from pydid.doc.verification_relationship import VerificationRelationship
+from pydid.doc.verification_method import VerificationMethodValidationError
 
 from .test_verification_method import INVALID_VMETHOD0, VMETHOD0
 
@@ -15,12 +15,12 @@ def test_simple():
 
 
 def test_invalid_method():
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         VerificationRelationship.validate(["did:example:123#keys-1", INVALID_VMETHOD0])
 
 
 def test_invalid_reference():
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         VerificationRelationship.validate(["1234", VMETHOD0])
 
 

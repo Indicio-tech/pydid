@@ -2,29 +2,21 @@
 
 from typing import Any, Set
 
-from voluptuous import All, Invalid, Schema, Union, ALLOW_EXTRA, Coerce, Remove
+from voluptuous import ALLOW_EXTRA, All, Coerce, Invalid, Remove, Schema, Union
 
 from ..did import DID
 from ..did_url import DIDUrl
-from ..validation import validate_init, Into
+from ..validation import Into, validate_init, wrap_validation_error
 from . import DIDDocumentError
 from .verification_method_options import VerificationMethodOptions
-
-allow_type_list = VerificationMethodOptions.allow_type_list
-allow_controller_list = VerificationMethodOptions.allow_controller_list
-allow_missing_controller = VerificationMethodOptions.allow_missing_controller
-
-__all__ = [
-    "VerificationSuite",
-    "VerificationMethod",
-    "allow_type_list",
-    "allow_controller_list",
-    "allow_missing_controller",
-]
 
 
 class InvalidVerificationMaterial(DIDDocumentError, Invalid):
     """Error raised when verification material is invalid."""
+
+
+class VerificationMethodValidationError(DIDDocumentError):
+    """Raised on VerificationMethod validation failure."""
 
 
 def verification_material(value):
@@ -85,7 +77,7 @@ class VerificationSuite:
 class VerificationMethod:
     """Representation of DID Document Verification Methods."""
 
-    validate = Schema(
+    _validator = Schema(
         {
             "id": All(str, DIDUrl.validate),
             "type": str,
@@ -161,6 +153,19 @@ class VerificationMethod:
         }
 
     @classmethod
+    @wrap_validation_error(
+        VerificationMethodValidationError,
+        message="Failed to validate verification method",
+    )
+    def validate(cls, value: dict):
+        """Validate against verification method."""
+        return cls._validator(value)
+
+    @classmethod
+    @wrap_validation_error(
+        VerificationMethodValidationError,
+        message="Failed to deserialize verification method",
+    )
     def deserialize(
         cls, value: dict, *, options: Set[VerificationMethodOptions] = None
     ):

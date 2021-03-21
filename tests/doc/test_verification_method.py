@@ -1,11 +1,14 @@
 """Test VerificationMethod."""
 
 import pytest
-from voluptuous import MultipleInvalid
 
 from pydid.did import DID
 from pydid.did_url import DIDUrl
-from pydid.doc.verification_method import VerificationMethod, VerificationSuite
+from pydid.doc.verification_method import (
+    VerificationMethod,
+    VerificationSuite,
+    VerificationMethodValidationError,
+)
 from pydid.doc.verification_method_options import VerificationMethodOptions
 
 VMETHOD0 = {
@@ -66,7 +69,7 @@ def test_validates_valid(vmethod):
 
 @pytest.mark.parametrize("vmethod", INVALID_VMETHODS)
 def test_fails_validate_invalid(vmethod):
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         VerificationMethod.validate(vmethod)
 
 
@@ -78,7 +81,7 @@ def test_serialization(vmethod_raw):
 
 @pytest.mark.parametrize("invalid_vmethod_raw", INVALID_VMETHODS)
 def test_serialization_x(invalid_vmethod_raw):
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         VerificationMethod.deserialize(invalid_vmethod_raw)
 
 
@@ -145,7 +148,7 @@ def test_option_allow_missing_controller():
         options={VerificationMethodOptions.allow_missing_controller},
     )
     assert vmethod.controller == "did:example:123"
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         vmethod = VerificationMethod.deserialize(
             {
                 "type": "Ed25519Signature2018",
