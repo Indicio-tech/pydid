@@ -17,7 +17,6 @@ from pydid.options import (
 
 DOCS_PATH = Path(__file__).parent / "test_docs.json"
 DOCS = json.loads(DOCS_PATH.read_text())
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -25,8 +24,8 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.parametrize("doc", DOCS)
 def test_uniresolver_docs(caplog, doc):
     caplog.set_level(logging.INFO)
-    LOGGER.info("Doc:\n%s", json.dumps(doc, indent=2))
-    assert DIDDocument.deserialize(
+    LOGGER.info("Doc\n%s", json.dumps(doc, indent=2))
+    DIDDocument.deserialize(
         doc,
         options={
             doc_allow_public_key,
@@ -43,4 +42,4 @@ def test_uniresolver_docs(caplog, doc):
 def test_uniresolver_docs_strict(caplog, doc):
     caplog.set_level(logging.INFO)
     LOGGER.info("Doc\n%s", json.dumps(doc, indent=2))
-    assert DIDDocument.deserialize(doc)
+    DIDDocument.deserialize(doc)
