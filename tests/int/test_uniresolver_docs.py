@@ -36,3 +36,11 @@ def test_uniresolver_docs(caplog, doc):
             vm_allow_type_list,
         },
     )
+
+
+@pytest.mark.int
+@pytest.mark.parametrize("doc", DOCS)
+def test_uniresolver_docs_strict(caplog, doc):
+    caplog.set_level(logging.INFO)
+    LOGGER.info("Doc\n%s", json.dumps(doc, indent=2))
+    assert DIDDocument.deserialize(doc)

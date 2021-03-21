@@ -75,5 +75,5 @@ class DID:
     def validate(cls, did: str):
         """Validate the given string as a DID."""
         if not cls.is_valid(did):
-            raise InvalidDIDError("{} is not a valid DID".format(did))
+            raise InvalidDIDError('"{}" is not a valid DID'.format(did))
         return did
