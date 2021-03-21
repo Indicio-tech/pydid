@@ -192,6 +192,9 @@ category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
+[package.dependencies]
+toml = {version = "*", optional = true, markers = "extra == \"toml\""}
+
 [package.extras]
 toml = ["toml"]
 
@@ -861,7 +864,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.9"
-content-hash = "45f1e451c7492c5392abf1dd874e20eb9222736f81866786dbd8a72662f9c0b1"
+content-hash = "9176d96246a1b79c528f9c20c2e90aa8f0ff0f36c763d576081375bb1f155710"
 
 [metadata.files]
 aiohttp = [

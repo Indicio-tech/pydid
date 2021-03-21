@@ -11,6 +11,14 @@ per_file_ignores = "*/__init__.py:D104"
 addopts = "-p no:warnings -m 'not int' --cov pydid"
 markers = "int: integration tests"
 
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "@abstract"
+]
+precision = 2
+show_missing = true
+
 [tool.poetry]
 name = "pydid"
 version = "0.1.0"
@@ -31,6 +39,7 @@ flake8 = "^3.9.0"
 pytest-coverage = "^0.0"
 aiohttp = "^3.7.4"
 pytest-asyncio = "^0.14.0"
+coverage = {extras = ["toml"], version = "^5.5"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
