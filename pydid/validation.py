@@ -127,9 +127,9 @@ class Properties:
             key = data_key or prop.name
             key = Required(key) if required else key
             self.validator[key] = prop.validate
-            if key:
-                self.serializer[Into(prop.name, key)] = prop.serialize
-                self.deserializer[Into(key, prop.name)] = prop.deserialize
+            if data_key:
+                self.serializer[Into(prop.name, data_key)] = prop.serialize
+                self.deserializer[Into(data_key, prop.name)] = prop.deserialize
             else:
                 self.serializer[key] = prop.serialize
                 self.deserializer[key] = prop.deserialize
