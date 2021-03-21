@@ -2,8 +2,8 @@
 
 import pytest
 
-from voluptuous import MultipleInvalid
-from pydid.doc.didcomm_service import DIDCommService
+from pydid.doc.didcomm_service import DIDCommService, ServiceValidationError
+
 from .test_service import INVALID_SERVICES as BASE_INVALID_SERVICES
 
 SERVICE0 = {
@@ -60,7 +60,7 @@ def test_validate(service):
 
 @pytest.mark.parametrize("service", INVALID_SERVICES)
 def test_fails_invalid(service):
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(ServiceValidationError):
         DIDCommService.validate(service)
 
 

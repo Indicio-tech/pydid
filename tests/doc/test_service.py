@@ -1,8 +1,8 @@
 """Test Service."""
 
 import pytest
-from voluptuous import MultipleInvalid
-from pydid.doc.service import Service
+
+from pydid.doc.service import Service, ServiceValidationError
 
 SERVICE0 = {
     "id": "did:example:123#linked-domain",
@@ -56,7 +56,7 @@ def test_validates_valid(service):
 
 @pytest.mark.parametrize("service", INVALID_SERVICES)
 def test_fails_invalid(service):
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(ServiceValidationError):
         Service.validate(service)
 
 

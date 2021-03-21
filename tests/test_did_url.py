@@ -1,9 +1,10 @@
 """Test DID URL class."""
 
 import pytest
+
 from pydid import DIDUrl, InvalidDIDUrlError
 
-from .test_did import TEST_DID_URL_PARTS, TEST_DID_URLS, TEST_DID0
+from .test_did import TEST_DID0, TEST_DID_URL_PARTS, TEST_DID_URLS
 
 
 @pytest.mark.parametrize("inputs, output", zip(TEST_DID_URL_PARTS, TEST_DID_URLS))

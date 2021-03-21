@@ -1,7 +1,9 @@
 """Test DID class."""
 
-import pytest
 from itertools import cycle
+
+import pytest
+
 from pydid import DID, DIDUrl, InvalidDIDError
 
 TEST_DID0 = "did:sov:Kkyqu7CJFuQSvBp468uaDe"

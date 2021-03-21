@@ -2,16 +2,17 @@
 
 from typing import List
 
-from voluptuous import All, Any, PREVENT_EXTRA
+from voluptuous import PREVENT_EXTRA, All, Any
 
 from ..did_url import DIDUrl
-from .service import Service
+from ..validation import wrap_validation_error
+from .service import Service, ServiceValidationError
 
 
 class DIDCommService(Service):
     """DID Communication Service."""
 
-    validate = Service.validate.extend(
+    _validator = Service._validator.extend(
         {
             "type": Any("IndyAgent", "did-communication"),
             "recipientKeys": [All(str, DIDUrl.validate)],
@@ -55,6 +56,17 @@ class DIDCommService(Service):
         }
 
     @classmethod
+    @wrap_validation_error(
+        ServiceValidationError, message="Failed to validate DIDComm service"
+    )
+    def validate(cls, value: dict):
+        """Validate value against DIDCommService."""
+        return cls._validator(value)
+
+    @classmethod
+    @wrap_validation_error(
+        ServiceValidationError, message="Failed to deserialize DIDComm service"
+    )
     def deserialize(cls, value: dict):
         """Deserialize into Service."""
         value = cls.validate(value)

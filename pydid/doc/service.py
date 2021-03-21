@@ -1,14 +1,25 @@
 """DID Doc Service."""
 
-from voluptuous import Schema, All, Url, ALLOW_EXTRA
+from voluptuous import ALLOW_EXTRA, All, Schema, Switch, Url
+
 from ..did_url import DIDUrl
+from ..validation import wrap_validation_error
+from . import DIDDocumentError
+
+
+class ServiceValidationError(DIDDocumentError):
+    """Raised on service validation failure."""
 
 
 class Service:
     """Representation of DID Document Services."""
 
-    validate = Schema(
-        {"id": All(str, DIDUrl.validate), "type": str, "serviceEndpoint": Url()},
+    _validator = Schema(
+        {
+            "id": All(str, DIDUrl.validate),
+            "type": str,
+            "serviceEndpoint": Switch(DIDUrl.validate, Url()),
+        },
         extra=ALLOW_EXTRA,
         required=True,
     )
@@ -50,6 +61,15 @@ class Service:
         }
 
     @classmethod
+    @wrap_validation_error(ServiceValidationError, message="Failed to validate service")
+    def validate(cls, value: dict):
+        """Validate object against service."""
+        return cls._validator(value)
+
+    @classmethod
+    @wrap_validation_error(
+        ServiceValidationError, message="Failed to deserialize service"
+    )
     def deserialize(cls, value: dict):
         """Deserialize into Service."""
         value = cls.validate(value)

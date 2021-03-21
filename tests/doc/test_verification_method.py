@@ -2,10 +2,13 @@
 
 import pytest
 
-from voluptuous import MultipleInvalid
-from pydid.did_url import DIDUrl
 from pydid.did import DID
-from pydid.doc.verification_method import VerificationMethod
+from pydid.did_url import DIDUrl
+from pydid.doc.verification_method import (
+    VerificationMethod,
+    VerificationSuite,
+    VerificationMethodValidationError,
+)
 from pydid.doc.verification_method_options import VerificationMethodOptions
 
 VMETHOD0 = {
@@ -66,7 +69,7 @@ def test_validates_valid(vmethod):
 
 @pytest.mark.parametrize("vmethod", INVALID_VMETHODS)
 def test_fails_validate_invalid(vmethod):
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         VerificationMethod.validate(vmethod)
 
 
@@ -78,7 +81,7 @@ def test_serialization(vmethod_raw):
 
 @pytest.mark.parametrize("invalid_vmethod_raw", INVALID_VMETHODS)
 def test_serialization_x(invalid_vmethod_raw):
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(VerificationMethodValidationError):
         VerificationMethod.deserialize(invalid_vmethod_raw)
 
 
@@ -86,6 +89,27 @@ def test_deserialized_member_types():
     vmethod = VerificationMethod.deserialize(VMETHOD0)
     assert isinstance(vmethod.id, DIDUrl)
     assert isinstance(vmethod.controller, DID)
+
+
+def test_init_mapping():
+    vmethod = VerificationMethod(
+        id_=DIDUrl("did:example:123", fragment="keys-1"),
+        suite=VerificationSuite("TestType", "publicKeyBase58"),
+        controller=DID("did:example:123"),
+        material="12345",
+    )
+    assert isinstance(vmethod.id, DIDUrl)
+    assert str(vmethod.id) == "did:example:123#keys-1"
+    assert isinstance(vmethod.controller, DID)
+    assert str(vmethod.controller) == "did:example:123"
+
+
+def test_init_errors_raised():
+    with pytest.raises(ValueError) as err:
+        VerificationMethod(id_=123, suite=123, controller=123, material="12345")
+        assert "expected DID" in err
+        assert "expected DIDUrl" in err
+        assert "expected VerificationSuite" in err
 
 
 def test_option_allow_type_list():
@@ -124,3 +148,11 @@ def test_option_allow_missing_controller():
         options={VerificationMethodOptions.allow_missing_controller},
     )
     assert vmethod.controller == "did:example:123"
+    with pytest.raises(VerificationMethodValidationError):
+        vmethod = VerificationMethod.deserialize(
+            {
+                "type": "Ed25519Signature2018",
+                "publicKeyBase58": "12345",
+            },
+            options={VerificationMethodOptions.allow_missing_controller},
+        )
