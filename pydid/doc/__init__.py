@@ -1,5 +1,5 @@
 """DID Document classes."""
 
 
-class DIDDocError(Exception):
+class DIDDocumentError(Exception):
     """Base Exception for problems with DID Documents."""

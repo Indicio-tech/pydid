@@ -3,17 +3,20 @@
 from .common import DIDError
 from .did import DID, InvalidDIDError
 from .did_url import DIDUrl, InvalidDIDUrlError
-from .doc.doc import DIDDocument, DIDDocumentBuilder
+from .doc import DIDDocumentError
+from .doc.doc import DIDDocument, DIDDocumentBuilder, DIDDocumentValidationError
 from .doc.verification_method import VerificationMethod, VerificationSuite
 
 __all__ = [
     "DID",
-    "DIDUrl",
-    "DIDError",
-    "InvalidDIDError",
-    "InvalidDIDUrlError",
     "DIDDocument",
     "DIDDocumentBuilder",
+    "DIDDocumentError",
+    "DIDDocumentValidationError",
+    "DIDError",
+    "DIDUrl",
+    "InvalidDIDError",
+    "InvalidDIDUrlError",
     "VerificationMethod",
     "VerificationSuite",
 ]

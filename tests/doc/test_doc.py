@@ -3,9 +3,8 @@
 import copy
 
 import pytest
-from voluptuous import MultipleInvalid
 
-from pydid.doc.doc import DIDDocument, DIDDocumentBuilder
+from pydid.doc.doc import DIDDocument, DIDDocumentBuilder, DIDDocumentValidationError
 from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 from pydid.doc.service import Service
 
@@ -258,7 +257,7 @@ def test_validate(doc):
 @pytest.mark.parametrize("doc", INVALID_DOCS)
 def test_fails_invalid(doc):
     """Test invalid docs fail."""
-    with pytest.raises(MultipleInvalid):
+    with pytest.raises(DIDDocumentValidationError):
         DIDDocument.validate(doc)
 
 

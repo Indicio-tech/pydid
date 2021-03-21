@@ -15,8 +15,9 @@ from ..validation import (
     single_to_list,
     unwrap_if_list_of_one,
     validate_init,
+    wrap_validation_error,
 )
-from . import DIDDocError
+from . import DIDDocumentError
 from .didcomm_service import DIDCommService
 from .doc_options import DIDDocumentOption
 from .service import Service
@@ -24,12 +25,16 @@ from .verification_method import VerificationMethod, VerificationSuite
 from .verification_relationship import VerificationRelationship
 
 
-class IdentifiedResourceMismatch(DIDDocError):
+class IdentifiedResourceMismatch(DIDDocumentError):
     """Raised when two or more of the same ID point to differing resources."""
 
 
-class ResourceIDNotFound(DIDDocError):
+class ResourceIDNotFound(DIDDocumentError):
     """Raised when Resource ID not found in DID Document."""
+
+
+class DIDDocumentValidationError(DIDDocumentError):
+    """Raised when Document validation fails."""
 
 
 class DIDDocument:
@@ -238,16 +243,23 @@ class DIDDocument:
         return self._index[reference]
 
     @classmethod
+    @wrap_validation_error(
+        DIDDocumentValidationError, message="Failed to validate DID Document"
+    )
     def validate(cls, value):
         """Validate against expected schema."""
         return cls.properties.validate(value)
 
+    @wrap_validation_error(DIDDocumentError, message="Failed to serialize DID Document")
     def serialize(self):
         """Serialize DID Document."""
         value = self.properties.serialize(self)
         return {**value, **self.extra}
 
     @classmethod
+    @wrap_validation_error(
+        DIDDocumentValidationError, message="Failed to deserialize DID Document"
+    )
     def deserialize(cls, value: dict, options: Set[Option] = None):
         """Deserialize DID Document."""
         if options:

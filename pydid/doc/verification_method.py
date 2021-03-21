@@ -7,7 +7,7 @@ from voluptuous import All, Invalid, Schema, Union, ALLOW_EXTRA, Coerce, Remove
 from ..did import DID
 from ..did_url import DIDUrl
 from ..validation import validate_init, Into
-from . import DIDDocError
+from . import DIDDocumentError
 from .verification_method_options import VerificationMethodOptions
 
 allow_type_list = VerificationMethodOptions.allow_type_list
@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-class InvalidVerificationMaterial(DIDDocError, Invalid):
+class InvalidVerificationMaterial(DIDDocumentError, Invalid):
     """Error raised when verification material is invalid."""
 
 

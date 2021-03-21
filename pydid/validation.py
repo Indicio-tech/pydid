@@ -2,9 +2,10 @@
 
 from abc import ABCMeta, abstractclassmethod, abstractmethod
 from collections import namedtuple
+from contextlib import contextmanager
 from enum import Enum, EnumMeta
 from functools import wraps
-from typing import Any, Iterable, Set
+from typing import Any, Iterable, Set, Type
 
 import voluptuous
 from voluptuous import ALLOW_EXTRA, Invalid, MultipleInvalid, Required, Schema
@@ -36,6 +37,20 @@ def validate_init(*s_args, **s_kwargs):
         return _wrapper
 
     return _validate_init
+
+
+@contextmanager
+def wrap_validation_error(error_to_raise: Type[Exception], message: str = None):
+    """Wrap voluptuous erros with more friendly errors."""
+    try:
+        yield
+    except MultipleInvalid as error:
+        raise error_to_raise(
+            "{}:\n\t{}".format(
+                message or "Validation error",
+                "\n\t".join([str(sub_error) for sub_error in error.errors]),
+            )
+        ) from error
 
 
 class Into:
