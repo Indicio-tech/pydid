@@ -318,3 +318,38 @@ def test_builder_from_doc():
             suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
         )
     assert len(builder.build().serialize()["verificationMethod"]) == 2
+
+
+def test_dereference_and_membership_check():
+    doc_raw = {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "authentication": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+        ],
+        "assertionMethod": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+        ],
+        "service": [
+            {
+                "id": "did:example:123#service-0",
+                "type": "example",
+                "serviceEndpoint": "https://example.com",
+            }
+        ],
+    }
+    doc = DIDDocument.deserialize(doc_raw)
+    vmethod = doc.dereference("did:example:123#keys-0")
+    assert not doc.verification_method
+    assert vmethod in doc.authentication
+    assert vmethod in doc.assertion_method
