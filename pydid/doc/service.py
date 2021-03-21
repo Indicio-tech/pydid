@@ -1,6 +1,6 @@
 """DID Doc Service."""
 
-from voluptuous import ALLOW_EXTRA, All, Schema, Url
+from voluptuous import ALLOW_EXTRA, All, Schema, Switch, Url
 
 from ..did_url import DIDUrl
 
@@ -9,7 +9,11 @@ class Service:
     """Representation of DID Document Services."""
 
     validate = Schema(
-        {"id": All(str, DIDUrl.validate), "type": str, "serviceEndpoint": Url()},
+        {
+            "id": All(str, DIDUrl.validate),
+            "type": str,
+            "serviceEndpoint": Switch(DIDUrl.validate, Url()),
+        },
         extra=ALLOW_EXTRA,
         required=True,
     )
