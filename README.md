@@ -7,7 +7,25 @@ Python library for representing DIDs and DID Documents.
 
 ## Installation
 
-This project will be uploaded to PyPI eventually. To install locally:
+Using a virtual environment is generally recommended:
+
+```sh
+$ python -m venv env
+$ source env/bin/activate
+```
+
+Install with pip:
+
+```sh
+$ pip install pydid
+```
+
+## Development
+
+This project is managed with [Poetry](https://python-poetry.org/).
+
+To begin making code changes, clone this repo and do the following to install
+dependencies:
 
 ```sh
 $ python -m venv env
@@ -16,8 +34,6 @@ $ pip install poetry
 $ poetry install
 ```
 
-This will set up a python virtual environment, activate it, and install poetry,
-the dependency manager in use for this project.
 
 ## Contributing
 
