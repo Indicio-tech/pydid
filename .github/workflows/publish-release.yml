@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.6
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.6
     - name: Python Poetry Action
       uses: abatilo/actions-poetry@v2.1.0
     - name: Cache dependencies
@@ -21,9 +21,7 @@ jobs:
       uses: actions/cache@v2
       with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
-          restore-keys: |
-              ${{ runner.os }}-poetry-
+          key: ${{ runner.os }}-poetry-3.6-${{ hashFiles('poetry.lock') }}
     - name: Install dependencies
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
