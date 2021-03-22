@@ -1,0 +1,17 @@
+name: Upload PyDID To PyPI
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish python poetry package
+      uses: JRubics/poetry-publish@v1.5
+      with:
+        python_version: 3.6
+        pypi_token: ${{secrets.PYPI_API_TOKEN}}
