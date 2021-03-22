@@ -3,7 +3,7 @@
 [![pypi release](https://img.shields.io/pypi/v/pydid)](https://pypi.org/project/pydid/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-Python library for representing DIDs and DID Documents.
+Python library for validating, constructing, and representing DIDs and DID Documents.
 
 ## Installation
 
