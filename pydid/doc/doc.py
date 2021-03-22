@@ -94,11 +94,11 @@ class DIDDocument:
             if isinstance(item, list):
                 for subitem in item:
                     _indexer(subitem)
-                    return
+                return
             if isinstance(item, VerificationRelationship):
                 for subitem in item.items:
                     _indexer(subitem)
-                    return
+                return
 
             assert isinstance(item, (VerificationMethod, Service))
             if item.id in self._index and item != self._index[item.id]:
@@ -438,9 +438,9 @@ class DIDDocumentBuilder:
         return builder
 
     @staticmethod
-    def _default_id_generator(base: str) -> Iterable[str]:
+    def _default_id_generator(base: str, start: int = 0) -> Iterable[str]:
         """Generate ID fragments."""
-        index = 0
+        index = start
         while True:
             yield "{}-{}".format(base, index)
             index += 1
@@ -453,7 +453,12 @@ class DIDDocumentBuilder:
     ) -> ContextManager[VerificationMethodBuilder]:
         """Builder for verification methods."""
         subbuilder = VerificationMethodBuilder(
-            self.id, id_generator or self._default_id_generator("keys"), default_suite
+            self.id,
+            id_generator
+            or self._default_id_generator(
+                "keys", start=len(self._verification_methods)
+            ),
+            default_suite,
         )
         yield subbuilder
         self._verification_methods.extend(subbuilder.methods)
@@ -467,9 +472,10 @@ class DIDDocumentBuilder:
         default_suite: VerificationSuite = None,
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for relationships."""
+        start = len(relationship.items)
         subbuilder = RelationshipBuilder(
             self.id,
-            id_generator or self._default_id_generator(ident_base),
+            id_generator or self._default_id_generator(ident_base, start),
             default_suite,
         )
         yield subbuilder
@@ -546,7 +552,9 @@ class DIDDocumentBuilder:
         self, id_generator: Iterable[str] = None
     ) -> ContextManager[ServiceBuilder]:
         """Builder for services."""
-        id_generator = id_generator or self._default_id_generator("service")
+        id_generator = id_generator or self._default_id_generator(
+            "service", start=len(self._services)
+        )
         subbuilder = ServiceBuilder(self.id, id_generator)
         yield subbuilder
         self._services.extend(subbuilder.services)

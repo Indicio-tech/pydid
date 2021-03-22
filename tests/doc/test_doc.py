@@ -4,9 +4,13 @@ import copy
 
 import pytest
 
-from pydid.doc.doc import DIDDocument, DIDDocumentBuilder, DIDDocumentValidationError
-from pydid.doc.verification_method import VerificationMethod, VerificationSuite
+from pydid.doc.doc import (
+    DIDDocument,
+    DIDDocumentBuilder,
+    DIDDocumentError,
+)
 from pydid.doc.service import Service
+from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 
 DOC0 = {
     "@context": "https://w3id.org/did/v0.11",
@@ -244,21 +248,49 @@ INVALID_DOC1 = {
         }
     ]
 }
+INVALID_DOC2 = {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:example:123",
+    "verificationMethod": [
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "1234",
+        }
+    ],
+    "authentication": [
+        "did:example:123#keys-0",
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "abcd",
+        },
+    ],
+    "service": [
+        {
+            "id": "did:example:123#service-0",
+            "type": "example",
+            "serviceEndpoint": "https://example.com",
+        }
+    ],
+}
 
-INVALID_DOCS = [INVALID_DOC0, INVALID_DOC1]
+INVALID_DOCS = [INVALID_DOC0, INVALID_DOC1, INVALID_DOC2]
 
 
 @pytest.mark.parametrize("doc", DOCS)
 def test_validate(doc):
     """Test valid docs pass."""
-    DIDDocument.validate(doc)
+    DIDDocument.deserialize(doc)
 
 
 @pytest.mark.parametrize("doc", INVALID_DOCS)
 def test_fails_invalid(doc):
     """Test invalid docs fail."""
-    with pytest.raises(DIDDocumentValidationError):
-        DIDDocument.validate(doc)
+    with pytest.raises(DIDDocumentError):
+        DIDDocument.deserialize(doc)
 
 
 @pytest.mark.parametrize("doc_raw", DOCS)
