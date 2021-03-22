@@ -40,6 +40,7 @@ def _options_of_type(type_: Type, options: Set[Option]):
 def _insert_missing_ids(value: dict):
     if "id" not in value:
         raise Invalid("No DID found in value.")
+
     did = DID(value["id"])
     index = 0
 

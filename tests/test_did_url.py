@@ -38,3 +38,18 @@ def test_did_url_neq(lhs, rhs):
 def test_did_url_parse_x(bad_url):
     with pytest.raises(InvalidDIDUrlError):
         DIDUrl.parse(bad_url)
+
+
+@pytest.mark.parametrize("parts, url", zip(TEST_DID_URL_PARTS, TEST_DID_URLS))
+def test_as_str(parts, url):
+    assert DIDUrl.as_str(**parts) == url
+
+
+@pytest.mark.parametrize("url", TEST_DID_URLS)
+def test_is_valid(url):
+    assert DIDUrl.is_valid(url)
+
+
+@pytest.mark.parametrize("bad_url", [TEST_DID0, "not a did url"])
+def test_is_valid_x(bad_url):
+    assert not DIDUrl.is_valid(bad_url)

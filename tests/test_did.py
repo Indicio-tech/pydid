@@ -99,6 +99,26 @@ def test_can_parse_dids(did):
     assert repr(did)
 
 
+@pytest.mark.parametrize("did", TEST_DIDS)
+def test_validate(did):
+    DID.validate(did)
+
+
+@pytest.mark.parametrize(
+    "bad_did",
+    [
+        "",
+        "did:nomethodspecificidentifier",
+        "did:invalid-chars-in-method:method-specific-id",
+        "bad-prefix:method:method-specific-id",
+        *TEST_DID_URLS,
+    ],
+)
+def test_validate_x(bad_did):
+    with pytest.raises(InvalidDIDError):
+        DID.validate(bad_did)
+
+
 @pytest.mark.parametrize(
     "bad_did",
     [

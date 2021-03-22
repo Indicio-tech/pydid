@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from typing import Any, ContextManager, Iterable, List, Set, Union
 
 from voluptuous import ALLOW_EXTRA, All, Coerce, Switch, Url
-from voluptuous import validate as validate_args
 
 from ..did import DID
 from ..did_url import DIDUrl
@@ -94,11 +93,11 @@ class DIDDocument:
             if isinstance(item, list):
                 for subitem in item:
                     _indexer(subitem)
-                    return
+                return
             if isinstance(item, VerificationRelationship):
                 for subitem in item.items:
                     _indexer(subitem)
-                    return
+                return
 
             assert isinstance(item, (VerificationMethod, Service))
             if item.id in self._index and item != self._index[item.id]:
@@ -235,9 +234,11 @@ class DIDDocument:
         """Return service."""
         return self._service
 
-    @validate_args(reference=Switch(DIDUrl, All(str, DIDUrl.parse)))
     def dereference(self, reference: Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
+        if isinstance(reference, str):
+            reference = DIDUrl.parse(reference)
+
         if reference not in self._index:
             raise ResourceIDNotFound("ID {} not found in document".format(reference))
         return self._index[reference]
@@ -329,6 +330,11 @@ class RelationshipBuilder:
 
     def reference(self, ref: DIDUrl):
         """Add reference to relationship."""
+        if not isinstance(ref, DIDUrl):
+            raise ValueError(
+                "Reference must be DIDUrl, not {}".format(type(ref).__name__)
+            )
+
         self.methods.append(ref)
 
     def embed(
@@ -438,9 +444,9 @@ class DIDDocumentBuilder:
         return builder
 
     @staticmethod
-    def _default_id_generator(base: str) -> Iterable[str]:
+    def _default_id_generator(base: str, start: int = 0) -> Iterable[str]:
         """Generate ID fragments."""
-        index = 0
+        index = start
         while True:
             yield "{}-{}".format(base, index)
             index += 1
@@ -453,7 +459,12 @@ class DIDDocumentBuilder:
     ) -> ContextManager[VerificationMethodBuilder]:
         """Builder for verification methods."""
         subbuilder = VerificationMethodBuilder(
-            self.id, id_generator or self._default_id_generator("keys"), default_suite
+            self.id,
+            id_generator
+            or self._default_id_generator(
+                "keys", start=len(self._verification_methods)
+            ),
+            default_suite,
         )
         yield subbuilder
         self._verification_methods.extend(subbuilder.methods)
@@ -467,9 +478,10 @@ class DIDDocumentBuilder:
         default_suite: VerificationSuite = None,
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for relationships."""
+        start = len(relationship.items)
         subbuilder = RelationshipBuilder(
             self.id,
-            id_generator or self._default_id_generator(ident_base),
+            id_generator or self._default_id_generator(ident_base, start),
             default_suite,
         )
         yield subbuilder
@@ -507,7 +519,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for key_agreement relationship."""
         with self._relationship(
-            self.key_agreement, "key-agreement", id_generator, default_suite
+            self._key_agreement, "key-agreement", id_generator, default_suite
         ) as builder:
             yield builder
 
@@ -546,7 +558,9 @@ class DIDDocumentBuilder:
         self, id_generator: Iterable[str] = None
     ) -> ContextManager[ServiceBuilder]:
         """Builder for services."""
-        id_generator = id_generator or self._default_id_generator("service")
+        id_generator = id_generator or self._default_id_generator(
+            "service", start=len(self._services)
+        )
         subbuilder = ServiceBuilder(self.id, id_generator)
         yield subbuilder
         self._services.extend(subbuilder.services)

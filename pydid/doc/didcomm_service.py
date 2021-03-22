@@ -2,10 +2,10 @@
 
 from typing import List
 
-from voluptuous import PREVENT_EXTRA, All, Any
+from voluptuous import PREVENT_EXTRA, All, Any, Schema, Coerce
 
 from ..did_url import DIDUrl
-from ..validation import wrap_validation_error
+from ..validation import wrap_validation_error, Into
 from .service import Service, ServiceValidationError
 
 
@@ -27,11 +27,11 @@ class DIDCommService(Service):
         endpoint: str,
         recipient_keys: List[DIDUrl],
         *,
-        type_: str = "did-communication",
+        type_: str = None,
         routing_keys: List[DIDUrl] = None
     ):
         """Initialize DIDCommService."""
-        super().__init__(id_, type_, endpoint)
+        super().__init__(id_, type_ or "did-communication", endpoint)
         self._recipient_keys = recipient_keys
         self._routing_keys = routing_keys or []
 
@@ -47,12 +47,13 @@ class DIDCommService(Service):
 
     def serialize(self):
         """Return serialized representation of DIDCommService."""
+        did_urls = Schema([Coerce(str)])
         return {
-            "id": self.id,
+            "id": str(self.id),
             "type": self.type,
             "serviceEndpoint": self.endpoint,
-            "recipientKeys": self.recipient_keys,
-            "routingKeys": self.routing_keys,
+            "recipientKeys": did_urls(self.recipient_keys),
+            "routingKeys": did_urls(self.routing_keys),
         }
 
     @classmethod
@@ -70,10 +71,14 @@ class DIDCommService(Service):
     def deserialize(cls, value: dict):
         """Deserialize into Service."""
         value = cls.validate(value)
-        return cls(
-            id_=value["id"],
-            type_=value["type"],
-            endpoint=value["serviceEndpoint"],
-            recipient_keys=value["recipientKeys"],
-            routing_keys=value["routingKeys"],
+        deserializer = Schema(
+            {
+                Into("id", "id_"): DIDUrl.parse,
+                Into("type", "type_"): str,
+                Into("serviceEndpoint", "endpoint"): str,
+                Into("recipientKeys", "recipient_keys"): [DIDUrl.parse],
+                Into("routingKeys", "routing_keys"): [DIDUrl.parse],
+            }
         )
+        value = deserializer(value)
+        return cls(**value)

@@ -1,12 +1,22 @@
 """Test DIDDocument object."""
 
 import copy
+from typing import cast
 
 import pytest
 
-from pydid.doc.doc import DIDDocument, DIDDocumentBuilder, DIDDocumentValidationError
-from pydid.doc.verification_method import VerificationMethod, VerificationSuite
+from pydid.did_url import InvalidDIDUrlError
+from pydid.doc.doc import (
+    DIDDocument,
+    DIDDocumentBuilder,
+    DIDDocumentError,
+    ResourceIDNotFound,
+    ServiceBuilder,
+    VerificationMethodBuilder,
+)
+from pydid.doc.doc_options import DIDDocumentOption
 from pydid.doc.service import Service
+from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 
 DOC0 = {
     "@context": "https://w3id.org/did/v0.11",
@@ -244,21 +254,49 @@ INVALID_DOC1 = {
         }
     ]
 }
+INVALID_DOC2 = {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:example:123",
+    "verificationMethod": [
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "1234",
+        }
+    ],
+    "authentication": [
+        "did:example:123#keys-0",
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "abcd",
+        },
+    ],
+    "service": [
+        {
+            "id": "did:example:123#service-0",
+            "type": "example",
+            "serviceEndpoint": "https://example.com",
+        }
+    ],
+}
 
-INVALID_DOCS = [INVALID_DOC0, INVALID_DOC1]
+INVALID_DOCS = [INVALID_DOC0, INVALID_DOC1, INVALID_DOC2]
 
 
 @pytest.mark.parametrize("doc", DOCS)
 def test_validate(doc):
     """Test valid docs pass."""
-    DIDDocument.validate(doc)
+    DIDDocument.deserialize(doc)
 
 
 @pytest.mark.parametrize("doc", INVALID_DOCS)
 def test_fails_invalid(doc):
     """Test invalid docs fail."""
-    with pytest.raises(DIDDocumentValidationError):
-        DIDDocument.validate(doc)
+    with pytest.raises(DIDDocumentError):
+        DIDDocument.deserialize(doc)
 
 
 @pytest.mark.parametrize("doc_raw", DOCS)
@@ -277,6 +315,15 @@ def test_dereference():
     service0: Service = doc.dereference(DOC0["service"][0]["id"])
     assert isinstance(service0, Service)
     assert service0.serialize() == DOC0["service"][0]
+
+
+def test_dereference_x():
+    doc = DIDDocument.deserialize(DOC0)
+    with pytest.raises(InvalidDIDUrlError):
+        doc.dereference("bogus")
+
+    with pytest.raises(ResourceIDNotFound):
+        doc.dereference("did:example:123#bogus")
 
 
 def test_vmethod_relationships():
@@ -308,6 +355,157 @@ def test_programmatic_construction():
     with builder.services() as services:
         services.add(type_="example", endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
+
+
+def test_programmatic_construction_x_no_suite():
+    builder = DIDDocumentBuilder("did:example:123")
+    with pytest.raises(ValueError):
+        with builder.verification_methods() as vmethods:
+            vmethods.add("1234")
+
+
+def test_programmatic_construction_didcomm():
+    builder = DIDDocumentBuilder("did:example:123")
+    with builder.verification_methods(
+        default_suite=VerificationSuite("Example", "publicKeyBase58")
+    ) as vmethods:
+        key = vmethods.add("1234")
+        route = vmethods.add("abcd")
+    with builder.services() as services:
+        services = cast(ServiceBuilder, services)
+        services.add_didcomm(
+            endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
+        )
+    assert builder.build().serialize() == {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "verificationMethod": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+            {
+                "id": "did:example:123#keys-1",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyBase58": "abcd",
+            },
+        ],
+        "service": [
+            {
+                "id": "did:example:123#service-0",
+                "type": "did-communication",
+                "serviceEndpoint": "https://example.com",
+                "recipientKeys": ["did:example:123#keys-0"],
+                "routingKeys": ["did:example:123#keys-1"],
+            }
+        ],
+    }
+
+
+def test_all_relationship_builders():
+    builder = DIDDocumentBuilder("did:example:123")
+    with builder.verification_methods() as vmethods:
+        vmethods = cast(VerificationMethodBuilder, vmethods)
+        vmethod = vmethods.add(
+            suite=VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58"),
+            material="12345",
+        )
+    with builder.authentication() as auth:
+        auth.reference(vmethod.id)
+        auth.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"), material="auth"
+        )
+    with builder.assertion_method() as assertion:
+        assertion.reference(vmethod.id)
+        assertion.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"), material="assert"
+        )
+    with builder.key_agreement() as key_agreement:
+        key_agreement.reference(vmethod.id)
+        key_agreement.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"),
+            material="key_agreement",
+        )
+    with builder.capability_invocation() as capability_invocation:
+        capability_invocation.reference(vmethod.id)
+        capability_invocation.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"),
+            material="capability_invocation",
+        )
+    with builder.capability_delegation() as capability_delegation:
+        capability_delegation.reference(vmethod.id)
+        capability_delegation.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"),
+            material="capability_delegation",
+        )
+
+    assert builder.build().serialize() == {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "verificationMethod": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "12345",
+            },
+        ],
+        "authentication": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#auth-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "auth",
+            },
+        ],
+        "assertionMethod": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#assert-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "assert",
+            },
+        ],
+        "keyAgreement": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#key-agreement-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "key_agreement",
+            },
+        ],
+        "capabilityInvocation": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#capability-invocation-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "capability_invocation",
+            },
+        ],
+        "capabilityDelegation": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#capability-delegation-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "capability_delegation",
+            },
+        ],
+    }
+
+
+def test_relationship_builder_ref_x():
+    builder = DIDDocumentBuilder("did:example:123")
+    with pytest.raises(ValueError):
+        with builder.authentication() as auth:
+            auth.reference("123")
 
 
 def test_builder_from_doc():
@@ -353,3 +551,18 @@ def test_dereference_and_membership_check():
     assert not doc.verification_method
     assert vmethod in doc.authentication
     assert vmethod in doc.assertion_method
+
+
+def test_option_insert_missing_ids_x():
+    doc_raw = {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "authentication": [
+            {
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+        ],
+    }
+    with pytest.raises(DIDDocumentError):
+        DIDDocument.deserialize(doc_raw, options={DIDDocumentOption.insert_missing_ids})
