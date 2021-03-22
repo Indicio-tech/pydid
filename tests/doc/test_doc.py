@@ -368,9 +368,12 @@ def test_programmatic_construction_didcomm():
         default_suite=VerificationSuite("Example", "publicKeyBase58")
     ) as vmethods:
         key = vmethods.add("1234")
+        route = vmethods.add("abcd")
     with builder.services() as services:
         services = cast(ServiceBuilder, services)
-        services.add_didcomm(endpoint="https://example.com", recipient_keys=[key])
+        services.add_didcomm(
+            endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
+        )
     assert builder.build().serialize() == {
         "@context": "https://www.w3.org/ns/did/v1",
         "id": "did:example:123",
@@ -380,7 +383,13 @@ def test_programmatic_construction_didcomm():
                 "type": "Example",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
-            }
+            },
+            {
+                "id": "did:example:123#keys-1",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyBase58": "abcd",
+            },
         ],
         "service": [
             {
@@ -388,7 +397,7 @@ def test_programmatic_construction_didcomm():
                 "type": "did-communication",
                 "serviceEndpoint": "https://example.com",
                 "recipientKeys": ["did:example:123#keys-0"],
-                "routingKeys": [],
+                "routingKeys": ["did:example:123#keys-1"],
             }
         ],
     }
