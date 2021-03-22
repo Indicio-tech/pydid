@@ -5,6 +5,7 @@ from typing import cast
 
 import pytest
 
+from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.doc import (
     DIDDocument,
     DIDDocumentBuilder,
@@ -13,7 +14,7 @@ from pydid.doc.doc import (
     ServiceBuilder,
     VerificationMethodBuilder,
 )
-from pydid.did_url import InvalidDIDUrlError
+from pydid.doc.doc_options import DIDDocumentOption
 from pydid.doc.service import Service
 from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 
@@ -550,3 +551,18 @@ def test_dereference_and_membership_check():
     assert not doc.verification_method
     assert vmethod in doc.authentication
     assert vmethod in doc.assertion_method
+
+
+def test_option_insert_missing_ids_x():
+    doc_raw = {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "authentication": [
+            {
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+        ],
+    }
+    with pytest.raises(DIDDocumentError):
+        DIDDocument.deserialize(doc_raw, options={DIDDocumentOption.insert_missing_ids})
