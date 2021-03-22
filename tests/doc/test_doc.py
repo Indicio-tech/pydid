@@ -11,6 +11,7 @@ from pydid.doc.doc import (
     DIDDocumentError,
     ResourceIDNotFound,
     ServiceBuilder,
+    VerificationMethodBuilder,
 )
 from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.service import Service
@@ -401,6 +402,109 @@ def test_programmatic_construction_didcomm():
             }
         ],
     }
+
+
+def test_all_relationship_builders():
+    builder = DIDDocumentBuilder("did:example:123")
+    with builder.verification_methods() as vmethods:
+        vmethods = cast(VerificationMethodBuilder, vmethods)
+        vmethod = vmethods.add(
+            suite=VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58"),
+            material="12345",
+        )
+    with builder.authentication() as auth:
+        auth.reference(vmethod.id)
+        auth.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"), material="auth"
+        )
+    with builder.assertion_method() as assertion:
+        assertion.reference(vmethod.id)
+        assertion.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"), material="assert"
+        )
+    with builder.key_agreement() as key_agreement:
+        key_agreement.reference(vmethod.id)
+        key_agreement.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"),
+            material="key_agreement",
+        )
+    with builder.capability_invocation() as capability_invocation:
+        capability_invocation.reference(vmethod.id)
+        capability_invocation.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"),
+            material="capability_invocation",
+        )
+    with builder.capability_delegation() as capability_delegation:
+        capability_delegation.reference(vmethod.id)
+        capability_delegation.embed(
+            suite=VerificationSuite("Example", "publicKeyExample"),
+            material="capability_delegation",
+        )
+
+    assert builder.build().serialize() == {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "verificationMethod": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "12345",
+            },
+        ],
+        "authentication": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#auth-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "auth",
+            },
+        ],
+        "assertionMethod": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#assert-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "assert",
+            },
+        ],
+        "keyAgreement": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#key-agreement-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "key_agreement",
+            },
+        ],
+        "capabilityInvocation": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#capability-invocation-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "capability_invocation",
+            },
+        ],
+        "capabilityDelegation": [
+            "did:example:123#keys-0",
+            {
+                "id": "did:example:123#capability-delegation-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyExample": "capability_delegation",
+            },
+        ],
+    }
+
+
+def test_relationship_builder_ref_x():
+    builder = DIDDocumentBuilder("did:example:123")
+    with pytest.raises(ValueError):
+        with builder.authentication() as auth:
+            auth.reference("123")
 
 
 def test_builder_from_doc():

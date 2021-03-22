@@ -330,6 +330,11 @@ class RelationshipBuilder:
 
     def reference(self, ref: DIDUrl):
         """Add reference to relationship."""
+        if not isinstance(ref, DIDUrl):
+            raise ValueError(
+                "Reference must be DIDUrl, not {}".format(type(ref).__name__)
+            )
+
         self.methods.append(ref)
 
     def embed(
@@ -514,7 +519,7 @@ class DIDDocumentBuilder:
     ) -> ContextManager[RelationshipBuilder]:
         """Builder for key_agreement relationship."""
         with self._relationship(
-            self.key_agreement, "key-agreement", id_generator, default_suite
+            self._key_agreement, "key-agreement", id_generator, default_suite
         ) as builder:
             yield builder
 
