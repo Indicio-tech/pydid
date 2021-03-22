@@ -8,7 +8,9 @@ from pydid.doc.doc import (
     DIDDocument,
     DIDDocumentBuilder,
     DIDDocumentError,
+    ResourceIDNotFound,
 )
+from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.service import Service
 from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 
@@ -309,6 +311,15 @@ def test_dereference():
     service0: Service = doc.dereference(DOC0["service"][0]["id"])
     assert isinstance(service0, Service)
     assert service0.serialize() == DOC0["service"][0]
+
+
+def test_dereference_x():
+    doc = DIDDocument.deserialize(DOC0)
+    with pytest.raises(InvalidDIDUrlError):
+        doc.dereference("bogus")
+
+    with pytest.raises(ResourceIDNotFound):
+        doc.dereference("did:example:123#bogus")
 
 
 def test_vmethod_relationships():

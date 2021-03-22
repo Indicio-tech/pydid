@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from typing import Any, ContextManager, Iterable, List, Set, Union
 
 from voluptuous import ALLOW_EXTRA, All, Coerce, Switch, Url
-from voluptuous import validate as validate_args
 
 from ..did import DID
 from ..did_url import DIDUrl
@@ -235,9 +234,11 @@ class DIDDocument:
         """Return service."""
         return self._service
 
-    @validate_args(reference=Switch(DIDUrl, All(str, DIDUrl.parse)))
     def dereference(self, reference: Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
+        if isinstance(reference, str):
+            reference = DIDUrl.parse(reference)
+
         if reference not in self._index:
             raise ResourceIDNotFound("ID {} not found in document".format(reference))
         return self._index[reference]
