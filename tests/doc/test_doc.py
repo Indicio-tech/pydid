@@ -1,6 +1,7 @@
 """Test DIDDocument object."""
 
 import copy
+from typing import cast
 
 import pytest
 
@@ -9,6 +10,7 @@ from pydid.doc.doc import (
     DIDDocumentBuilder,
     DIDDocumentError,
     ResourceIDNotFound,
+    ServiceBuilder,
 )
 from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.service import Service
@@ -351,6 +353,45 @@ def test_programmatic_construction():
     with builder.services() as services:
         services.add(type_="example", endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
+
+
+def test_programmatic_construction_x_no_suite():
+    builder = DIDDocumentBuilder("did:example:123")
+    with pytest.raises(ValueError):
+        with builder.verification_methods() as vmethods:
+            vmethods.add("1234")
+
+
+def test_programmatic_construction_didcomm():
+    builder = DIDDocumentBuilder("did:example:123")
+    with builder.verification_methods(
+        default_suite=VerificationSuite("Example", "publicKeyBase58")
+    ) as vmethods:
+        key = vmethods.add("1234")
+    with builder.services() as services:
+        services = cast(ServiceBuilder, services)
+        services.add_didcomm(endpoint="https://example.com", recipient_keys=[key])
+    assert builder.build().serialize() == {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "verificationMethod": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            }
+        ],
+        "service": [
+            {
+                "id": "did:example:123#service-0",
+                "type": "did-communication",
+                "serviceEndpoint": "https://example.com",
+                "recipientKeys": ["did:example:123#keys-0"],
+                "routingKeys": [],
+            }
+        ],
+    }
 
 
 def test_builder_from_doc():

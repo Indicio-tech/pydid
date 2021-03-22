@@ -145,9 +145,9 @@ class VerificationMethod:
     def serialize(self):
         """Return serialized representation of VerificationMethod."""
         return {
-            "id": self.id,
+            "id": str(self.id),
             "type": self.type,
-            "controller": self.controller,
+            "controller": str(self.controller),
             self.suite.verification_material_prop: self.material,
             **self.extra,
         }

@@ -3,7 +3,7 @@
 from voluptuous import ALLOW_EXTRA, All, Schema, Switch, Url
 
 from ..did_url import DIDUrl
-from ..validation import wrap_validation_error
+from ..validation import wrap_validation_error, Into
 from . import DIDDocumentError
 
 
@@ -54,7 +54,7 @@ class Service:
     def serialize(self):
         """Return serialized representation of Service."""
         return {
-            "id": self.id,
+            "id": str(self.id),
             "type": self.type,
             "serviceEndpoint": self.endpoint,
             **self.extra,
@@ -73,10 +73,13 @@ class Service:
     def deserialize(cls, value: dict):
         """Deserialize into Service."""
         value = cls.validate(value)
-        required = ("id", "type", "serviceEndpoint")
-        extra = {
-            key: extra_value
-            for key, extra_value in value.items()
-            if key not in required
-        }
-        return cls(*[value[key] for key in required], **extra)
+        deserializer = Schema(
+            {
+                Into("id", "id_"): DIDUrl.parse,
+                Into("type", "type_"): str,
+                Into("serviceEndpoint", "endpoint"): str,
+            },
+            extra=ALLOW_EXTRA,
+        )
+        value = deserializer(value)
+        return cls(**value)
