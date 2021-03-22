@@ -1,9 +1,8 @@
 """Verification Relationship"""
 
-import typing
-from typing import List
+from typing import List, Union
 
-from voluptuous import All, Schema, Union
+from voluptuous import All, Schema, Switch
 
 from ..did_url import DIDUrl
 from .verification_method import VerificationMethod
@@ -14,14 +13,14 @@ class VerificationRelationship:
 
     validate = Schema(
         [
-            Union(
+            Switch(
                 All(str, DIDUrl.validate),
                 VerificationMethod.validate,
             )
         ]
     )
 
-    def __init__(self, items: List[typing.Union[DIDUrl, VerificationMethod]]):
+    def __init__(self, items: List[Union[DIDUrl, VerificationMethod]]):
         """Initialize verification relationship."""
         self.items = items
 
@@ -51,16 +50,10 @@ class VerificationRelationship:
         return list(map(_serialize_item, self.items))
 
     @classmethod
-    def deserialize(cls, value: List[typing.Union[str, dict]]):
+    def deserialize(cls, value: List[Union[str, dict]]):
         """Deserialize into relationship."""
-
-        def _deserialize_item(item):
-            if isinstance(item, str):
-                return DIDUrl.parse(item)
-            if isinstance(item, dict):
-                return VerificationMethod.deserialize(item)
-            raise ValueError(
-                "Unexpected type {} in VerificationRelationship".format(type(item))
-            )
-
-        return cls(list(map(_deserialize_item, value)))
+        value = cls.validate(value)
+        deserializer = Schema(
+            [Switch(All(str, DIDUrl.parse), VerificationMethod.deserialize)]
+        )
+        return cls(deserializer(value))

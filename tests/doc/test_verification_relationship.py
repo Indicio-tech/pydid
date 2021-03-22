@@ -34,3 +34,8 @@ def test_contains():
     assert rel.items[1] in rel
     assert rel.items[0] in rel
     assert "123" not in rel
+
+
+def test_serialization_x():
+    with pytest.raises(ValueError):
+        VerificationRelationship([123]).serialize()
