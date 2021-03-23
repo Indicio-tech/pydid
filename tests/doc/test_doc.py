@@ -8,9 +8,11 @@ import pytest
 from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.doc import (
     DIDDocument,
-    DIDDocumentBuilder,
     DIDDocumentError,
     ResourceIDNotFound,
+)
+from pydid.doc.builder import (
+    DIDDocumentBuilder,
     ServiceBuilder,
     VerificationMethodBuilder,
 )
@@ -510,7 +512,7 @@ def test_relationship_builder_ref_x():
 
 def test_builder_from_doc():
     doc = DIDDocument.deserialize(DOC6)
-    builder = doc.to_builder()
+    builder = DIDDocumentBuilder.from_doc(doc)
     with builder.verification_methods() as vmethods:
         vmethods.add(
             suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
