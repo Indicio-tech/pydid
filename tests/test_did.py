@@ -166,3 +166,13 @@ def test_eq(did, next_did):
     assert did == same
     assert did != next_did
     assert did != {"not a": "did"}
+
+
+@pytest.mark.parametrize("did, next_did", zip(TEST_DIDS, TEST_DIDS[1:]))
+def test_hash(did, next_did):
+    same = DID(did)
+    did = DID(did)
+    next_did = DID(next_did)
+    assert hash(did) == hash(same)
+    assert hash(did) != hash(next_did)
+    assert hash(did) != hash(123)

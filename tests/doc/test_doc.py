@@ -349,12 +349,12 @@ def test_programmatic_construction():
     ed25519 = VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58")
     builder = DIDDocumentBuilder("did:example:123")
     assert builder.context == ["https://www.w3.org/ns/did/v1"]
-    with builder.verification_methods(default_suite=ed25519) as vmethods:
+    with builder.verification_methods.defaults(suite=ed25519) as vmethods:
         vmethod1 = vmethods.add("1234")
-    with builder.authentication(default_suite=ed25519) as auth:
+    with builder.authentication.defaults(suite=ed25519) as auth:
         auth.reference(vmethod1.id)
         auth.embed("abcd")
-    with builder.services() as services:
+    with builder.services.defaults() as services:
         services.add(type_="example", endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
 
@@ -362,18 +362,18 @@ def test_programmatic_construction():
 def test_programmatic_construction_x_no_suite():
     builder = DIDDocumentBuilder("did:example:123")
     with pytest.raises(ValueError):
-        with builder.verification_methods() as vmethods:
+        with builder.verification_methods.defaults() as vmethods:
             vmethods.add("1234")
 
 
 def test_programmatic_construction_didcomm():
     builder = DIDDocumentBuilder("did:example:123")
-    with builder.verification_methods(
-        default_suite=VerificationSuite("Example", "publicKeyBase58")
+    with builder.verification_methods.defaults(
+        suite=VerificationSuite("Example", "publicKeyBase58")
     ) as vmethods:
         key = vmethods.add("1234")
         route = vmethods.add("abcd")
-    with builder.services() as services:
+    with builder.services.defaults() as services:
         services = cast(ServiceBuilder, services)
         services.add_didcomm(
             endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
@@ -409,35 +409,35 @@ def test_programmatic_construction_didcomm():
 
 def test_all_relationship_builders():
     builder = DIDDocumentBuilder("did:example:123")
-    with builder.verification_methods() as vmethods:
+    with builder.verification_methods.defaults() as vmethods:
         vmethods = cast(VerificationMethodBuilder, vmethods)
         vmethod = vmethods.add(
             suite=VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58"),
             material="12345",
         )
-    with builder.authentication() as auth:
+    with builder.authentication.defaults() as auth:
         auth.reference(vmethod.id)
         auth.embed(
             suite=VerificationSuite("Example", "publicKeyExample"), material="auth"
         )
-    with builder.assertion_method() as assertion:
+    with builder.assertion_method.defaults() as assertion:
         assertion.reference(vmethod.id)
         assertion.embed(
             suite=VerificationSuite("Example", "publicKeyExample"), material="assert"
         )
-    with builder.key_agreement() as key_agreement:
+    with builder.key_agreement.defaults() as key_agreement:
         key_agreement.reference(vmethod.id)
         key_agreement.embed(
             suite=VerificationSuite("Example", "publicKeyExample"),
             material="key_agreement",
         )
-    with builder.capability_invocation() as capability_invocation:
+    with builder.capability_invocation.defaults() as capability_invocation:
         capability_invocation.reference(vmethod.id)
         capability_invocation.embed(
             suite=VerificationSuite("Example", "publicKeyExample"),
             material="capability_invocation",
         )
-    with builder.capability_delegation() as capability_delegation:
+    with builder.capability_delegation.defaults() as capability_delegation:
         capability_delegation.reference(vmethod.id)
         capability_delegation.embed(
             suite=VerificationSuite("Example", "publicKeyExample"),
@@ -506,18 +506,78 @@ def test_all_relationship_builders():
 def test_relationship_builder_ref_x():
     builder = DIDDocumentBuilder("did:example:123")
     with pytest.raises(ValueError):
-        with builder.authentication() as auth:
+        with builder.authentication.defaults() as auth:
             auth.reference("123")
+
+
+def test_vmethod_builder_x_no_ident():
+    builder = DIDDocumentBuilder("did:example:123")
+    with pytest.raises(ValueError):
+        builder.authentication.embed(
+            "1234", suite=VerificationSuite("Example", "publicKeyExample")
+        )
 
 
 def test_builder_from_doc():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    with builder.verification_methods() as vmethods:
+    with builder.verification_methods.defaults() as vmethods:
         vmethods.add(
             suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
         )
     assert len(builder.build().serialize()["verificationMethod"]) == 2
+
+
+def test_builder_from_doc_remove():
+    doc = DIDDocument.deserialize(DOC6)
+    builder = DIDDocumentBuilder.from_doc(doc)
+    with builder.verification_methods.defaults() as vmethods:
+        vmethod = vmethods.add(
+            suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
+        )
+    assert len(builder.build().serialize()["verificationMethod"]) == 2
+    builder.verification_methods.remove(vmethod)
+    assert len(builder.build().serialize()["verificationMethod"]) == 1
+    service = builder.services.add("example", "http://example.com", "ident")
+    assert len(builder.build().serialize()["service"]) == 2
+    builder.services.remove(service)
+    assert len(builder.build().serialize()["service"]) == 1
+    assertion = builder.assertion_method.add(
+        ident="123",
+        suite=VerificationSuite("Example", "publicKeyExample"),
+        material="1234",
+    )
+    assert len(builder.build().serialize()["assertionMethod"]) == 1
+    builder.assertion_method.remove(assertion)
+    assert "assertionMethod" not in builder.build().serialize()
+
+
+def test_key_rotation_from_doc():
+    doc = DIDDocument.deserialize(DOC6)
+    vmethod0 = doc.dereference("did:example:123#keys-0")
+
+    builder = DIDDocumentBuilder.from_doc(doc)
+    builder.verification_methods.remove(vmethod0)
+    builder.authentication.remove(vmethod0.id)
+    assert builder.build().serialize() == {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "authentication": [
+            {
+                "id": "did:example:123#auth-0",
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "abcd",
+            },
+        ],
+        "service": [
+            {
+                "id": "did:example:123#service-0",
+                "type": "example",
+                "serviceEndpoint": "https://example.com",
+            }
+        ],
+    }
 
 
 def test_dereference_and_membership_check():

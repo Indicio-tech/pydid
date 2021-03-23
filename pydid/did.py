@@ -58,6 +58,10 @@ class DID:
 
         return False
 
+    def __hash__(self):
+        """Return hash."""
+        return hash(self._raw)
+
     def url(self, path: str = None, query: Dict[str, str] = None, fragment: str = None):
         """Return a DID URL for this DID."""
         return DIDUrl(self._raw, path, query, fragment)
