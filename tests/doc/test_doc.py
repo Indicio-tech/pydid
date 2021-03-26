@@ -402,6 +402,7 @@ def test_programmatic_construction_didcomm():
                 "serviceEndpoint": "https://example.com",
                 "recipientKeys": ["did:example:123#keys-0"],
                 "routingKeys": ["did:example:123#keys-1"],
+                "priority": 0,
             }
         ],
     }

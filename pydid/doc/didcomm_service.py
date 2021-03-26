@@ -17,6 +17,7 @@ class DIDCommService(Service):
             "type": Any("IndyAgent", "did-communication"),
             "recipientKeys": [All(str, DIDUrl.validate)],
             "routingKeys": [All(str, DIDUrl.validate)],
+            "priority": int,
         },
         extra=PREVENT_EXTRA,
     )
@@ -26,6 +27,7 @@ class DIDCommService(Service):
         id_: DIDUrl,
         endpoint: str,
         recipient_keys: List[DIDUrl],
+        priority: int,
         *,
         type_: str = None,
         routing_keys: List[DIDUrl] = None
@@ -34,6 +36,7 @@ class DIDCommService(Service):
         super().__init__(id_, type_ or "did-communication", endpoint)
         self._recipient_keys = recipient_keys
         self._routing_keys = routing_keys or []
+        self.priority = priority
 
     @property
     def recipient_keys(self):
@@ -54,6 +57,7 @@ class DIDCommService(Service):
             "serviceEndpoint": self.endpoint,
             "recipientKeys": did_urls(self.recipient_keys),
             "routingKeys": did_urls(self.routing_keys),
+            "priority": self.priority,
         }
 
     @classmethod
@@ -78,6 +82,7 @@ class DIDCommService(Service):
                 Into("serviceEndpoint", "endpoint"): str,
                 Into("recipientKeys", "recipient_keys"): [DIDUrl.parse],
                 Into("routingKeys", "routing_keys"): [DIDUrl.parse],
+                "priority": int,
             }
         )
         value = deserializer(value)
