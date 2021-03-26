@@ -19,8 +19,13 @@ SERVICE1 = {
         "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
     ],
 }
+SERVICE2 = {
+    "id": "did:example:123#linked-domain",
+    "type": "LinkedDomains",
+    "serviceEndpoint": "",
+}
 
-SERVICES = [SERVICE0, SERVICE1]
+SERVICES = [SERVICE0, SERVICE1, SERVICE2]
 
 INVALID_SERVICE0 = {"type": "xdi", "serviceEndpoint": "https://example.com"}
 

@@ -18,7 +18,7 @@ class Service:
         {
             "id": All(str, DIDUrl.validate),
             "type": str,
-            "serviceEndpoint": Switch(DIDUrl.validate, Url()),
+            "serviceEndpoint": Switch(DIDUrl.validate, Url(), ""),
         },
         extra=ALLOW_EXTRA,
         required=True,
