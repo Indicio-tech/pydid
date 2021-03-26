@@ -17,6 +17,7 @@ from ..validation import (
 from . import DIDDocumentError
 from .doc_options import DIDDocumentOption
 from .service import Service
+from .didcomm_service import DIDCommService
 from .verification_method import VerificationMethod
 from .verification_relationship import VerificationRelationship
 
@@ -31,6 +32,14 @@ class ResourceIDNotFound(DIDDocumentError):
 
 class DIDDocumentValidationError(DIDDocumentError):
     """Raised when Document validation fails."""
+
+
+def _didcomm_or_service_discriminant(value, validators):
+    """Return the validator to use for the service."""
+    if value["type"] == "did-communication" or value["type"] == "IndyAgent":
+        yield validators[0]
+    else:
+        yield validators[1]
 
 
 class DIDDocument:
@@ -225,7 +234,13 @@ class DIDDocument:
     @properties.add(
         validate=[Service.validate],
         serialize=[serialize],
-        deserialize=[Service.deserialize],
+        deserialize=[
+            Switch(
+                DIDCommService.deserialize,
+                Service.deserialize,
+                discriminant=_didcomm_or_service_discriminant,
+            )
+        ],
     )
     def service(self):
         """Return service."""
