@@ -33,10 +33,17 @@ class DIDCommService(Service):
         routing_keys: List[DIDUrl] = None
     ):
         """Initialize DIDCommService."""
-        super().__init__(id_, type_ or "did-communication", endpoint)
         self._recipient_keys = recipient_keys
         self._routing_keys = routing_keys or []
         self.priority = priority
+        super().__init__(
+            id_,
+            type_ or "did-communication",
+            endpoint,
+            recipient_keys=recipient_keys,
+            routing_keys=routing_keys,
+            priority=priority,
+        )
 
     @property
     def recipient_keys(self):
