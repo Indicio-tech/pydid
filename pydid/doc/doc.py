@@ -1,5 +1,6 @@
 """DID Document Object."""
 
+import json
 from typing import Any, List, Set, Union
 
 from voluptuous import ALLOW_EXTRA, All, Coerce, Switch, Url
@@ -285,3 +286,12 @@ class DIDDocument:
         value = cls.validate(value)
         value = cls.properties.deserialize(value)
         return cls(**value)
+
+    @classmethod
+    @wrap_validation_error(
+        DIDDocumentValidationError, message="Failed to deserialize DID Document"
+    )
+    def from_json(cls, value: str, options: Set[Option] = None):
+        """Deserialize DID Document from JSON."""
+        doc_raw: dict = json.loads(value)
+        return cls.deserialize(doc_raw, options)
