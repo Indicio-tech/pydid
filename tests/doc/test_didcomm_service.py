@@ -33,7 +33,14 @@ SERVICE2 = {
     "routingKeys": [],
 }
 
-SERVICES = [SERVICE0, SERVICE1, SERVICE2]
+INVALID_SERVICE_THAT_PASSES = {
+    "id": "did:example:123#did-communication",
+    "type": "did-communication",
+    "serviceEndpoint": "", # TODO: UPDATE W3C SPEC
+    "recipientKeys": ["did:example:123#keys-2"],
+    "routingKeys": [],
+}
+SERVICES = [SERVICE0, SERVICE1, SERVICE2, INVALID_SERVICE_THAT_PASSES]
 
 INVALID_SERVICE0 = {
     "id": "did:example:123#linked-domain",
@@ -51,7 +58,6 @@ INVALID_SERVICE1 = {
 }
 
 INVALID_SERVICES = [*BASE_INVALID_SERVICES, INVALID_SERVICE0, INVALID_SERVICE1]
-
 
 @pytest.mark.parametrize("service", SERVICES)
 def test_validate(service):
