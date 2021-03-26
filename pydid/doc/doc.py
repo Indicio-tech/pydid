@@ -49,7 +49,7 @@ class DIDDocument:
 
     def __init__(
         self,
-        id: Union[str, DID],
+        id: str,
         context: List[Any],
         *,
         also_known_as: List[str] = None,
@@ -142,12 +142,17 @@ class DIDDocument:
     @properties.add(
         required=True,
         validate=All(str, DID.validate),
-        serialize=Coerce(str),
-        deserialize=Coerce(DID),
+        serialize=str,
+        deserialize=str,
     )
     def id(self):
         """Return id."""
         return self._id
+
+    @property
+    def did(self):
+        """Return the DID representation of id."""
+        return DID(self._id)
 
     @property
     @properties.add(data_key="alsoKnownAs", validate=[str])

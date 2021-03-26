@@ -222,7 +222,7 @@ class DIDDocumentBuilder:
     @validate_init(id_=Switch(All(str, Coerce(DID)), DID))
     def __init__(
         self,
-        id_: Union[str, DID],
+        id_: DID,
         context: List[str] = None,
         *,
         also_known_as: List[str] = None,
@@ -250,36 +250,36 @@ class DIDDocumentBuilder:
     def from_doc(cls, doc: DIDDocument) -> "DIDDocumentBuilder":
         """Create a Builder from an existing DIDDocument."""
         builder = cls(
-            id_=doc.id,
+            id_=doc.did,
             context=doc.context,
             also_known_as=doc.also_known_as,
             controller=doc.controller,
         )
         builder.verification_methods = VerificationMethodBuilder(
-            doc.id, methods=doc.verification_method
+            doc.did, methods=doc.verification_method
         )
         builder.authentication = RelationshipBuilder(
-            doc.id, "auth", methods=doc.authentication
+            doc.did, "auth", methods=doc.authentication
         )
         builder.assertion_method = RelationshipBuilder(
-            doc.id, "assert", methods=doc.assertion_method
+            doc.did, "assert", methods=doc.assertion_method
         )
         builder.key_agreement = RelationshipBuilder(
-            doc.id, "key-agreement", methods=doc.key_agreement
+            doc.did, "key-agreement", methods=doc.key_agreement
         )
         builder.capability_invocation = RelationshipBuilder(
-            doc.id, "capability-invocation", methods=doc.capability_invocation
+            doc.did, "capability-invocation", methods=doc.capability_invocation
         )
         builder.capability_delegation = RelationshipBuilder(
-            doc.id, "capability-delegation", methods=doc.capability_delegation
+            doc.did, "capability-delegation", methods=doc.capability_delegation
         )
-        builder.services = ServiceBuilder(doc.id, services=doc.service)
+        builder.services = ServiceBuilder(doc.did, services=doc.service)
         return builder
 
     def build(self) -> DIDDocument:
         """Build document."""
         return DIDDocument(
-            id=self.id,
+            id=str(self.id),
             context=self.context,
             also_known_as=self.also_known_as,
             controller=self.controller,
