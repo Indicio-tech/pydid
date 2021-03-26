@@ -42,7 +42,7 @@ class VerificationMethodBuilder:
     @contextmanager
     def defaults(
         self, id_generator: Iterator[str] = None, suite: VerificationSuite = None
-    ) -> "VerificationMethodBuilder":
+    ) -> Iterator["VerificationMethodBuilder"]:
         """Enter context with defaults set."""
         self._id_generator = id_generator or self._default_id_generator()
         self._default_suite = suite
@@ -105,7 +105,7 @@ class RelationshipBuilder(VerificationMethodBuilder):
     @contextmanager
     def defaults(
         self, id_generator: Iterator[str] = None, suite: VerificationSuite = None
-    ) -> "RelationshipBuilder":
+    ) -> Iterator["RelationshipBuilder"]:
         """Enter context with defaults set."""
         self._id_generator = id_generator or self._default_id_generator()
         self._default_suite = suite
@@ -147,8 +147,25 @@ class ServiceBuilder:
         self.services = services or []
         self._id_generator = None
 
+    def _determine_next_priority(self):
+        """Return the next priority after the highest priority currently in services."""
+        return (
+            max(
+                [
+                    service.priority
+                    for service in self.services
+                    if isinstance(service, DIDCommService)
+                ]
+            )
+            + 1
+            if self.services
+            else 0
+        )
+
     @contextmanager
-    def defaults(self, id_generator: Iterator[str] = None) -> "ServiceBuilder":
+    def defaults(
+        self, id_generator: Iterator[str] = None
+    ) -> Iterator["ServiceBuilder"]:
         """Enter context with defaults."""
         self._id_generator = id_generator or _default_id_generator(
             "service", start=len(self.services)
@@ -171,6 +188,7 @@ class ServiceBuilder:
         recipient_keys: List[VerificationMethod],
         routing_keys: List[VerificationMethod] = None,
         *,
+        priority: int = None,
         type_: str = None,
         ident: str = None
     ):
@@ -179,12 +197,14 @@ class ServiceBuilder:
         recipient_keys = [vmethod.id for vmethod in recipient_keys]
         routing_keys = routing_keys or []
         routing_keys = [vmethod.id for vmethod in routing_keys]
+        priority = priority or self._determine_next_priority()
         service = DIDCommService(
             self._did.ref(ident),
             endpoint,
             recipient_keys,
             routing_keys=routing_keys,
             type_=type_,
+            priority=priority,
         )
         self.services.append(service)
         return service
@@ -202,7 +222,7 @@ class DIDDocumentBuilder:
     @validate_init(id_=Switch(All(str, Coerce(DID)), DID))
     def __init__(
         self,
-        id_: Union[str, DID],
+        id_: DID,
         context: List[str] = None,
         *,
         also_known_as: List[str] = None,
@@ -230,36 +250,36 @@ class DIDDocumentBuilder:
     def from_doc(cls, doc: DIDDocument) -> "DIDDocumentBuilder":
         """Create a Builder from an existing DIDDocument."""
         builder = cls(
-            id_=doc.id,
+            id_=doc.did,
             context=doc.context,
             also_known_as=doc.also_known_as,
             controller=doc.controller,
         )
         builder.verification_methods = VerificationMethodBuilder(
-            doc.id, methods=doc.verification_method
+            doc.did, methods=doc.verification_method
         )
         builder.authentication = RelationshipBuilder(
-            doc.id, "auth", methods=doc.authentication
+            doc.did, "auth", methods=doc.authentication
         )
         builder.assertion_method = RelationshipBuilder(
-            doc.id, "assert", methods=doc.assertion_method
+            doc.did, "assert", methods=doc.assertion_method
         )
         builder.key_agreement = RelationshipBuilder(
-            doc.id, "key-agreement", methods=doc.key_agreement
+            doc.did, "key-agreement", methods=doc.key_agreement
         )
         builder.capability_invocation = RelationshipBuilder(
-            doc.id, "capability-invocation", methods=doc.capability_invocation
+            doc.did, "capability-invocation", methods=doc.capability_invocation
         )
         builder.capability_delegation = RelationshipBuilder(
-            doc.id, "capability-delegation", methods=doc.capability_delegation
+            doc.did, "capability-delegation", methods=doc.capability_delegation
         )
-        builder.services = ServiceBuilder(doc.id, services=doc.service)
+        builder.services = ServiceBuilder(doc.did, services=doc.service)
         return builder
 
     def build(self) -> DIDDocument:
         """Build document."""
         return DIDDocument(
-            id=self.id,
+            id=str(self.id),
             context=self.context,
             also_known_as=self.also_known_as,
             controller=self.controller,

@@ -18,6 +18,7 @@ from pydid.doc.builder import (
 )
 from pydid.doc.doc_options import DIDDocumentOption
 from pydid.doc.service import Service
+from pydid.doc.didcomm_service import DIDCommService
 from pydid.doc.verification_method import VerificationMethod, VerificationSuite
 
 DOC0 = {
@@ -243,7 +244,39 @@ DOC6 = {
     ],
 }
 
-DOCS = [DOC0, DOC1, DOC2, DOC3, DOC4, DOC5, DOC6]
+DOC7 = {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:example:123",
+    "verificationMethod": [
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "1234",
+        }
+    ],
+    "authentication": [
+        "did:example:123#keys-0",
+        {
+            "id": "did:example:123#auth-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "abcd",
+        },
+    ],
+    "service": [
+        {
+            "id": "did:example:123#service-0",
+            "type": "did-communication",
+            "serviceEndpoint": "https://example.com",
+            "recipientKeys": ["did:example:123#keys-0"],
+            "routingKeys": ["did:example:123#keys-1"],
+            "priority": 0,
+        }
+    ],
+}
+
+DOCS = [DOC0, DOC1, DOC2, DOC3, DOC4, DOC5, DOC6, DOC7]
 
 INVALID_DOC0 = {}
 INVALID_DOC1 = {
@@ -345,6 +378,12 @@ def test_extra_preserved():
     assert "additionalAttribute" in doc.serialize()
 
 
+def test_didcomm_service_deserialized():
+    """Test whether a DIDCommService is returned when deserialized."""
+    doc = DIDDocument.deserialize(DOC7)
+    assert isinstance(doc.service[0], DIDCommService)
+
+
 def test_programmatic_construction():
     ed25519 = VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58")
     builder = DIDDocumentBuilder("did:example:123")
@@ -402,6 +441,7 @@ def test_programmatic_construction_didcomm():
                 "serviceEndpoint": "https://example.com",
                 "recipientKeys": ["did:example:123#keys-0"],
                 "routingKeys": ["did:example:123#keys-1"],
+                "priority": 0,
             }
         ],
     }

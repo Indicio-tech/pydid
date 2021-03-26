@@ -17,6 +17,7 @@ from ..validation import (
 from . import DIDDocumentError
 from .doc_options import DIDDocumentOption
 from .service import Service
+from .didcomm_service import DIDCommService
 from .verification_method import VerificationMethod
 from .verification_relationship import VerificationRelationship
 
@@ -33,6 +34,14 @@ class DIDDocumentValidationError(DIDDocumentError):
     """Raised when Document validation fails."""
 
 
+def _didcomm_or_service_discriminant(value, validators):
+    """Return the validator to use for the service."""
+    if value["type"] == "did-communication" or value["type"] == "IndyAgent":
+        yield validators[0]
+    else:
+        yield validators[1]
+
+
 class DIDDocument:
     """Representation of DID Document."""
 
@@ -40,7 +49,7 @@ class DIDDocument:
 
     def __init__(
         self,
-        id: Union[str, DID],
+        id: str,
         context: List[Any],
         *,
         also_known_as: List[str] = None,
@@ -133,12 +142,17 @@ class DIDDocument:
     @properties.add(
         required=True,
         validate=All(str, DID.validate),
-        serialize=Coerce(str),
-        deserialize=Coerce(DID),
+        serialize=str,
+        deserialize=str,
     )
     def id(self):
         """Return id."""
         return self._id
+
+    @property
+    def did(self):
+        """Return the DID representation of id."""
+        return DID(self._id)
 
     @property
     @properties.add(data_key="alsoKnownAs", validate=[str])
@@ -225,7 +239,13 @@ class DIDDocument:
     @properties.add(
         validate=[Service.validate],
         serialize=[serialize],
-        deserialize=[Service.deserialize],
+        deserialize=[
+            Switch(
+                DIDCommService.deserialize,
+                Service.deserialize,
+                discriminant=_didcomm_or_service_discriminant,
+            )
+        ],
     )
     def service(self):
         """Return service."""

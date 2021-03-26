@@ -15,6 +15,7 @@ SERVICE0 = {
         "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
         "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
     ],
+    "priority": 0,
 }
 
 SERVICE1 = {
@@ -23,6 +24,7 @@ SERVICE1 = {
     "serviceEndpoint": "https://agents-r-us.com",
     "recipientKeys": ["did:example:123#keys-1"],
     "routingKeys": [],
+    "priority": 0,
 }
 
 SERVICE2 = {
@@ -31,6 +33,7 @@ SERVICE2 = {
     "serviceEndpoint": "https://agents-r-us.com",
     "recipientKeys": ["did:example:123#keys-1"],
     "routingKeys": [],
+    "priority": 0,
 }
 
 SERVICES = [SERVICE0, SERVICE1, SERVICE2]
