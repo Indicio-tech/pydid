@@ -295,3 +295,7 @@ class DIDDocument:
         """Deserialize DID Document from JSON."""
         doc_raw: dict = json.loads(value)
         return cls.deserialize(doc_raw, options)
+
+    def to_json(self):
+        """Serialize DID Document to JSON."""
+        return json.dumps(self.serialize())
