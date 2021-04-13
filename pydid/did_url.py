@@ -7,7 +7,7 @@ from voluptuous import Invalid
 from .common import DID_PATTERN, DIDError
 
 
-class InvalidDIDUrlError(DIDError, Invalid):
+class InvalidDIDUrlError(DIDError, Invalid, ValueError):
     """Invalid DID."""
 
 
@@ -33,6 +33,16 @@ class DIDUrl:
         self.query = query
         self.fragment = str(fragment) if fragment else None
         self.url = self._stringify()
+
+    @classmethod
+    def __get_validators__(cls):
+        """Yield validators."""
+        yield cls._validate
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """Update schema fields."""
+        field_schema.update(examples=["did:example:123/some/path?query=test#fragment"])
 
     def _stringify(self):
         """Stringify DID URL from parts.
@@ -125,3 +135,8 @@ class DIDUrl:
         """Validate the given url as a DID URL."""
         cls.parse(url)
         return url
+
+    @classmethod
+    def _validate(cls, url: str):
+        """Validate the given url as a DID URL."""
+        return cls.parse(url)
