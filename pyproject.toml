@@ -35,6 +35,7 @@ keywords = [
 [tool.poetry.dependencies]
 python = "^3.6.9"
 voluptuous = "^0.12.1"
+pydantic = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
