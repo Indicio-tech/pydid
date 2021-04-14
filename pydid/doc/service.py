@@ -2,7 +2,7 @@
 
 from typing import Union, List
 
-from pydantic import AnyUrl
+from pydantic import AnyUrl, Extra
 from typing_extensions import Literal
 
 from ..did_url import DIDUrl
@@ -19,6 +19,11 @@ class Service(Resource):
 
 class DIDCommService(Service):
     """DID Communication Service."""
+
+    class Config:
+        """DIDComm Service Config."""
+
+        extra = Extra.forbid
 
     type: Literal["IndyAgent", "did-communication"] = "did-communication"
     recipient_keys: List[DIDUrl]

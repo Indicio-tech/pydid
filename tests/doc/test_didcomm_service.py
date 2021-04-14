@@ -2,7 +2,7 @@
 
 import pytest
 
-from pydid.doc.didcomm_service import DIDCommService, ServiceValidationError
+from pydid.doc.service import DIDCommService
 
 from .test_service import INVALID_SERVICES as BASE_INVALID_SERVICES
 
@@ -63,7 +63,7 @@ def test_validate(service):
 
 @pytest.mark.parametrize("service", INVALID_SERVICES)
 def test_fails_invalid(service):
-    with pytest.raises(ServiceValidationError):
+    with pytest.raises(ValueError):
         DIDCommService.validate(service)
 
 

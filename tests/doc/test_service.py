@@ -2,7 +2,7 @@
 
 import pytest
 
-from pydid.doc.service import Service, ServiceValidationError
+from pydid.doc.service import Service
 
 SERVICE0 = {
     "id": "did:example:123#linked-domain",
@@ -61,7 +61,7 @@ def test_validates_valid(service):
 
 @pytest.mark.parametrize("service", INVALID_SERVICES)
 def test_fails_invalid(service):
-    with pytest.raises(ServiceValidationError):
+    with pytest.raises(ValueError):
         Service.validate(service)
 
 

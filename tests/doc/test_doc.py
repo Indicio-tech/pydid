@@ -1,5 +1,6 @@
 """Test DIDDocument object."""
 
+from collections import namedtuple
 import copy
 from typing import cast
 
@@ -9,7 +10,7 @@ from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.doc import (
     DIDDocument,
     DIDDocumentError,
-    ResourceIDNotFound,
+    IDNotFoundError,
 )
 from pydid.doc.builder import (
     DIDDocumentBuilder,
@@ -18,8 +19,12 @@ from pydid.doc.builder import (
 )
 from pydid.doc.doc_options import DIDDocumentOption
 from pydid.doc.service import Service
-from pydid.doc.didcomm_service import DIDCommService
-from pydid.doc.verification_method import VerificationMethod, VerificationSuite
+from pydid.doc.service import DIDCommService
+from pydid.doc.verification_method import VerificationMethod
+
+VerificationSuite = namedtuple(
+    "VerificationSuite", "type", "verification_material_prop"
+)
 
 DOC0 = {
     "@context": "https://w3id.org/did/v0.11",
@@ -357,7 +362,7 @@ def test_dereference_x():
     with pytest.raises(InvalidDIDUrlError):
         doc.dereference("bogus")
 
-    with pytest.raises(ResourceIDNotFound):
+    with pytest.raises(IDNotFoundError):
         doc.dereference("did:example:123#bogus")
 
 
