@@ -3,6 +3,7 @@
 from typing import Type, Set
 
 from pydantic import BaseModel, Extra, parse_obj_as
+from inflection import camelize
 
 from ..did import DID
 from ..did_url import DIDUrl
@@ -21,8 +22,7 @@ class Resource(BaseModel):
         @classmethod
         def alias_generator(cls, string: str) -> str:
             """Transform snake_case to camelCase."""
-            split = string.split("_")
-            return "".join([split[0]] + [word.capitalize() for word in split[1:]])
+            return camelize(string, uppercase_first_letter=False)
 
     def serialize(self):
         """Return serialized representation of Resource."""
