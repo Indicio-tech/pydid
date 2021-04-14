@@ -9,6 +9,7 @@ import pytest
 from pydid.did_url import InvalidDIDUrlError
 from pydid.doc.doc import (
     DIDDocument,
+    DIDDocumentV1,
     DIDDocumentError,
     IDNotFoundError,
 )
@@ -23,7 +24,7 @@ from pydid.doc.service import DIDCommService
 from pydid.doc.verification_method import VerificationMethod
 
 VerificationSuite = namedtuple(
-    "VerificationSuite", "type", "verification_material_prop"
+    "VerificationSuite", ["type", "verification_material_prop"]
 )
 
 DOC0 = {
@@ -385,7 +386,7 @@ def test_extra_preserved():
 
 def test_didcomm_service_deserialized():
     """Test whether a DIDCommService is returned when deserialized."""
-    doc = DIDDocument.deserialize(DOC7)
+    doc = DIDDocumentV1.deserialize(DOC7)
     assert isinstance(doc.service[0], DIDCommService)
 
 

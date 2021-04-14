@@ -1,17 +1,20 @@
 """DID Document Object."""
 
 import json
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Type
 
-from pydantic import AnyUrl, Field
-from pydantic.class_validators import validator
+from pydantic import AnyUrl, Field, validator, create_model
 from typing_extensions import Annotated
 
 from ..did import DID
 from ..did_url import DIDUrl
 from . import DIDDocumentError
-from .service import Service
-from .verification_method import VerificationMethod
+from .service import Service, DIDCommService
+from .verification_method import (
+    VerificationMethod,
+    KnownVerificationMethods,
+    UnknownVerificationMethod,
+)
 from .resource import Resource
 from ..validation import single_to_list
 
@@ -121,3 +124,58 @@ class DIDDocument(Resource):
     def to_json(self):
         """Serialize DID Document to JSON."""
         return self.json()
+
+    @classmethod
+    def using(
+        cls,
+        name: str,
+        verification_method: Type[VerificationMethod] = None,
+        service: Type[Service] = None,
+    ):
+        """Define a new model using given types for verification methods and services."""
+        return create_model(
+            name,
+            __base__=cls,
+            verification_method=(
+                Optional[List[verification_method or VerificationMethod]],
+                None,
+            ),
+            authentication=(
+                Optional[
+                    List[Union[DIDUrl, verification_method or VerificationMethod]]
+                ],
+                None,
+            ),
+            assertion_method=(
+                Optional[
+                    List[Union[DIDUrl, verification_method or VerificationMethod]]
+                ],
+                None,
+            ),
+            key_agreement=(
+                Optional[
+                    List[Union[DIDUrl, verification_method or VerificationMethod]]
+                ],
+                None,
+            ),
+            capability_invocation=(
+                Optional[
+                    List[Union[DIDUrl, verification_method or VerificationMethod]]
+                ],
+                None,
+            ),
+            capability_delegation=(
+                Optional[
+                    List[Union[DIDUrl, verification_method or VerificationMethod]]
+                ],
+                None,
+            ),
+            service=(Optional[List[service or Service]], None),
+        )
+
+
+DIDDocumentV1 = DIDDocument.using(
+    "DIDDocumentV1",
+    verification_method=Union[KnownVerificationMethods, UnknownVerificationMethod],
+    service=Union[DIDCommService, Service],
+)
