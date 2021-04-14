@@ -1,13 +1,16 @@
 """Resource class that forms the base of all DID Document components."""
 
-from typing import Type, Set
+from typing import Type, TypeVar
 
 from pydantic import BaseModel, Extra, parse_obj_as
 from inflection import camelize
 
 from ..did import DID
 from ..did_url import DIDUrl
-from ..validation import wrap_validation_error, Option
+from ..validation import wrap_validation_error
+
+
+T = TypeVar("T", bound="Resource")
 
 
 class Resource(BaseModel):
@@ -16,6 +19,7 @@ class Resource(BaseModel):
     class Config:
         """Configuration for Resources."""
 
+        underscore_attrs_are_private = True
         extra = Extra.allow
         json_encoders = {DID: str, DIDUrl: str}
 
@@ -43,19 +47,12 @@ class Resource(BaseModel):
         return result
 
     @classmethod
-    def deserialize(
-        cls, value: dict, *, type_: Type["Resource"] = None, options: Set[Option] = None
-    ) -> "Resource":
+    def deserialize(cls: Type[T], value: dict, *, type_: Type[T] = None) -> T:
         """Deserialize into VerificationMethod."""
         with wrap_validation_error(
             ValueError,
             message="Failed to deserialize {}".format(cls.__name__),
         ):
-            # Apply options
-            if options:
-                for option in sorted(options, key=lambda opt: opt.priority):
-                    value = option.apply(value)
-
             if type_:
                 return parse_obj_as(type_, value)
 
