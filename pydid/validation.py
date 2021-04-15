@@ -5,10 +5,11 @@ from collections import namedtuple
 from contextlib import contextmanager
 from enum import Enum, EnumMeta
 from functools import wraps
-from typing import Any, Iterable, Set, Type
+from typing import Any, Callable, Iterable, List, Set, Type
 
 import voluptuous
 from voluptuous import ALLOW_EXTRA, Invalid, MultipleInvalid, Required, Schema
+from pydantic import ValidationError, root_validator, create_model
 
 
 def validate_init(*s_args, **s_kwargs):
@@ -50,7 +51,30 @@ def wrap_validation_error(error_to_raise: Type[Exception], message: str = None):
                 message or "Validation error",
                 "\n\t".join([str(sub_error) for sub_error in error.errors]),
             )
-        ) from error
+        ) from None
+    except ValidationError as error:
+        raise error_to_raise(
+            ":\n".join([message, str(error)]) if message else str(error)
+        ) from None
+
+
+def coerce(transformers: List[Callable]):
+    """Apply transformations to data before parsing into model."""
+
+    def _do_coercion(_model: Type, values: dict):
+        for transformer in transformers:
+            values = transformer(values)
+        return values
+
+    def _coerce(typ: Type[Any]):
+        return create_model(
+            typ.__name__ + "WithCoercion",
+            __module__=typ.__module__,
+            __base__=typ,
+            do_coercion=root_validator(pre=True, allow_reuse=True)(_do_coercion),
+        )
+
+    return _coerce
 
 
 class Into:
