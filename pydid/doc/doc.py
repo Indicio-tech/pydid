@@ -1,9 +1,10 @@
 """DID Document Object."""
 
 import json
-from typing import List, Union, Optional, Type
+from typing import List, TypeVar, Union, Optional, Generic
 
-from pydantic import AnyUrl, Field, validator, create_model
+from pydantic import Field, validator
+from pydantic.generics import GenericModel
 from typing_extensions import Annotated
 
 from ..did import DID
@@ -16,7 +17,13 @@ from .verification_method import (
     UnknownVerificationMethod,
 )
 from .resource import Resource
-from ..validation import single_to_list
+from ..validation import single_to_list, coerce
+from .doc_transformations import DIDDocumentTransformations
+from .vm_transformations import VerificationMethodTransformations
+
+
+VM = TypeVar("VM", bound=VerificationMethod)
+SV = TypeVar("SV", bound=Service)
 
 
 class IdentifiedResourceMismatch(DIDDocumentError):
@@ -27,24 +34,24 @@ class IDNotFoundError(DIDDocumentError):
     """Raised when Resource ID not found in DID Document."""
 
 
-class DIDDocument(Resource):
+class DIDDocumentRoot(Resource, GenericModel, Generic[VM, SV]):
     """Representation of DID Document."""
 
     # pylint: disable=unsubscriptable-object
 
-    context: Annotated[List[AnyUrl], Field(alias="@context")] = [  # noqa: F722
+    context: Annotated[List[str], Field(alias="@context")] = [  # noqa: F722
         "https://www.w3.org/ns/did/v1"
     ]
-    id: DID
+    did: Annotated[DID, Field(alias="id")]
     also_known_as: Optional[List[str]] = None
-    controller: Optional[List[str]] = None
-    verification_method: Optional[List[VerificationMethod]] = None
-    authentication: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    assertion_method: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    key_agreement: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    capability_invocation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    capability_delegation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    service: Optional[List[Service]] = None
+    controller: Optional[List[DID]] = None
+    verification_method: Optional[List[VM]] = None
+    authentication: Optional[List[Union[DIDUrl, VM]]] = None
+    assertion_method: Optional[List[Union[DIDUrl, VM]]] = None
+    key_agreement: Optional[List[Union[DIDUrl, VM]]] = None
+    capability_invocation: Optional[List[Union[DIDUrl, VM]]] = None
+    capability_delegation: Optional[List[Union[DIDUrl, VM]]] = None
+    service: Optional[List[SV]] = None
     _index: dict = {}
 
     def __init__(self, **data):
@@ -54,9 +61,8 @@ class DIDDocument(Resource):
 
     @validator("context", "controller", pre=True)
     @classmethod
-    def listify(cls, value):
+    def _listify(cls, value):
         """Transform values into lists that are allowed to be a list or single."""
-        print(value)
         return single_to_list(value)
 
     def _index_resources(self):
@@ -102,9 +108,9 @@ class DIDDocument(Resource):
             _indexer(item)
 
     @property
-    def did(self):
-        """Return the DID representation of id."""
-        return DID(self._id)
+    def id(self):
+        """Return string representation of document ID."""
+        return str(self.did)
 
     def dereference(self, reference: Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
@@ -125,57 +131,24 @@ class DIDDocument(Resource):
         """Serialize DID Document to JSON."""
         return self.json()
 
-    @classmethod
-    def using(
-        cls,
-        name: str,
-        verification_method: Type[VerificationMethod] = None,
-        service: Type[Service] = None,
-    ):
-        """Define a new model using given types for verification methods and services."""
-        return create_model(
-            name,
-            __base__=cls,
-            verification_method=(
-                Optional[List[verification_method or VerificationMethod]],
-                None,
-            ),
-            authentication=(
-                Optional[
-                    List[Union[DIDUrl, verification_method or VerificationMethod]]
-                ],
-                None,
-            ),
-            assertion_method=(
-                Optional[
-                    List[Union[DIDUrl, verification_method or VerificationMethod]]
-                ],
-                None,
-            ),
-            key_agreement=(
-                Optional[
-                    List[Union[DIDUrl, verification_method or VerificationMethod]]
-                ],
-                None,
-            ),
-            capability_invocation=(
-                Optional[
-                    List[Union[DIDUrl, verification_method or VerificationMethod]]
-                ],
-                None,
-            ),
-            capability_delegation=(
-                Optional[
-                    List[Union[DIDUrl, verification_method or VerificationMethod]]
-                ],
-                None,
-            ),
-            service=(Optional[List[service or Service]], None),
-        )
+
+class BasicDIDDocument(DIDDocumentRoot[VerificationMethod, Service]):
+    """Basic DID Document."""
 
 
-DIDDocumentV1 = DIDDocument.using(
-    "DIDDocumentV1",
-    verification_method=Union[KnownVerificationMethods, UnknownVerificationMethod],
-    service=Union[DIDCommService, Service],
-)
+class DIDDocumentV1(
+    DIDDocumentRoot[
+        Union[KnownVerificationMethods, UnknownVerificationMethod],
+        Union[DIDCommService, Service],
+    ]
+):
+    """
+    DID Document for DID Spec version 1.0.
+
+    Registered verification method and service types are parsed into specific objects.
+    """
+
+
+@coerce([*list(DIDDocumentTransformations), *list(VerificationMethodTransformations)])
+class DIDDocument(DIDDocumentV1):
+    """Common DID Document."""

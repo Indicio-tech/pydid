@@ -18,7 +18,6 @@ from pydid.doc.builder import (
     ServiceBuilder,
     VerificationMethodBuilder,
 )
-from pydid.doc.doc_options import DIDDocumentOption
 from pydid.doc.service import Service
 from pydid.doc.service import DIDCommService
 from pydid.doc.verification_method import VerificationMethod
@@ -28,7 +27,7 @@ VerificationSuite = namedtuple(
 )
 
 DOC0 = {
-    "@context": "https://w3id.org/did/v0.11",
+    "@context": ["https://w3id.org/did/v0.11"],
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
     "authentication": [
         {
@@ -72,7 +71,7 @@ DOC0 = {
 }
 
 DOC1 = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": ["https://w3id.org/did/v1"],
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
     "authentication": [
         {
@@ -109,9 +108,9 @@ DOC1 = {
 }
 
 DOC2 = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": ["https://w3id.org/did/v1"],
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
-    "controller": "did:example:123",
+    "controller": ["did:example:123"],
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
@@ -147,9 +146,9 @@ DOC2 = {
 }
 
 DOC3 = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": ["https://w3id.org/did/v1"],
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
-    "controller": "did:example:123",
+    "controller": ["did:example:123"],
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
@@ -185,9 +184,9 @@ DOC3 = {
 }
 
 DOC4 = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": ["https://w3id.org/did/v1"],
     "id": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
-    "controller": "did:example:123",
+    "controller": ["did:example:123"],
     "verificationMethod": [
         {
             "id": "did:example:123#authentication-1",
@@ -217,12 +216,12 @@ DOC4 = {
 }
 
 DOC5 = {
-    "@context": "https://w3id.org/did/v1",
+    "@context": ["https://w3id.org/did/v1"],
     "id": "did:example:123",
 }
 
 DOC6 = {
-    "@context": "https://www.w3.org/ns/did/v1",
+    "@context": ["https://www.w3.org/ns/did/v1"],
     "id": "did:example:123",
     "verificationMethod": [
         {
@@ -251,7 +250,7 @@ DOC6 = {
 }
 
 DOC7 = {
-    "@context": "https://www.w3.org/ns/did/v1",
+    "@context": ["https://www.w3.org/ns/did/v1"],
     "id": "did:example:123",
     "verificationMethod": [
         {
@@ -336,7 +335,7 @@ def test_validate(doc):
 @pytest.mark.parametrize("doc", INVALID_DOCS)
 def test_fails_invalid(doc):
     """Test invalid docs fail."""
-    with pytest.raises(DIDDocumentError):
+    with pytest.raises((ValueError, DIDDocumentError)):
         DIDDocument.deserialize(doc)
 
 
@@ -372,7 +371,9 @@ def test_vmethod_relationships():
     doc = DIDDocument.deserialize(DOC0)
     auth0: VerificationMethod = doc.dereference(DOC0["authentication"][0]["id"])
     assert isinstance(auth0, VerificationMethod)
+    assert doc.authentication
     assert auth0 in doc.authentication
+    assert doc.assertion_method
     assert auth0 not in doc.assertion_method
 
 
@@ -673,4 +674,4 @@ def test_option_insert_missing_ids_x():
         ],
     }
     with pytest.raises(DIDDocumentError):
-        DIDDocument.deserialize(doc_raw, options={DIDDocumentOption.insert_missing_ids})
+        DIDDocument.deserialize(doc_raw)
