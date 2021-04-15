@@ -19,15 +19,15 @@ class InvalidDIDError(DIDError, Invalid, ValueError):
     """Invalid DID."""
 
 
-class DID:
+class DID(str):
     """DID Representation and helpers."""
 
     def __init__(self, did: str):
         """Validate and parse raw DID str."""
+        super().__init__()
         matched = DID_PATTERN.fullmatch(did)
         if not matched:
             raise InvalidDIDError("Unable to parse DID {}".format(did))
-        self._raw = did
         self._method = matched.group(1)
         self._id = matched.group(2)
 
@@ -51,34 +51,17 @@ class DID:
         """Return the method specific identifier."""
         return self._id
 
-    def __str__(self):
-        """Return string representation of DID."""
-        return self._raw
-
     def __repr__(self):
         """Return debug representation of DID."""
-        return "<DID {}>".format(self._raw)
-
-    def __eq__(self, other):
-        """Test equality."""
-        if isinstance(other, str):
-            return self._raw == other
-        if isinstance(other, DID):
-            return self._raw == other._raw
-
-        return False
-
-    def __hash__(self):
-        """Return hash."""
-        return hash(self._raw)
+        return "<DID {}>".format(self)
 
     def url(self, path: str = None, query: Dict[str, str] = None, fragment: str = None):
         """Return a DID URL for this DID."""
-        return DIDUrl(self._raw, path, query, fragment)
+        return DIDUrl.unparse(self, path, query, fragment)
 
     def ref(self, ident: str) -> DIDUrl:
         """Return a DID reference (URL) for use as an ID in a DID Doc section."""
-        return DIDUrl(self._raw, fragment=ident)
+        return DIDUrl.unparse(self, fragment=ident)
 
     @classmethod
     def is_valid(cls, did: str):

@@ -138,7 +138,7 @@ def test_url_method(did, parts):
     did = DID(did)
     assert did.url(
         parts.get("path"), parts.get("query"), parts.get("fragment")
-    ) == DIDUrl(**parts)
+    ) == DIDUrl.unparse(**parts)
 
 
 @pytest.mark.parametrize("did, method", zip(TEST_DIDS, TEST_DID_METHODS))
