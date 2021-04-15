@@ -68,7 +68,7 @@ def coerce(transformers: List[Callable]):
 
     def _coerce(typ: Type[Any]):
         return create_model(
-            typ.__name__ + "WithCoercion",
+            typ.__name__,
             __module__=typ.__module__,
             __base__=typ,
             do_coercion=root_validator(pre=True, allow_reuse=True)(_do_coercion),
