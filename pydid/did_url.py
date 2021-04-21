@@ -4,7 +4,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 
 from voluptuous import Invalid
 
-from .common import DID_PATTERN, DIDError
+from .common import DID_URL_DID_PART_PATTERN, DIDError
 
 
 class InvalidDIDUrlError(DIDError, Invalid):
@@ -78,12 +78,12 @@ class DIDUrl:
     @classmethod
     def parse(cls, url: str):
         """Parse DID URL from string."""
-        matches = DID_PATTERN.match(url)
+        matches = DID_URL_DID_PART_PATTERN.match(url)
 
         if not matches:
             raise InvalidDIDUrlError("DID could not be parsed from URL {}".format(url))
 
-        did = matches.group(0)
+        did = matches.group(1)
         _, url_component = url.split(did)
 
         if not url_component:
