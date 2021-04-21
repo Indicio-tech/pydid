@@ -20,7 +20,8 @@ def _option_allow_controller_list(value: Union[str, list]):
 
 def _option_allow_missing_controller(value: dict):
     """Derive controller value from id."""
-    value["controller"] = DIDUrl.parse(value["id"]).did
+    if "controller" not in value:
+        value["controller"] = DIDUrl.parse(value["id"]).did
     return value
 
 
