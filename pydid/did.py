@@ -29,12 +29,25 @@ class DID:
         if not matched:
             raise InvalidDIDError("Unable to parse DID {}".format(did))
         self._method = matched.group(1)
-        self._id = matched.group(2)
+
+        network = matched.group(2)[1:]
+
+        if network:
+            self._full_method = f"{self._method}:{network}"
+            self._id = f"{network}:{matched.group(4)}"
+        else:
+            self._full_method = self._method
+            self._id = matched.group(4)
 
     @property
     def method(self):
         """Return the method of this DID."""
         return self._method
+
+    @property
+    def full_method(self):
+        """Return the method of this DID."""
+        return self._full_method
 
     @property
     def method_specific_id(self):

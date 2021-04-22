@@ -34,6 +34,14 @@ TEST_DID_METHODS = [
     TEST_DID_METHOD4,
 ]
 
+TEST_FULL_DID_METHODS = [
+    TEST_DID_METHOD0,
+    TEST_DID_METHOD1,
+    f"{TEST_DID_METHOD2}:mainnet",
+    TEST_DID_METHOD3,
+    TEST_DID_METHOD4,
+]
+
 TEST_METHOD_SPECIFIC_ID0 = "Kkyqu7CJFuQSvBp468uaDe"
 TEST_METHOD_SPECIFIC_ID1 = "8kyt-fzzq-qpqq-ljsc-5l"
 TEST_METHOD_SPECIFIC_ID2 = "mainnet:0xb9c5714089478a327f09197987f16f9e5d936e8a"
@@ -145,6 +153,10 @@ def test_url_method(did, parts):
 def test_method(did, method):
     assert DID(did).method == method
 
+
+@pytest.mark.parametrize("did, method", zip(TEST_DIDS, TEST_FULL_DID_METHODS))
+def test_full_method(did, method):
+    assert DID(did).full_method == method
 
 @pytest.mark.parametrize(
     "did, method_specific_id", zip(TEST_DIDS, TEST_METHOD_SPECIFIC_IDS)
