@@ -1,7 +1,7 @@
 """Test VerificationMethod."""
 
-from typing import Literal
 import pytest
+from typing_extensions import Literal
 
 from pydid.did import DID
 from pydid.did_url import DIDUrl
