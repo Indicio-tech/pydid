@@ -2,12 +2,10 @@
 from typing import Dict, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-from voluptuous import Invalid
-
 from .common import DID_PATTERN, DIDError
 
 
-class InvalidDIDUrlError(DIDError, Invalid, ValueError):
+class InvalidDIDUrlError(DIDError, ValueError):
     """Invalid DID."""
 
 

@@ -9,13 +9,11 @@ January 2021:
 
 from typing import Dict
 
-from voluptuous import Invalid
-
 from .common import DID_PATTERN, DIDError
 from .did_url import DIDUrl
 
 
-class InvalidDIDError(DIDError, Invalid, ValueError):
+class InvalidDIDError(DIDError, ValueError):
     """Invalid DID."""
 
 
