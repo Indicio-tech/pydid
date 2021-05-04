@@ -8,7 +8,7 @@ from pydantic import ValidationError, root_validator, create_model
 
 @contextmanager
 def wrap_validation_error(error_to_raise: Type[Exception], message: str = None):
-    """Wrap voluptuous erros with more friendly errors."""
+    """Wrap validation erros with more friendly errors."""
     try:
         yield
     except ValidationError as error:
