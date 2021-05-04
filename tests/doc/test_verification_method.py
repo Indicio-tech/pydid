@@ -1,10 +1,14 @@
 """Test VerificationMethod."""
 
+from typing import Literal
 import pytest
 
 from pydid.did import DID
 from pydid.did_url import DIDUrl
 from pydid.doc.verification_method import (
+    Base58VerificationMethod,
+    Ed25519Verification2018,
+    VerificationMaterialUnknown,
     VerificationMethod,
 )
 
@@ -144,3 +148,26 @@ def test_validator_allow_missing_controller():
                 "publicKeyBase58": "12345",
             },
         )
+
+
+def test_make():
+    did = DID("did:example:123")
+    kwargs = {"id_": did.ref("1"), "controller": did, "material": "test"}
+    with pytest.raises(VerificationMaterialUnknown):
+        VerificationMethod.make(**kwargs)
+
+    vmethod = Ed25519Verification2018.make(**kwargs)
+    assert "publicKeyBase58" in vmethod.serialize()
+
+    class ExampleVerificationMethod(Base58VerificationMethod):
+        type: Literal["Example"]
+
+    vmethod = ExampleVerificationMethod.make(**kwargs)
+    assert "publicKeyBase58" in vmethod.serialize()
+
+    ExampleVerificationMethod = VerificationMethod.suite(
+        "Example", "publicKeyBase58", str
+    )
+
+    vmethod = ExampleVerificationMethod.make(**kwargs)
+    assert "publicKeyBase58" in vmethod.serialize()

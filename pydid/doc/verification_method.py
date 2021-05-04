@@ -1,15 +1,19 @@
 """DID Doc Verification Method."""
 
-from typing import Type, Union
+from typing import Any, Optional, Type, Union, get_args, get_origin, get_type_hints
 from inflection import underscore
 
 from pydantic import create_model
 from pydantic.class_validators import root_validator, validator
-from typing_extensions import Literal
+from typing_extensions import Annotated, Literal
 
 from ..did import DID
 from ..did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
+
+
+class VerificationMaterial:
+    """Type annotation marker for the material attribute of a verification method."""
 
 
 class VerificationMaterialUnknown(NotImplementedError):
@@ -22,13 +26,11 @@ class VerificationMethod(Resource):
     id: DIDUrl
     type: str
     controller: DID
+    _material_prop: Optional[str]
 
-    @property
-    def material(self):
-        """Return material."""
-        raise VerificationMaterialUnknown(
-            "Verification Material was not specified on class"
-        )
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._material_prop = self._determine_material_prop()
 
     @classmethod
     def suite(cls: Type, typ: str, material: str, material_type: Type):
@@ -40,7 +42,12 @@ class VerificationMethod(Resource):
             type=(Literal[typ], ...),
             **{underscore(material): (material_type, ...)},
         )
-        model.material = property(lambda self: getattr(self, underscore(material)))
+        model.material = property(
+            lambda self: getattr(self, underscore(material)),
+            lambda self, value: setattr(self, underscore(material), value),
+        )
+        model._material_prop = underscore(material)
+        model._determine_material_prop = classmethod(lambda cls: underscore(material))
         return model
 
     @validator("type", pre=True)
@@ -72,11 +79,11 @@ class VerificationMethod(Resource):
 
         This validator handles a common DID Document mutation.
         """
-        if "id" not in values:
-            raise ValueError(
-                "Could not derive controller: no id present in verification method"
-            )
         if "controller" not in values:
+            if "id" not in values:
+                raise ValueError(
+                    "Could not derive controller: no id present in verification method"
+                )
             try:
                 ident = DIDUrl.parse(values["id"])
             except InvalidDIDUrlError:
@@ -88,12 +95,54 @@ class VerificationMethod(Resource):
     @root_validator(pre=True)
     @classmethod
     def _method_appears_to_contain_material(cls, values: dict):
-        """Validate that the method appears to contain verification materla."""
+        """Validate that the method appears to contain verification material."""
         if len(values) < 4:
             raise ValueError(
                 "Key material expected, only found id, type, and controller"
             )
         return values
+
+    @classmethod
+    def _determine_material_prop(cls) -> Optional[str]:
+        """Return the name of the property containing the verification material."""
+        for name, type_ in get_type_hints(cls, include_extras=True).items():
+            if get_origin(type_) is Annotated and VerificationMaterial in get_args(
+                type_
+            ):
+                return name
+
+        return None
+
+    @property
+    def material(self):
+        """Return material."""
+        if not self._material_prop:
+            raise VerificationMaterialUnknown(
+                "Verification Material was not specified on class"
+            )
+        return getattr(self, self._material_prop)
+
+    @material.setter
+    def material(self, value):
+        """Set material."""
+        if not self._material_prop:
+            raise VerificationMaterialUnknown(
+                "Verification Material was not specified on class"
+            )
+        return setattr(self, self._material_prop, value)
+
+    @classmethod
+    def make(cls, id_: DIDUrl, controller: DID, material: Any, **kwargs):
+        """Construct an instance of VerificationMethod, filling in known values."""
+        material_prop = cls._determine_material_prop()
+        if not material_prop:
+            raise VerificationMaterialUnknown(
+                "Verification Material was not specified on class"
+            )
+
+        return super(VerificationMethod, cls).make(
+            id=id_, controller=controller, **{material_prop: material}, **kwargs
+        )
 
 
 # Verification Method Suites registered in DID Spec
@@ -102,34 +151,19 @@ class VerificationMethod(Resource):
 class Base58VerificationMethod(VerificationMethod):
     """Verification Method where material is base58."""
 
-    public_key_base58: str
-
-    @property
-    def material(self):
-        """Return material."""
-        return self.public_key_base58
+    public_key_base58: Annotated[str, VerificationMaterial]
 
 
 class PemVerificationMethod(VerificationMethod):
     """Verification Method where material is pem."""
 
-    public_key_pem: str
-
-    @property
-    def material(self):
-        """Return material."""
-        return self.public_key_pem
+    public_key_pem: Annotated[str, VerificationMaterial]
 
 
 class JwkVerificationMethod(VerificationMethod):
     """Verification Method where material is jwk."""
 
-    public_key_jwk: dict
-
-    @property
-    def material(self):
-        """Return material."""
-        return self.public_key_jwk
+    public_key_jwk: Annotated[dict, VerificationMaterial]
 
 
 class Ed25519Verification2018(Base58VerificationMethod):
@@ -172,12 +206,7 @@ class GpgVerifcationKey2020(VerificationMethod):
     """GpgVerifcationKey2020 VerificationMethod."""
 
     type: Literal["GpgVerifcationKey2020"]
-    public_key_gpg: str
-
-    @property
-    def material(self):
-        """Return material."""
-        return self.public_key_gpg
+    public_key_gpg: Annotated[str, VerificationMaterial]
 
 
 class RsaVerificationKey2018(JwkVerificationMethod):
