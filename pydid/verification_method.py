@@ -1,6 +1,6 @@
 """DID Doc Verification Method."""
 
-from typing import Any, Optional, Type, Union
+from typing import Any, ClassVar, List, Optional, Type, Union
 
 from inflection import underscore
 from pydantic import create_model
@@ -56,6 +56,14 @@ class VerificationMaterialUnknown(NotImplementedError):
 class VerificationMethod(Resource):
     """Representation of DID Document Verification Methods."""
 
+    KNOWN_MATERIAL_PROPERTIES: ClassVar[List[str]] = [
+        "publicKeyJwk",
+        "publicKeyBase58",
+        "publicKeyHex",
+        "blockchainAccountId",
+        "ethereumAddress",
+    ]
+
     id: DIDUrl
     type: str
     controller: DID
@@ -63,7 +71,9 @@ class VerificationMethod(Resource):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self._material_prop = self._determine_material_prop()
+        self._material_prop = self._determine_annotated_material_prop()
+        if not self._material_prop:
+            self._material_prop = self._infer_material_prop(data)
 
     @classmethod
     def suite(cls: Type, typ: str, material: str, material_type: Type):
@@ -80,7 +90,9 @@ class VerificationMethod(Resource):
             lambda self, value: setattr(self, underscore(material), value),
         )
         model._material_prop = underscore(material)
-        model._determine_material_prop = classmethod(lambda cls: underscore(material))
+        model._determine_annotated_material_prop = classmethod(
+            lambda cls: underscore(material)
+        )
         return model
 
     @validator("type", pre=True)
@@ -136,11 +148,23 @@ class VerificationMethod(Resource):
         return values
 
     @classmethod
-    def _determine_material_prop(cls) -> Optional[str]:
+    def _determine_annotated_material_prop(cls) -> Optional[str]:
         """Return the name of the property containing the verification material."""
         for name, type_ in get_type_hints(cls, include_extras=True).items():
             if is_annotated(type_) and VerificationMaterial in annotated_args(type_):
                 return name
+
+        return None
+
+    @classmethod
+    def _infer_material_prop(cls, values: dict) -> Optional[str]:
+        """
+        Guess the property that appears to be the verification material based
+        on known material property names.
+        """
+        for prop in cls.KNOWN_MATERIAL_PROPERTIES:
+            if prop in values:
+                return prop
 
         return None
 
@@ -149,7 +173,7 @@ class VerificationMethod(Resource):
         """Return material."""
         if not self._material_prop:
             raise VerificationMaterialUnknown(
-                "Verification Material was not specified on class"
+                "Verification Material is not known for this method"
             )
         return getattr(self, self._material_prop)
 
@@ -158,17 +182,17 @@ class VerificationMethod(Resource):
         """Set material."""
         if not self._material_prop:
             raise VerificationMaterialUnknown(
-                "Verification Material was not specified on class"
+                "Verification Material is not known for this method"
             )
         return setattr(self, self._material_prop, value)
 
     @classmethod
     def make(cls, id_: DIDUrl, controller: DID, material: Any, **kwargs):
         """Construct an instance of VerificationMethod, filling in known values."""
-        material_prop = cls._determine_material_prop()
+        material_prop = cls._determine_annotated_material_prop()
         if not material_prop:
             raise VerificationMaterialUnknown(
-                "Verification Material was not specified on class"
+                "Verification Material is not known for this method"
             )
 
         return super(VerificationMethod, cls).make(

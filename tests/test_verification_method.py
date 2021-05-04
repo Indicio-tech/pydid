@@ -171,3 +171,14 @@ def test_make():
 
     vmethod = ExampleVerificationMethod.make(**kwargs)
     assert "publicKeyBase58" in vmethod.serialize()
+
+
+def test_infer_material():
+    vmethod_raw = {
+        "id": "did:example:123#vm-3",
+        "controller": "did:example:123",
+        "type": "EcdsaSecp256k1RecoveryMethod2020",
+        "blockchainAccountId": "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+    }
+    vmethod = VerificationMethod.deserialize(vmethod_raw)
+    assert vmethod.material == vmethod_raw["blockchainAccountId"]
