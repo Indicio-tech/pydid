@@ -8,7 +8,7 @@ from inflection import camelize
 from ..validation import wrap_validation_error
 
 
-T = TypeVar("T", bound="Resource")
+ResourceType = TypeVar("ResourceType", bound="Resource")
 
 
 class Resource(BaseModel):
@@ -19,6 +19,7 @@ class Resource(BaseModel):
 
         underscore_attrs_are_private = True
         extra = Extra.allow
+        allow_population_by_field_name = True
 
         @classmethod
         def alias_generator(cls, string: str) -> str:
@@ -30,13 +31,19 @@ class Resource(BaseModel):
         return self.dict(exclude_none=True, by_alias=True)
 
     @classmethod
-    def deserialize(cls: Type[T], value: dict, *, type_: Type[T] = None) -> T:
+    def deserialize(cls: Type[ResourceType], value: dict) -> ResourceType:
         """Deserialize into VerificationMethod."""
         with wrap_validation_error(
             ValueError,
             message="Failed to deserialize {}".format(cls.__name__),
         ):
-            if type_:
-                return parse_obj_as(type_, value)
-
             return parse_obj_as(cls, value)
+
+    @classmethod
+    def deserialize_into(cls, value: dict, type_: Type[ResourceType]) -> ResourceType:
+        """Deserialize resource into type_."""
+        with wrap_validation_error(
+            ValueError,
+            message="Failed to deserialize {}".format(cls.__name__),
+        ):
+            return parse_obj_as(type_, value)
