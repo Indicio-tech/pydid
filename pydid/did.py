@@ -25,6 +25,11 @@ class DID(str):
     def __init__(self, did: str):
         """Validate and parse raw DID str."""
         super().__init__()
+        if isinstance(did, DID):
+            self._method = did.method
+            self._id = did._id
+            return
+
         matched = DID_PATTERN.fullmatch(did)
         if not matched:
             raise InvalidDIDError("Unable to parse DID {}".format(did))
