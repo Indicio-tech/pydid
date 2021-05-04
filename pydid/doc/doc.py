@@ -2,7 +2,7 @@
 
 import json
 import sys
-from typing import List, Optional, Union
+from typing import List, Optional, Union, TypeVar
 
 from pydantic import Field, root_validator, validator
 from typing_extensions import Annotated
@@ -27,6 +27,13 @@ class IDNotFoundError(DIDDocumentError):
     """Raised when Resource ID not found in DID Document."""
 
 
+VerificationMethodType = TypeVar("VerificationMethodType", bound=VerificationMethod)
+ServiceType = TypeVar("ServiceType", bound=Service)
+Methods = Optional[List[VerificationMethodType]]
+Relationships = Optional[List[Union[DIDUrl, VerificationMethodType]]]
+Services = Optional[List[ServiceType]]
+
+
 class DIDDocumentRoot(Resource):
     """Representation of DID Document."""
 
@@ -38,18 +45,20 @@ class DIDDocumentRoot(Resource):
     id: DID
     also_known_as: Optional[List[str]] = None
     controller: Optional[List[DID]] = None
-    verification_method: Optional[List[VerificationMethod]] = None
-    authentication: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    assertion_method: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    key_agreement: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    capability_invocation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    capability_delegation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
-    service: Optional[List[Service]] = None
+    verification_method: Methods[VerificationMethod] = None
+    authentication: Relationships[VerificationMethod] = None
+    assertion_method: Relationships[VerificationMethod] = None
+    key_agreement: Relationships[VerificationMethod] = None
+    capability_invocation: Relationships[VerificationMethod] = None
+    capability_delegation: Relationships[VerificationMethod] = None
+    service: Services[Service] = None
 
     @validator("context", "controller", pre=True, allow_reuse=True)
     @classmethod
     def _listify(cls, value):
         """Transform values into lists that are allowed to be a list or single."""
+        if value is None:
+            return value
         if isinstance(value, list):
             return value
         return [value]
@@ -138,8 +147,8 @@ class BasicDIDDocument(DIDDocumentRoot):
         return self.json()
 
 
-Methods = Union[KnownVerificationMethods, UnknownVerificationMethod]
-Services = Union[DIDCommService, Service]
+PossibleMethodTypes = Union[KnownVerificationMethods, UnknownVerificationMethod]
+PossibleServiceTypes = Union[DIDCommService, Service]
 
 
 class DIDDocument(BasicDIDDocument):
@@ -149,13 +158,13 @@ class DIDDocument(BasicDIDDocument):
     Registered verification method and service types are parsed into specific objects.
     """
 
-    verification_method: Optional[List[Methods]] = None
-    authentication: Optional[List[Union[DIDUrl, Methods]]] = None
-    assertion_method: Optional[List[Union[DIDUrl, Methods]]] = None
-    key_agreement: Optional[List[Union[DIDUrl, Methods]]] = None
-    capability_invocation: Optional[List[Union[DIDUrl, Methods]]] = None
-    capability_delegation: Optional[List[Union[DIDUrl, Methods]]] = None
-    service: Optional[List[Services]] = None
+    verification_method: Methods[PossibleMethodTypes] = None
+    authentication: Relationships[PossibleMethodTypes] = None
+    assertion_method: Relationships[PossibleMethodTypes] = None
+    key_agreement: Relationships[PossibleMethodTypes] = None
+    capability_invocation: Relationships[PossibleMethodTypes] = None
+    capability_delegation: Relationships[PossibleMethodTypes] = None
+    service: Services[PossibleServiceTypes] = None
 
     @classmethod
     def deserialize(cls, value: dict) -> "DIDDocument":
@@ -167,7 +176,7 @@ class DIDDocument(BasicDIDDocument):
 if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
     # In Python 3.7+, we can use Generics with Pydantic to simplify subclassing
     from pydantic.generics import GenericModel
-    from typing import Generic, TypeVar
+    from typing import Generic
 
     VM = TypeVar("VM", bound=VerificationMethod)
     SV = TypeVar("SV", bound=Service)
@@ -175,21 +184,21 @@ if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
     class GenericDIDDocumentRoot(DIDDocumentRoot, GenericModel, Generic[VM, SV]):
         """DID Document Root with Generics."""
 
-        verification_method: Optional[List[VM]] = None
-        authentication: Optional[List[Union[DIDUrl, VM]]] = None
-        assertion_method: Optional[List[Union[DIDUrl, VM]]] = None
-        key_agreement: Optional[List[Union[DIDUrl, VM]]] = None
-        capability_invocation: Optional[List[Union[DIDUrl, VM]]] = None
-        capability_delegation: Optional[List[Union[DIDUrl, VM]]] = None
-        service: Optional[List[SV]] = None
+        verification_method: Methods[VM] = None
+        authentication: Relationships[VM] = None
+        assertion_method: Relationships[VM] = None
+        key_agreement: Relationships[VM] = None
+        capability_invocation: Relationships[VM] = None
+        capability_delegation: Relationships[VM] = None
+        service: Services[SV] = None
 
     class GenericBasicDIDDocument(BasicDIDDocument, GenericModel, Generic[VM, SV]):
         """BasicDIDDocument with Generics."""
 
-        verification_method: Optional[List[VM]] = None
-        authentication: Optional[List[Union[DIDUrl, VM]]] = None
-        assertion_method: Optional[List[Union[DIDUrl, VM]]] = None
-        key_agreement: Optional[List[Union[DIDUrl, VM]]] = None
-        capability_invocation: Optional[List[Union[DIDUrl, VM]]] = None
-        capability_delegation: Optional[List[Union[DIDUrl, VM]]] = None
-        service: Optional[List[SV]] = None
+        verification_method: Methods[VM] = None
+        authentication: Relationships[VM] = None
+        assertion_method: Relationships[VM] = None
+        key_agreement: Relationships[VM] = None
+        capability_invocation: Relationships[VM] = None
+        capability_delegation: Relationships[VM] = None
+        service: Services[SV] = None

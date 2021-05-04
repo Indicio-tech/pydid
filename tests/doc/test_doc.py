@@ -2,8 +2,9 @@
 
 from collections import namedtuple
 import copy
+
+from typing_extensions import Annotated, Literal
 from pydid.validation import coerce
-from typing import cast
 
 import pytest
 
@@ -16,16 +17,24 @@ from pydid.doc.doc import (
 )
 from pydid.doc.builder import (
     DIDDocumentBuilder,
-    ServiceBuilder,
-    VerificationMethodBuilder,
 )
 from pydid.doc.service import Service
 from pydid.doc.service import DIDCommService
-from pydid.doc.verification_method import VerificationMethod
+from pydid.doc.verification_method import (
+    Ed25519Verification2018,
+    VerificationMaterial,
+    VerificationMethod,
+)
 
 VerificationSuite = namedtuple(
     "VerificationSuite", ["type", "verification_material_prop"]
 )
+
+
+class ExampleVerificationMethod(VerificationMethod):
+    type: Literal["Example"]
+    public_key_example: Annotated[str, VerificationMaterial]
+
 
 DOC0 = {
     "@context": ["https://w3id.org/did/v0.11"],
@@ -33,7 +42,7 @@ DOC0 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -41,7 +50,7 @@ DOC0 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -49,7 +58,7 @@ DOC0 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -57,7 +66,7 @@ DOC0 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -77,7 +86,7 @@ DOC1 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -85,7 +94,7 @@ DOC1 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -93,7 +102,7 @@ DOC1 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -101,7 +110,7 @@ DOC1 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -115,7 +124,7 @@ DOC2 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -123,7 +132,7 @@ DOC2 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -131,7 +140,7 @@ DOC2 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -139,7 +148,7 @@ DOC2 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -153,7 +162,7 @@ DOC3 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -161,7 +170,7 @@ DOC3 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -169,7 +178,7 @@ DOC3 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -177,7 +186,7 @@ DOC3 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -191,25 +200,25 @@ DOC4 = {
     "verificationMethod": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
@@ -227,7 +236,7 @@ DOC6 = {
     "verificationMethod": [
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
@@ -236,7 +245,7 @@ DOC6 = {
         "did:example:123#keys-0",
         {
             "id": "did:example:123#auth-0",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
@@ -256,7 +265,7 @@ DOC7 = {
     "verificationMethod": [
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
@@ -265,7 +274,7 @@ DOC7 = {
         "did:example:123#keys-0",
         {
             "id": "did:example:123#auth-0",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
@@ -289,7 +298,7 @@ INVALID_DOC1 = {
     "verificationMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -301,7 +310,7 @@ INVALID_DOC2 = {
     "verificationMethod": [
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
@@ -310,7 +319,7 @@ INVALID_DOC2 = {
         "did:example:123#keys-0",
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519VerificationKey2018",
+            "type": "Ed25519Verification2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
@@ -393,53 +402,39 @@ def test_didcomm_service_deserialized():
 
 
 def test_programmatic_construction():
-    ed25519 = VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58")
     builder = DIDDocumentBuilder("did:example:123")
     assert builder.context == ["https://www.w3.org/ns/did/v1"]
-    with builder.verification_methods.defaults(suite=ed25519) as vmethods:
-        vmethod1 = vmethods.add("1234")
-    with builder.authentication.defaults(suite=ed25519) as auth:
-        auth.reference(vmethod1.id)
-        auth.embed("abcd")
-    with builder.services.defaults() as services:
-        services.add(type_="example", endpoint="https://example.com")
+    vmethod1 = builder.verification_method.add(Ed25519Verification2018, "1234")
+    builder.authentication.reference(vmethod1.id)
+    builder.authentication.embed(Ed25519Verification2018, "abcd")
+    builder.service.add(type_="example", service_endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
-
-
-def test_programmatic_construction_x_no_suite():
-    builder = DIDDocumentBuilder("did:example:123")
-    with pytest.raises(ValueError):
-        with builder.verification_methods.defaults() as vmethods:
-            vmethods.add("1234")
 
 
 def test_programmatic_construction_didcomm():
     builder = DIDDocumentBuilder("did:example:123")
-    with builder.verification_methods.defaults(
-        suite=VerificationSuite("Example", "publicKeyBase58")
-    ) as vmethods:
-        key = vmethods.add("1234")
-        route = vmethods.add("abcd")
-    with builder.services.defaults() as services:
-        services = cast(ServiceBuilder, services)
-        services.add_didcomm(
-            endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
-        )
+    key = builder.verification_method.add(ExampleVerificationMethod, "1234")
+    route = builder.verification_method.add(ExampleVerificationMethod, "abcd")
+    builder.service.add_didcomm(
+        endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
+    )
+    print(builder.build())
+    print(builder.build().serialize())
     assert builder.build().serialize() == {
-        "@context": "https://www.w3.org/ns/did/v1",
+        "@context": ["https://www.w3.org/ns/did/v1"],
         "id": "did:example:123",
         "verificationMethod": [
             {
                 "id": "did:example:123#keys-0",
                 "type": "Example",
                 "controller": "did:example:123",
-                "publicKeyBase58": "1234",
+                "publicKeyExample": "1234",
             },
             {
                 "id": "did:example:123#keys-1",
                 "type": "Example",
                 "controller": "did:example:123",
-                "publicKeyBase58": "abcd",
+                "publicKeyExample": "abcd",
             },
         ],
         "service": [
@@ -457,48 +452,29 @@ def test_programmatic_construction_didcomm():
 
 def test_all_relationship_builders():
     builder = DIDDocumentBuilder("did:example:123")
-    with builder.verification_methods.defaults() as vmethods:
-        vmethods = cast(VerificationMethodBuilder, vmethods)
-        vmethod = vmethods.add(
-            suite=VerificationSuite("Ed25519VerificationKey2018", "publicKeyBase58"),
-            material="12345",
-        )
-    with builder.authentication.defaults() as auth:
-        auth.reference(vmethod.id)
-        auth.embed(
-            suite=VerificationSuite("Example", "publicKeyExample"), material="auth"
-        )
-    with builder.assertion_method.defaults() as assertion:
-        assertion.reference(vmethod.id)
-        assertion.embed(
-            suite=VerificationSuite("Example", "publicKeyExample"), material="assert"
-        )
-    with builder.key_agreement.defaults() as key_agreement:
-        key_agreement.reference(vmethod.id)
-        key_agreement.embed(
-            suite=VerificationSuite("Example", "publicKeyExample"),
-            material="key_agreement",
-        )
-    with builder.capability_invocation.defaults() as capability_invocation:
-        capability_invocation.reference(vmethod.id)
-        capability_invocation.embed(
-            suite=VerificationSuite("Example", "publicKeyExample"),
-            material="capability_invocation",
-        )
-    with builder.capability_delegation.defaults() as capability_delegation:
-        capability_delegation.reference(vmethod.id)
-        capability_delegation.embed(
-            suite=VerificationSuite("Example", "publicKeyExample"),
-            material="capability_delegation",
-        )
+    vmethod = builder.verification_method.add(Ed25519Verification2018, "12345")
+    builder.authentication.reference(vmethod.id)
+    builder.authentication.embed(ExampleVerificationMethod, "auth")
+    builder.assertion_method.reference(vmethod.id)
+    builder.assertion_method.embed(ExampleVerificationMethod, "assert")
+    builder.key_agreement.reference(vmethod.id)
+    builder.key_agreement.embed(ExampleVerificationMethod, "key_agreement")
+    builder.capability_invocation.reference(vmethod.id)
+    builder.capability_invocation.embed(
+        ExampleVerificationMethod, "capability_invocation"
+    )
+    builder.capability_delegation.reference(vmethod.id)
+    builder.capability_delegation.embed(
+        ExampleVerificationMethod, "capability_delegation"
+    )
 
     assert builder.build().serialize() == {
-        "@context": "https://www.w3.org/ns/did/v1",
+        "@context": ["https://www.w3.org/ns/did/v1"],
         "id": "did:example:123",
         "verificationMethod": [
             {
                 "id": "did:example:123#keys-0",
-                "type": "Ed25519VerificationKey2018",
+                "type": "Ed25519Verification2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "12345",
             },
@@ -554,45 +530,30 @@ def test_all_relationship_builders():
 def test_relationship_builder_ref_x():
     builder = DIDDocumentBuilder("did:example:123")
     with pytest.raises(ValueError):
-        with builder.authentication.defaults() as auth:
-            auth.reference("123")
-
-
-def test_vmethod_builder_x_no_ident():
-    builder = DIDDocumentBuilder("did:example:123")
-    with pytest.raises(ValueError):
-        builder.authentication.embed(
-            "1234", suite=VerificationSuite("Example", "publicKeyExample")
-        )
+        builder.authentication.reference("123")
 
 
 def test_builder_from_doc():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    with builder.verification_methods.defaults() as vmethods:
-        vmethods.add(
-            suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
-        )
+    builder.verification_method.add(ExampleVerificationMethod, "1234")
     assert len(builder.build().serialize()["verificationMethod"]) == 2
 
 
 def test_builder_from_doc_remove():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    with builder.verification_methods.defaults() as vmethods:
-        vmethod = vmethods.add(
-            suite=VerificationSuite("Example", "publicKeyExample"), material="1234"
-        )
+    vmethod = builder.verification_method.add(ExampleVerificationMethod, "1234")
     assert len(builder.build().serialize()["verificationMethod"]) == 2
-    builder.verification_methods.remove(vmethod)
+    builder.verification_method.remove(vmethod)
     assert len(builder.build().serialize()["verificationMethod"]) == 1
-    service = builder.services.add("example", "http://example.com", "ident")
+    service = builder.service.add("example", "http://example.com", "ident")
     assert len(builder.build().serialize()["service"]) == 2
-    builder.services.remove(service)
+    builder.service.remove(service)
     assert len(builder.build().serialize()["service"]) == 1
     assertion = builder.assertion_method.add(
+        ExampleVerificationMethod,
         ident="123",
-        suite=VerificationSuite("Example", "publicKeyExample"),
         material="1234",
     )
     assert len(builder.build().serialize()["assertionMethod"]) == 1
@@ -605,15 +566,15 @@ def test_key_rotation_from_doc():
     vmethod0 = doc.dereference("did:example:123#keys-0")
 
     builder = DIDDocumentBuilder.from_doc(doc)
-    builder.verification_methods.remove(vmethod0)
+    builder.verification_method.remove(vmethod0)
     builder.authentication.remove(vmethod0.id)
     assert builder.build().serialize() == {
-        "@context": "https://www.w3.org/ns/did/v1",
+        "@context": ["https://www.w3.org/ns/did/v1"],
         "id": "did:example:123",
         "authentication": [
             {
                 "id": "did:example:123#auth-0",
-                "type": "Ed25519VerificationKey2018",
+                "type": "Ed25519Verification2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "abcd",
             },
@@ -635,7 +596,7 @@ def test_dereference_and_membership_check():
         "authentication": [
             {
                 "id": "did:example:123#keys-0",
-                "type": "Ed25519VerificationKey2018",
+                "type": "Ed25519Verification2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
@@ -643,7 +604,7 @@ def test_dereference_and_membership_check():
         "assertionMethod": [
             {
                 "id": "did:example:123#keys-0",
-                "type": "Ed25519VerificationKey2018",
+                "type": "Ed25519Verification2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
@@ -669,7 +630,7 @@ def test_correction_insert_missing_ids_x():
         "@context": "https://www.w3.org/ns/did/v1",
         "authentication": [
             {
-                "type": "Ed25519VerificationKey2018",
+                "type": "Ed25519Verification2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
