@@ -1,11 +1,11 @@
 """DID Doc Verification Method."""
 
-from typing import Any, Optional, Type, Union, get_args, get_origin
+from typing import Any, Optional, Type, Union
 
 from inflection import underscore
 from pydantic import create_model
 from pydantic.class_validators import root_validator, validator
-from typing_extensions import Annotated, Literal, get_type_hints
+from typing_extensions import Annotated, Literal, get_args, get_origin, get_type_hints
 
 from ..did import DID
 from ..did_url import DIDUrl, InvalidDIDUrlError
