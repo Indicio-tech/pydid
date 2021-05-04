@@ -30,10 +30,7 @@ def test_did_url_neq(lhs, rhs):
 
 @pytest.mark.parametrize(
     "bad_url",
-    [
-        TEST_DID0,
-        "not://a/did?url=value",
-    ],
+    [TEST_DID0, "not://a/did?url=value", "random string", "", "did:example:123"],
 )
 def test_did_url_parse_x(bad_url):
     with pytest.raises(InvalidDIDUrlError):
@@ -57,3 +54,11 @@ def test_is_valid_x(bad_url):
 
 def test_partial_match_url():
     assert not DIDUrl.is_valid("did:bad:char'@='acters:example:1234abcd#4")
+
+
+def test_relative_url():
+    url = DIDUrl.parse("/some/path?query=value#fragment")
+    assert not url.did
+    assert url.path
+    assert url.query
+    assert url.fragment

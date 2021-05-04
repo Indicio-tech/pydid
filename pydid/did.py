@@ -54,10 +54,6 @@ class DID(str):
         """Return the method specific identifier."""
         return self._id
 
-    def __repr__(self):
-        """Return debug representation of DID."""
-        return "<DID {}>".format(self)
-
     def url(self, path: str = None, query: Dict[str, str] = None, fragment: str = None):
         """Return a DID URL for this DID."""
         return DIDUrl.unparse(self, path, query, fragment)

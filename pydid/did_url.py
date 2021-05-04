@@ -1,8 +1,11 @@
 """DID URL Object."""
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-from .common import DID_URL_DID_PART_PATTERN, DIDError
+from .common import DID_URL_DID_PART_PATTERN, DIDError, DID_URL_RELATIVE_FRONT
+
+if TYPE_CHECKING:
+    from .did import DID
 
 
 class InvalidDIDUrlError(DIDError, ValueError):
@@ -17,16 +20,17 @@ class DIDUrl(str):
         super().__init__()
         matches = DID_URL_DID_PART_PATTERN.match(url)
 
-        if not matches:
-            raise InvalidDIDUrlError("DID could not be parsed from URL {}".format(url))
-
-        self.did = matches.group(1)
-        _, url_component = url.split(self.did)
-
-        if not url_component:
-            raise InvalidDIDUrlError(
-                "No path, query, or fragment found in URL {}".format(url)
-            )
+        if matches:
+            self.did = matches.group(1)
+            _, url_component = url.split(self.did)
+        else:
+            relative_matches = DID_URL_RELATIVE_FRONT.match(url)
+            if not relative_matches:
+                raise InvalidDIDUrlError(
+                    "{} is not a valid absolute or relative DID URL".format(url)
+                )
+            self.did = None
+            url_component = url
 
         parts = urlparse(url_component)
         self.path = parts.path or None
@@ -42,10 +46,6 @@ class DIDUrl(str):
     def __modify_schema__(cls, field_schema):
         """Update schema fields."""
         field_schema.update(examples=["did:example:123/some/path?query=test#fragment"])
-
-    def __repr__(self):
-        """Return debug representation of DID URL."""
-        return "<DIDUrl {}>".format(self)
 
     @classmethod
     def parse(cls, url: str):
@@ -76,6 +76,10 @@ class DIDUrl(str):
             value += "#" + fragment
 
         return cls(value)
+
+    def as_absolute(self, did: "DID"):
+        """Make a relative DIDUrl absolute."""
+        return self.unparse(did, self.path, self.query, self.fragment)
 
     @classmethod
     def is_valid(cls, url: str):

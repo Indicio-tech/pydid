@@ -638,3 +638,37 @@ def test_correction_insert_missing_ids_x():
     }
     with pytest.raises(ValueError):
         MyDIDDocument.deserialize(doc_raw)
+
+
+def test_relative_ids():
+    doc_raw = {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "authentication": [
+            {
+                "id": "#keys-0",
+                "type": "Ed25519Verification2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+        ],
+        "assertionMethod": [
+            {
+                "id": "#keys-1",
+                "type": "Ed25519Verification2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "abcd",
+            },
+        ],
+        "service": [
+            {
+                "id": "#service-0",
+                "type": "example",
+                "serviceEndpoint": "https://example.com",
+            }
+        ],
+    }
+    doc = DIDDocument.deserialize(doc_raw)
+    assert doc.dereference("did:example:123#keys-0") == doc.dereference("#keys-0")
+    assert doc.dereference("did:example:123#keys-1") == doc.dereference("#keys-1")
+    assert doc.dereference("did:example:123#service-0") == doc.dereference("#service-0")

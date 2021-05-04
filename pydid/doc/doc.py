@@ -107,7 +107,12 @@ class BasicDIDDocument(DIDDocumentRoot):
                     )
                 )
 
-            self._index[item.id] = item
+            if not item.id.did:
+                key = item.id.as_absolute(self.id)
+            else:
+                key = item.id
+
+            self._index[key] = item
 
         for item in (
             self.verification_method,
@@ -124,6 +129,8 @@ class BasicDIDDocument(DIDDocumentRoot):
         """Dereference a DID URL to a document resource."""
         if isinstance(reference, str):
             reference = DIDUrl.parse(reference)
+        if not reference.did:
+            reference = reference.as_absolute(self.id)
 
         if reference not in self._index:
             raise IDNotFoundError("ID {} not found in document".format(reference))
