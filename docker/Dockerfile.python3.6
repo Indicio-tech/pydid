@@ -1,0 +1,17 @@
+FROM python:3.6.13
+
+RUN pip install poetry
+
+WORKDIR /usr/src/app
+
+ADD pydid pydid
+ADD pyproject.toml .
+ADD poetry.lock .
+ADD README.md .
+ADD tests tests
+
+RUN poetry install
+# Make site packages location more accessible (for use with volumes)
+RUN ln -s $(poetry env info -p)/lib/python3.6/site-packages site-packages
+
+ENTRYPOINT ["/bin/sh", "-c", "poetry run pytest tests \"$@\"", "--"]

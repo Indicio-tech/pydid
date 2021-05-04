@@ -1,32 +1,32 @@
 """Test VerificationMethod."""
 
 import pytest
+from typing_extensions import Literal
 
 from pydid.did import DID
 from pydid.did_url import DIDUrl
 from pydid.doc.verification_method import (
+    Base58VerificationMethod,
+    Ed25519Verification2018,
+    VerificationMaterialUnknown,
     VerificationMethod,
-    VerificationSuite,
-    VerificationMethodValidationError,
-    InvalidVerificationMaterial,
 )
-from pydid.doc.verification_method_options import VerificationMethodOptions
 
 VMETHOD0 = {
     "id": "did:example:123#keys-1",
-    "type": "Ed25519Signature2018",
+    "type": "Ed25519Verification2018",
     "controller": "did:example:123",
     "publicKeyBase58": "12345",
 }
 VMETHOD1 = {
     "id": "did:example:123#keys-1",
-    "type": "Ed25519Signature2018",
+    "type": "OpenPgpVerificationKey2019",
     "controller": "did:example:123",
     "publicKeyPem": "12345",
 }
 VMETHOD2 = {
     "id": "did:example:123#keys-1",
-    "type": "Ed25519Signature2018",
+    "type": "JsonWebKey2020",
     "controller": "did:example:123",
     "publicKeyJwk": {
         "crv": "Ed25519",
@@ -35,7 +35,14 @@ VMETHOD2 = {
         "kid": "_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A",
     },
 }
-VMETHODS = [VMETHOD0, VMETHOD1, VMETHOD2]
+VMETHOD3 = {
+    "id": "did:example:123#keys-1",
+    "type": "Ed25519Signature2018",
+    "controller": "did:example:123",
+    "something": "random",
+}
+
+VMETHODS = [VMETHOD0, VMETHOD1, VMETHOD2, VMETHOD3]
 
 INVALID_VMETHOD0 = {
     "id": "did:example:123#keys-1",
@@ -44,12 +51,6 @@ INVALID_VMETHOD0 = {
 }
 
 INVALID_VMETHOD1 = {
-    "id": "did:example:123#keys-1",
-    "type": "Ed25519Signature2018",
-    "controller": "did:example:123",
-    "something": "random",
-}
-INVALID_VMETHOD2 = {
     "id": "did:example:123",
     "type": "Ed25519Signature2018",
     "controller": "did:example:123",
@@ -59,94 +60,21 @@ INVALID_VMETHOD2 = {
 INVALID_VMETHODS = [
     INVALID_VMETHOD0,
     INVALID_VMETHOD1,
-    INVALID_VMETHOD2,
 ]
-
-
-@pytest.mark.parametrize(
-    "values, prop",
-    [
-        ({"one": "two", "publicKeyPem": "asdf"}, "publicKeyPem"),
-        ({"publicKeyBase58": "asdf"}, "publicKeyBase58"),
-        ({"one": 2, "three": 4, "publicKeyJwk": "asdf"}, "publicKeyJwk"),
-    ],
-)
-def test_suite_derive(values, prop):
-    assert VerificationSuite.derive("type", **values).verification_material_prop == prop
-
-
-@pytest.mark.parametrize(
-    "values",
-    [
-        {"one": "two", "publiceyPem": "asdf"},
-        {},
-        {"one": 2, "three": 4},
-    ],
-)
-def test_suite_derive_x(values):
-    with pytest.raises(InvalidVerificationMaterial):
-        VerificationSuite.derive("type", **values)
-
-
-@pytest.mark.parametrize(
-    "lhs, rhs",
-    [
-        (
-            VerificationSuite("type", "publiceyPem"),
-            VerificationSuite("type", "publiceyPem"),
-        ),
-        (
-            VerificationSuite("type", "publicKeyBase58"),
-            VerificationSuite("type", "publicKeyBase58"),
-        ),
-    ],
-)
-def test_suite_eq(lhs, rhs):
-    assert lhs == rhs
-
-
-@pytest.mark.parametrize(
-    "lhs, rhs",
-    [
-        (
-            VerificationSuite("type", "publiceyPem"),
-            VerificationSuite("type", "publicKeyBase58"),
-        ),
-        (
-            VerificationSuite("type", "publicKeyBase58"),
-            VerificationSuite("type", "publiceyPem"),
-        ),
-        (
-            VerificationSuite("SomethingElse", "publiceyPem"),
-            VerificationSuite("type", "publiceyPem"),
-        ),
-        (VerificationSuite("type", "publicKeyBase58"), ""),
-    ],
-)
-def test_suite_eq_x(lhs, rhs):
-    assert lhs != rhs
-
-
-@pytest.mark.parametrize("vmethod", VMETHODS)
-def test_validates_valid(vmethod):
-    VerificationMethod.validate(vmethod)
-
-
-@pytest.mark.parametrize("vmethod", INVALID_VMETHODS)
-def test_fails_validate_invalid(vmethod):
-    with pytest.raises(VerificationMethodValidationError):
-        VerificationMethod.validate(vmethod)
 
 
 @pytest.mark.parametrize("vmethod_raw", VMETHODS)
 def test_serialization(vmethod_raw):
     vmethod = VerificationMethod.deserialize(vmethod_raw)
+    assert vmethod.id == DIDUrl.parse(vmethod_raw["id"])
+    assert vmethod.type == vmethod_raw["type"]
+    assert vmethod.controller == DID(vmethod_raw["controller"])
     assert vmethod.serialize() == vmethod_raw
 
 
 @pytest.mark.parametrize("invalid_vmethod_raw", INVALID_VMETHODS)
 def test_serialization_x(invalid_vmethod_raw):
-    with pytest.raises(VerificationMethodValidationError):
+    with pytest.raises(ValueError):
         VerificationMethod.deserialize(invalid_vmethod_raw)
 
 
@@ -156,41 +84,43 @@ def test_deserialized_member_types():
     assert isinstance(vmethod.controller, DID)
 
 
-def test_init_mapping():
-    vmethod = VerificationMethod(
-        id_=DIDUrl("did:example:123", fragment="keys-1"),
-        suite=VerificationSuite("TestType", "publicKeyBase58"),
-        controller=DID("did:example:123"),
-        material="12345",
+def test_suite_creation():
+    MyVerificationMethod = VerificationMethod.suite(
+        "MyVerificationMethod", "publicKeyExample", str
     )
-    assert isinstance(vmethod.id, DIDUrl)
-    assert str(vmethod.id) == "did:example:123#keys-1"
-    assert isinstance(vmethod.controller, DID)
-    assert str(vmethod.controller) == "did:example:123"
+    vmethod = MyVerificationMethod(
+        id="did:example:123#test",
+        type="MyVerificationMethod",
+        controller="did:example:123",
+        public_key_example="test",
+    )
+    assert vmethod.material == "test"
 
 
-def test_init_errors_raised():
-    with pytest.raises(ValueError) as err:
-        VerificationMethod(id_=123, suite=123, controller=123, material="12345")
-        assert "expected DID" in err
-        assert "expected DIDUrl" in err
-        assert "expected VerificationSuite" in err
+def test_generic_verification_method_has_props():
+    vmethod = VerificationMethod(
+        id="did:example:123#test",
+        type="MyVerificationMethod",
+        controller="did:example:123",
+        publicKeyExample="test",
+    )
+    assert hasattr(vmethod, "publicKeyExample")
+    assert "publicKeyExample" in vmethod.serialize()
 
 
-def test_option_allow_type_list():
+def test_validator_allow_type_list():
     vmethod = VerificationMethod.deserialize(
         {
             "id": "did:example:123#keys-1",
             "type": ["Ed25519Signature2018"],
             "controller": "did:example:123",
             "publicKeyBase58": "12345",
-        },
-        options={VerificationMethodOptions.allow_type_list},
+        }
     )
     assert vmethod.type == "Ed25519Signature2018"
 
 
-def test_option_allow_controller_list():
+def test_validator_allow_controller_list():
     vmethod = VerificationMethod.deserialize(
         {
             "id": "did:example:123#keys-1",
@@ -198,26 +128,46 @@ def test_option_allow_controller_list():
             "controller": ["did:example:123"],
             "publicKeyBase58": "12345",
         },
-        options={VerificationMethodOptions.allow_controller_list},
     )
     assert vmethod.controller == "did:example:123"
 
 
-def test_option_allow_missing_controller():
+def test_validator_allow_missing_controller():
     vmethod = VerificationMethod.deserialize(
         {
             "id": "did:example:123#keys-1",
             "type": "Ed25519Signature2018",
             "publicKeyBase58": "12345",
         },
-        options={VerificationMethodOptions.allow_missing_controller},
     )
     assert vmethod.controller == "did:example:123"
-    with pytest.raises(VerificationMethodValidationError):
+    with pytest.raises(ValueError):
         vmethod = VerificationMethod.deserialize(
             {
                 "type": "Ed25519Signature2018",
                 "publicKeyBase58": "12345",
             },
-            options={VerificationMethodOptions.allow_missing_controller},
         )
+
+
+def test_make():
+    did = DID("did:example:123")
+    kwargs = {"id_": did.ref("1"), "controller": did, "material": "test"}
+    with pytest.raises(VerificationMaterialUnknown):
+        VerificationMethod.make(**kwargs)
+
+    vmethod = Ed25519Verification2018.make(**kwargs)
+    assert "publicKeyBase58" in vmethod.serialize()
+
+    class ExampleVerificationMethod(Base58VerificationMethod):
+        type: Literal["Example"]
+
+    vmethod = ExampleVerificationMethod.make(**kwargs)
+    assert "publicKeyBase58" in vmethod.serialize()
+
+    ExampleVerificationMethod = VerificationMethod.suite(
+        "Example", "publicKeyBase58", str
+    )
+
+    vmethod = ExampleVerificationMethod.make(**kwargs)
+    assert "publicKeyBase58" in vmethod.serialize()

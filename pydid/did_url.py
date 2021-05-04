@@ -1,121 +1,92 @@
 """DID URL Object."""
-from typing import Dict, Union
+from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-from voluptuous import Invalid
+from .common import DID_URL_DID_PART_PATTERN, DIDError, DID_URL_RELATIVE_FRONT
 
-from .common import DID_URL_DID_PART_PATTERN, DIDError
+if TYPE_CHECKING:
+    from .did import DID
 
 
-class InvalidDIDUrlError(DIDError, Invalid):
+class InvalidDIDUrlError(DIDError, ValueError):
     """Invalid DID."""
 
 
-class DIDUrl:
+class DIDUrl(str):
     """DID URL."""
 
-    def __init__(
-        self,
-        did: str,
-        path: str = None,
-        query: Dict[str, str] = None,
-        fragment: Union[str, int] = None,
-    ):
-        """Initialize DID URL.
+    def __init__(self, url: str):
+        """Parse DID URL from string."""
+        super().__init__()
+        matches = DID_URL_DID_PART_PATTERN.match(url)
 
-        Leading '/' of path inserted if absent.
-        """
-        self.did = did
-        if path and not path.startswith("/"):
-            path = "/" + path
-        self.path = path
+        if matches:
+            self.did = matches.group(1)
+            _, url_component = url.split(self.did)
+        else:
+            relative_matches = DID_URL_RELATIVE_FRONT.match(url)
+            if not relative_matches:
+                raise InvalidDIDUrlError(
+                    "{} is not a valid absolute or relative DID URL".format(url)
+                )
+            self.did = None
+            url_component = url
 
-        self.query = query
-        self.fragment = str(fragment) if fragment else None
-        self.url = self._stringify()
+        parts = urlparse(url_component)
+        self.path = parts.path or None
+        self.query = dict(parse_qsl(parts.query)) if parts.query else None
+        self.fragment = parts.fragment or None
 
-    def _stringify(self):
-        """Stringify DID URL from parts.
+    @classmethod
+    def __get_validators__(cls):
+        """Yield validators."""
+        yield cls.validate
 
-        Leading '/' of path inserted if absent.
-        Delimiters for query and fragment will be inserted.
-        """
-        value = self.did
-        if self.path:
-            value += self.path
-
-        if self.query:
-            value += "?" + urlencode(self.query)
-
-        if self.fragment:
-            value += "#" + self.fragment
-
-        return value
-
-    def __str__(self):
-        """Return string representation of DID URL.
-
-        Delimiters for query and fragment will be inserted.
-        """
-        return self.url
-
-    def __repr__(self):
-        """Return debug representation of DID URL."""
-        return "<DIDUrl {}>".format(self.url)
-
-    def __eq__(self, other):
-        """Check equality."""
-        if isinstance(other, str):
-            return self.url == other
-        if not isinstance(other, DIDUrl):
-            return False
-        return self.url == other.url
-
-    def __hash__(self):
-        """Hash url string."""
-        return hash(self.url)
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """Update schema fields."""
+        field_schema.update(examples=["did:example:123/some/path?query=test#fragment"])
 
     @classmethod
     def parse(cls, url: str):
         """Parse DID URL from string."""
-        matches = DID_URL_DID_PART_PATTERN.match(url)
-
-        if not matches:
-            raise InvalidDIDUrlError("DID could not be parsed from URL {}".format(url))
-
-        did = matches.group(1)
-        _, url_component = url.split(did)
-
-        if not url_component:
-            raise InvalidDIDUrlError(
-                "No path, query, or fragment found in URL {}".format(url)
-            )
-
-        parts = urlparse(url_component)
-        return cls(
-            did,
-            parts.path or None,
-            dict(parse_qsl(parts.query)) if parts.query else None,
-            parts.fragment or None,
-        )
+        return cls(url)
 
     @classmethod
-    def as_str(
+    def unparse(
         cls,
         did: str,
-        path: str = None,
-        query: Dict[str, str] = None,
-        fragment: str = None,
-    ):
+        path: Optional[str] = None,
+        query: Optional[Dict[str, str]] = None,
+        fragment: Optional[str] = None,
+    ) -> "DIDUrl":
         """Form a DID URL from parts and return the string representation."""
-        return str(cls(did, path, query, fragment))
+        value = did
+        if path and not path.startswith("/"):
+            path = "/" + path
+
+        if path:
+            value += path
+
+        if query:
+            value += "?" + urlencode(query)
+
+        fragment = str(fragment) if fragment else None
+        if fragment:
+            value += "#" + fragment
+
+        return cls(value)
+
+    def as_absolute(self, did: "DID"):
+        """Make a relative DIDUrl absolute."""
+        return self.unparse(did, self.path, self.query, self.fragment)
 
     @classmethod
     def is_valid(cls, url: str):
         """Return whether the given string is a valid DID URL."""
         try:
-            cls.parse(url)
-        except InvalidDIDUrlError:
+            cls.validate(url)
+        except ValueError:
             return False
         else:
             return True
@@ -123,5 +94,4 @@ class DIDUrl:
     @classmethod
     def validate(cls, url: str):
         """Validate the given url as a DID URL."""
-        cls.parse(url)
-        return url
+        return cls.parse(url)

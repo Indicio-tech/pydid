@@ -1,84 +1,81 @@
 """DID Document Object."""
 
 import json
-from typing import Any, List, Set, Union
+import sys
+from typing import List, Optional, Union, TypeVar
 
-from voluptuous import ALLOW_EXTRA, All, Coerce, Switch, Url
+from pydantic import Field, root_validator, validator
+from typing_extensions import Annotated
 
+from . import DIDDocumentError
 from ..did import DID
 from ..did_url import DIDUrl
-from ..validation import (
-    Option,
-    Properties,
-    serialize,
-    single_to_list,
-    unwrap_if_list_of_one,
-    wrap_validation_error,
+from .resource import Resource
+from .service import DIDCommService, Service, UnknownService
+from .verification_method import (
+    KnownVerificationMethods,
+    UnknownVerificationMethod,
+    VerificationMethod,
 )
-from . import DIDDocumentError
-from .doc_options import DIDDocumentOption
-from .service import Service
-from .didcomm_service import DIDCommService
-from .verification_method import VerificationMethod
-from .verification_relationship import VerificationRelationship
 
 
 class IdentifiedResourceMismatch(DIDDocumentError):
     """Raised when two or more of the same ID point to differing resources."""
 
 
-class ResourceIDNotFound(DIDDocumentError):
+class IDNotFoundError(DIDDocumentError):
     """Raised when Resource ID not found in DID Document."""
 
 
-class DIDDocumentValidationError(DIDDocumentError):
-    """Raised when Document validation fails."""
-
-
-def _didcomm_or_service_discriminant(value, validators):
-    """Return the validator to use for the service."""
-    if value["type"] == "did-communication" or value["type"] == "IndyAgent":
-        yield validators[0]
-    else:
-        yield validators[1]
-
-
-class DIDDocument:
+class DIDDocumentRoot(Resource):
     """Representation of DID Document."""
 
-    properties = Properties(extra=ALLOW_EXTRA)
+    # pylint: disable=unsubscriptable-object
 
-    def __init__(
-        self,
-        id: str,
-        context: List[Any],
-        *,
-        also_known_as: List[str] = None,
-        controller: List[str] = None,
-        verification_method: List[VerificationMethod] = None,
-        authentication: VerificationRelationship = None,
-        assertion_method: VerificationRelationship = None,
-        key_agreement: VerificationRelationship = None,
-        capability_invocation: VerificationRelationship = None,
-        capability_delegation: VerificationRelationship = None,
-        service: List[Service] = None,
-        **extra
-    ):
+    context: Annotated[List[str], Field(alias="@context")] = [  # noqa: F722
+        "https://www.w3.org/ns/did/v1"
+    ]
+    id: DID
+    also_known_as: Optional[List[str]] = None
+    controller: Optional[List[DID]] = None
+    verification_method: Optional[List[VerificationMethod]] = None
+    authentication: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    assertion_method: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    key_agreement: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    capability_invocation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    capability_delegation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    service: Optional[List[Service]] = None
+
+    @validator("context", "controller", pre=True, allow_reuse=True)
+    @classmethod
+    def _listify(cls, value):
+        """Transform values into lists that are allowed to be a list or single."""
+        if value is None:
+            return value
+        if isinstance(value, list):
+            return value
+        return [value]
+
+    @root_validator(pre=True, allow_reuse=True)
+    @classmethod
+    def _allow_publickey_instead_of_verification_method(cls, values: dict):
+        """Accept publickKey, transforming to verificationMethod.
+
+        This validator handles a common DID Document mutation.
+        """
+        if "publickKey" in values:
+            values["verificationMethod"] = values["publickKey"]
+        return values
+
+
+class BasicDIDDocument(DIDDocumentRoot):
+    """Basic DID Document."""
+
+    _index: dict = {}
+
+    def __init__(self, **data):
         """Create DIDDocument."""
-        self._id = id
-        self._context = context
-        self._also_known_as = also_known_as
-        self._controller = controller
-        self._verification_method = verification_method
-        self._authentication = authentication
-        self._assertion_method = assertion_method
-        self._key_agreement = key_agreement
-        self._capability_invocation = capability_invocation
-        self._capability_delegation = capability_delegation
-        self._service = service
-        self.extra = extra
-
-        self._index = {}
+        super().__init__(**data)
         self._index_resources()
 
     def _index_resources(self):
@@ -101,10 +98,6 @@ class DIDDocument:
                 for subitem in item:
                     _indexer(subitem)
                 return
-            if isinstance(item, VerificationRelationship):
-                for subitem in item.items:
-                    _indexer(subitem)
-                return
 
             assert isinstance(item, (VerificationMethod, Service))
             if item.id in self._index and item != self._index[item.id]:
@@ -114,7 +107,12 @@ class DIDDocument:
                     )
                 )
 
-            self._index[item.id] = item
+            if not item.id.did:
+                key = item.id.as_absolute(self.id)
+            else:
+                key = item.id
+
+            self._index[key] = item
 
         for item in (
             self.verification_method,
@@ -127,175 +125,83 @@ class DIDDocument:
         ):
             _indexer(item)
 
-    @property
-    @properties.add(
-        data_key="@context",
-        required=True,
-        validate=Switch(Url(), [Url()], dict, [dict]),
-        serialize=unwrap_if_list_of_one,
-        deserialize=single_to_list,
-    )
-    def context(self):
-        """Return context."""
-        return self._context
-
-    @property
-    @properties.add(
-        required=True,
-        validate=All(str, DID.validate),
-        serialize=str,
-        deserialize=str,
-    )
-    def id(self):
-        """Return id."""
-        return self._id
-
-    @property
-    def did(self):
-        """Return the DID representation of id."""
-        return DID(self._id)
-
-    @property
-    @properties.add(data_key="alsoKnownAs", validate=[str])
-    def also_known_as(self):
-        """Return also_known_as."""
-        return self._also_known_as
-
-    @property
-    @properties.add(
-        validate=Switch(All(str, DID.validate), [DID.validate]),
-        serialize=All([Coerce(str)], unwrap_if_list_of_one),
-        deserialize=All(single_to_list, [Coerce(DID)]),
-    )
-    def controller(self):
-        """Return controller."""
-        return self._controller
-
-    @property
-    @properties.add(
-        data_key="verificationMethod",
-        validate=[VerificationMethod.validate],
-        serialize=[serialize],
-        deserialize=[VerificationMethod.deserialize],
-    )
-    def verification_method(self):
-        """Return verification_method."""
-        return self._verification_method
-
-    @property
-    @properties.add(
-        validate=VerificationRelationship.validate,
-        serialize=serialize,
-        deserialize=VerificationRelationship.deserialize,
-    )
-    def authentication(self):
-        """Return authentication."""
-        return self._authentication
-
-    @property
-    @properties.add(
-        data_key="assertionMethod",
-        validate=VerificationRelationship.validate,
-        serialize=serialize,
-        deserialize=VerificationRelationship.deserialize,
-    )
-    def assertion_method(self):
-        """Return assertion_method."""
-        return self._assertion_method
-
-    @property
-    @properties.add(
-        data_key="keyAgreement",
-        validate=VerificationRelationship.validate,
-        serialize=serialize,
-        deserialize=VerificationRelationship.deserialize,
-    )
-    def key_agreement(self):
-        """Return key_agreement."""
-        return self._key_agreement
-
-    @property
-    @properties.add(
-        data_key="capabilityInvocation",
-        validate=VerificationRelationship.validate,
-        serialize=serialize,
-        deserialize=VerificationRelationship.deserialize,
-    )
-    def capability_invocation(self):
-        """Return capability_invocation."""
-        return self._capability_invocation
-
-    @property
-    @properties.add(
-        data_key="capabilityDelegation",
-        validate=VerificationRelationship.validate,
-        serialize=serialize,
-        deserialize=VerificationRelationship.deserialize,
-    )
-    def capability_delegation(self):
-        """Return capability_delegation."""
-        return self._capability_delegation
-
-    @property
-    @properties.add(
-        validate=[Service.validate],
-        serialize=[serialize],
-        deserialize=[
-            Switch(
-                DIDCommService.deserialize,
-                Service.deserialize,
-                discriminant=_didcomm_or_service_discriminant,
-            )
-        ],
-    )
-    def service(self):
-        """Return service."""
-        return self._service
-
     def dereference(self, reference: Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
         if isinstance(reference, str):
             reference = DIDUrl.parse(reference)
+        if not reference.did:
+            reference = reference.as_absolute(self.id)
 
         if reference not in self._index:
-            raise ResourceIDNotFound("ID {} not found in document".format(reference))
+            raise IDNotFoundError("ID {} not found in document".format(reference))
         return self._index[reference]
 
     @classmethod
-    @wrap_validation_error(
-        DIDDocumentValidationError, message="Failed to validate DID Document"
-    )
-    def validate(cls, value):
-        """Validate against expected schema."""
-        return cls.properties.validate(value)
-
-    @wrap_validation_error(DIDDocumentError, message="Failed to serialize DID Document")
-    def serialize(self):
-        """Serialize DID Document."""
-        value = self.properties.serialize(self)
-        return {**value, **self.extra}
-
-    @classmethod
-    @wrap_validation_error(
-        DIDDocumentValidationError, message="Failed to deserialize DID Document"
-    )
-    def deserialize(cls, value: dict, options: Set[Option] = None):
-        """Deserialize DID Document."""
-        if options:
-            value = DIDDocumentOption.apply(value, options)
-        value = cls.validate(value)
-        value = cls.properties.deserialize(value)
-        return cls(**value)
-
-    @classmethod
-    @wrap_validation_error(
-        DIDDocumentValidationError, message="Failed to deserialize DID Document"
-    )
-    def from_json(cls, value: str, options: Set[Option] = None):
+    def from_json(cls, value: str):
         """Deserialize DID Document from JSON."""
         doc_raw: dict = json.loads(value)
-        return cls.deserialize(doc_raw, options)
+        return cls.deserialize(doc_raw)
 
     def to_json(self):
         """Serialize DID Document to JSON."""
-        return json.dumps(self.serialize())
+        return self.json()
+
+
+PossibleMethodTypes = Union[KnownVerificationMethods, UnknownVerificationMethod]
+PossibleServiceTypes = Union[DIDCommService, UnknownService]
+
+
+class DIDDocument(BasicDIDDocument):
+    """
+    DID Document for DID Spec version 1.0.
+
+    Registered verification method and service types are parsed into specific objects.
+    """
+
+    verification_method: Optional[List[PossibleMethodTypes]] = None
+    authentication: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    assertion_method: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    key_agreement: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    capability_invocation: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    capability_delegation: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    service: Optional[List[PossibleServiceTypes]] = None
+
+    @classmethod
+    def deserialize(cls, value: dict) -> "DIDDocument":
+        """Wrap deserialization with a basic validation pass before matching to type."""
+        DIDDocumentRoot.deserialize(value)
+        return super(DIDDocument, cls).deserialize(value)
+
+
+if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
+    # In Python 3.7+, we can use Generics with Pydantic to simplify subclassing
+    from pydantic.generics import GenericModel
+    from typing import Generic
+
+    VM = TypeVar("VM", bound=VerificationMethod)
+    SV = TypeVar("SV", bound=Service)
+    Methods = Optional[List[VM]]
+    Relationships = Optional[List[Union[DIDUrl, VM]]]
+    Services = Optional[List[SV]]
+
+    class GenericDIDDocumentRoot(DIDDocumentRoot, GenericModel, Generic[VM, SV]):
+        """DID Document Root with Generics."""
+
+        verification_method: Methods[VM] = None
+        authentication: Relationships[VM] = None
+        assertion_method: Relationships[VM] = None
+        key_agreement: Relationships[VM] = None
+        capability_invocation: Relationships[VM] = None
+        capability_delegation: Relationships[VM] = None
+        service: Services[SV] = None
+
+    class GenericBasicDIDDocument(BasicDIDDocument, GenericModel, Generic[VM, SV]):
+        """BasicDIDDocument with Generics."""
+
+        verification_method: Methods[VM] = None
+        authentication: Relationships[VM] = None
+        assertion_method: Relationships[VM] = None
+        key_agreement: Relationships[VM] = None
+        capability_invocation: Relationships[VM] = None
+        capability_delegation: Relationships[VM] = None
+        service: Services[SV] = None

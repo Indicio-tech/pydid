@@ -6,14 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from pydid import DIDDocument
-from pydid.options import (
-    doc_allow_public_key,
-    doc_insert_missing_ids,
-    vm_allow_controller_list,
-    vm_allow_missing_controller,
-    vm_allow_type_list,
-)
+from pydid.doc.doc import BasicDIDDocument
+from pydid.doc.corrections import insert_missing_ids
+from pydid.validation import coerce
 
 DOCS_PATH = Path(__file__).parent / "test_docs.json"
 DOCS = json.loads(DOCS_PATH.read_text())
@@ -25,21 +20,6 @@ LOGGER = logging.getLogger(__name__)
 def test_uniresolver_docs(caplog, doc):
     caplog.set_level(logging.INFO)
     LOGGER.info("Doc\n%s", json.dumps(doc, indent=2))
-    DIDDocument.deserialize(
+    coerce([insert_missing_ids])(BasicDIDDocument).deserialize(
         doc,
-        options={
-            doc_allow_public_key,
-            doc_insert_missing_ids,
-            vm_allow_controller_list,
-            vm_allow_missing_controller,
-            vm_allow_type_list,
-        },
     )
-
-
-@pytest.mark.int
-@pytest.mark.parametrize("doc", DOCS)
-def test_uniresolver_docs_strict(caplog, doc):
-    caplog.set_level(logging.INFO)
-    LOGGER.info("Doc\n%s", json.dumps(doc, indent=2))
-    DIDDocument.deserialize(doc)

@@ -8,41 +8,38 @@ from .test_did import TEST_DID0, TEST_DID_URL_PARTS, TEST_DID_URLS
 
 
 @pytest.mark.parametrize("inputs, output", zip(TEST_DID_URL_PARTS, TEST_DID_URLS))
-def test_did_url(inputs, output):
-    url = DIDUrl(**inputs)
-    assert str(url) == output
+def test_did_url_from_parts(inputs, output):
+    url = DIDUrl.unparse(**inputs)
+    assert url == output
     assert repr(url)
 
 
 @pytest.mark.parametrize("url, parts", zip(TEST_DID_URLS, TEST_DID_URL_PARTS))
-def test_did_url_parse(url, parts):
-    assert DIDUrl.parse(url) == DIDUrl(**parts)
+def test_did_url(url, parts):
+    assert DIDUrl(url) == DIDUrl.unparse(**parts)
 
 
 @pytest.mark.parametrize("lhs, rhs", zip(TEST_DID_URLS, TEST_DID_URLS[1:]))
 def test_did_url_neq(lhs, rhs):
-    lhs = DIDUrl.parse(lhs)
+    lhs = DIDUrl(lhs)
     assert lhs != rhs
-    rhs = DIDUrl.parse(rhs)
+    rhs = DIDUrl(rhs)
     assert lhs != rhs
     assert lhs != {"not a": "DIDUrl"}
 
 
 @pytest.mark.parametrize(
     "bad_url",
-    [
-        TEST_DID0,
-        "not://a/did?url=value",
-    ],
+    [TEST_DID0, "not://a/did?url=value", "random string", "", "did:example:123"],
 )
 def test_did_url_parse_x(bad_url):
     with pytest.raises(InvalidDIDUrlError):
-        DIDUrl.parse(bad_url)
+        DIDUrl(bad_url)
 
 
 @pytest.mark.parametrize("parts, url", zip(TEST_DID_URL_PARTS, TEST_DID_URLS))
 def test_as_str(parts, url):
-    assert DIDUrl.as_str(**parts) == url
+    assert DIDUrl.unparse(**parts) == url
 
 
 @pytest.mark.parametrize("url", TEST_DID_URLS)
@@ -57,3 +54,11 @@ def test_is_valid_x(bad_url):
 
 def test_partial_match_url():
     assert not DIDUrl.is_valid("did:bad:char'@='acters:example:1234abcd#4")
+
+
+def test_relative_url():
+    url = DIDUrl.parse("/some/path?query=value#fragment")
+    assert not url.did
+    assert url.path
+    assert url.query
+    assert url.fragment

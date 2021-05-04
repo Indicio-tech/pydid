@@ -9,27 +9,40 @@ January 2021:
 
 from typing import Dict
 
-from voluptuous import Invalid
-
 from .common import DID_PATTERN, DIDError
 from .did_url import DIDUrl
 
 
-class InvalidDIDError(DIDError, Invalid):
+class InvalidDIDError(DIDError, ValueError):
     """Invalid DID."""
 
 
-class DID:
+class DID(str):
     """DID Representation and helpers."""
 
     def __init__(self, did: str):
         """Validate and parse raw DID str."""
-        self._raw = did
+        super().__init__()
+        if isinstance(did, DID):
+            self._method = did.method
+            self._id = did._id
+            return
+
         matched = DID_PATTERN.match(did)
         if not matched:
             raise InvalidDIDError("Unable to parse DID {}".format(did))
         self._method = matched.group(1)
         self._id = matched.group(2)
+
+    @classmethod
+    def __get_validators__(cls):
+        """Yield validators for pydantic."""
+        yield cls._validate
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """Update schema fields."""
+        field_schema.update(pattern=DID_PATTERN)
 
     @property
     def method(self):
@@ -41,34 +54,13 @@ class DID:
         """Return the method specific identifier."""
         return self._id
 
-    def __str__(self):
-        """Return string representation of DID."""
-        return self._raw
-
-    def __repr__(self):
-        """Return debug representation of DID."""
-        return "<DID {}>".format(self._raw)
-
-    def __eq__(self, other):
-        """Test equality."""
-        if isinstance(other, str):
-            return self._raw == other
-        if isinstance(other, DID):
-            return self._raw == other._raw
-
-        return False
-
-    def __hash__(self):
-        """Return hash."""
-        return hash(self._raw)
-
     def url(self, path: str = None, query: Dict[str, str] = None, fragment: str = None):
         """Return a DID URL for this DID."""
-        return DIDUrl(self._raw, path, query, fragment)
+        return DIDUrl.unparse(self, path, query, fragment)
 
     def ref(self, ident: str) -> DIDUrl:
         """Return a DID reference (URL) for use as an ID in a DID Doc section."""
-        return DIDUrl(self._raw, fragment=ident)
+        return DIDUrl.unparse(self, fragment=ident)
 
     @classmethod
     def is_valid(cls, did: str):
@@ -81,3 +73,8 @@ class DID:
         if not cls.is_valid(did):
             raise InvalidDIDError('"{}" is not a valid DID'.format(did))
         return did
+
+    @classmethod
+    def _validate(cls, did):
+        """Pydantic validator."""
+        return cls(did)
