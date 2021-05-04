@@ -1,10 +1,10 @@
 """Resource class that forms the base of all DID Document components."""
 
-from typing import Any, Dict, Type, TypeVar, get_args, get_origin
+from typing import Any, Dict, Type, TypeVar
 
-from pydantic import BaseModel, Extra, parse_obj_as
 from inflection import camelize
-from typing_extensions import Literal
+from pydantic import BaseModel, Extra, parse_obj_as
+from typing_extensions import Literal, get_args, get_origin
 
 from ..validation import wrap_validation_error
 
