@@ -7,14 +7,14 @@ from pydid.did import DID
 from pydid.did_url import DIDUrl
 from pydid.doc.verification_method import (
     Base58VerificationMethod,
-    Ed25519Verification2018,
+    Ed25519VerificationKey2018,
     VerificationMaterialUnknown,
     VerificationMethod,
 )
 
 VMETHOD0 = {
     "id": "did:example:123#keys-1",
-    "type": "Ed25519Verification2018",
+    "type": "Ed25519VerificationKey2018",
     "controller": "did:example:123",
     "publicKeyBase58": "12345",
 }
@@ -156,7 +156,7 @@ def test_make():
     with pytest.raises(VerificationMaterialUnknown):
         VerificationMethod.make(**kwargs)
 
-    vmethod = Ed25519Verification2018.make(**kwargs)
+    vmethod = Ed25519VerificationKey2018.make(**kwargs)
     assert "publicKeyBase58" in vmethod.serialize()
 
     class ExampleVerificationMethod(Base58VerificationMethod):

@@ -21,7 +21,7 @@ from pydid.doc.builder import (
 from pydid.doc.service import Service
 from pydid.doc.service import DIDCommService
 from pydid.doc.verification_method import (
-    Ed25519Verification2018,
+    Ed25519VerificationKey2018,
     VerificationMaterial,
     VerificationMethod,
 )
@@ -42,7 +42,7 @@ DOC0 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -50,7 +50,7 @@ DOC0 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -58,7 +58,7 @@ DOC0 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -66,7 +66,7 @@ DOC0 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -86,7 +86,7 @@ DOC1 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -94,7 +94,7 @@ DOC1 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -102,7 +102,7 @@ DOC1 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -110,7 +110,7 @@ DOC1 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -124,7 +124,7 @@ DOC2 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -132,7 +132,7 @@ DOC2 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -140,7 +140,7 @@ DOC2 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -148,7 +148,7 @@ DOC2 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -162,7 +162,7 @@ DOC3 = {
     "authentication": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -170,7 +170,7 @@ DOC3 = {
     "capabilityInvocation": [
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -178,7 +178,7 @@ DOC3 = {
     "capabilityDelegation": [
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -186,7 +186,7 @@ DOC3 = {
     "assertionMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -200,25 +200,25 @@ DOC4 = {
     "verificationMethod": [
         {
             "id": "did:example:123#authentication-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
         {
             "id": "did:example:123#capability-invocation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
         {
             "id": "did:example:123#capability-delegation-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         },
@@ -236,7 +236,7 @@ DOC6 = {
     "verificationMethod": [
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
@@ -245,7 +245,7 @@ DOC6 = {
         "did:example:123#keys-0",
         {
             "id": "did:example:123#auth-0",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
@@ -265,7 +265,7 @@ DOC7 = {
     "verificationMethod": [
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
@@ -274,7 +274,7 @@ DOC7 = {
         "did:example:123#keys-0",
         {
             "id": "did:example:123#auth-0",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
@@ -298,7 +298,7 @@ INVALID_DOC1 = {
     "verificationMethod": [
         {
             "id": "did:example:123#assertion-1",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:z6Mkmpe2DyE4NsDiAb58d75hpi1BjqbH6wYMschUkjWDEEuR",
             "publicKeyBase58": "8NNydiyd3KjF46ERwY7rycTBvGKRh4J1BbnYvTYCK283",
         }
@@ -310,7 +310,7 @@ INVALID_DOC2 = {
     "verificationMethod": [
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
@@ -319,7 +319,7 @@ INVALID_DOC2 = {
         "did:example:123#keys-0",
         {
             "id": "did:example:123#keys-0",
-            "type": "Ed25519Verification2018",
+            "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "abcd",
         },
@@ -404,9 +404,9 @@ def test_didcomm_service_deserialized():
 def test_programmatic_construction():
     builder = DIDDocumentBuilder("did:example:123")
     assert builder.context == ["https://www.w3.org/ns/did/v1"]
-    vmethod1 = builder.verification_method.add(Ed25519Verification2018, "1234")
+    vmethod1 = builder.verification_method.add(Ed25519VerificationKey2018, "1234")
     builder.authentication.reference(vmethod1.id)
-    builder.authentication.embed(Ed25519Verification2018, "abcd")
+    builder.authentication.embed(Ed25519VerificationKey2018, "abcd")
     builder.service.add(type_="example", service_endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
 
@@ -452,7 +452,7 @@ def test_programmatic_construction_didcomm():
 
 def test_all_relationship_builders():
     builder = DIDDocumentBuilder("did:example:123")
-    vmethod = builder.verification_method.add(Ed25519Verification2018, "12345")
+    vmethod = builder.verification_method.add(Ed25519VerificationKey2018, "12345")
     builder.authentication.reference(vmethod.id)
     builder.authentication.embed(ExampleVerificationMethod, "auth")
     builder.assertion_method.reference(vmethod.id)
@@ -474,7 +474,7 @@ def test_all_relationship_builders():
         "verificationMethod": [
             {
                 "id": "did:example:123#keys-0",
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "12345",
             },
@@ -574,7 +574,7 @@ def test_key_rotation_from_doc():
         "authentication": [
             {
                 "id": "did:example:123#auth-0",
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "abcd",
             },
@@ -596,7 +596,7 @@ def test_dereference_and_membership_check():
         "authentication": [
             {
                 "id": "did:example:123#keys-0",
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
@@ -604,7 +604,7 @@ def test_dereference_and_membership_check():
         "assertionMethod": [
             {
                 "id": "did:example:123#keys-0",
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
@@ -630,7 +630,7 @@ def test_correction_insert_missing_ids_x():
         "@context": "https://www.w3.org/ns/did/v1",
         "authentication": [
             {
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
@@ -647,7 +647,7 @@ def test_relative_ids():
         "authentication": [
             {
                 "id": "#keys-0",
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "1234",
             },
@@ -655,7 +655,7 @@ def test_relative_ids():
         "assertionMethod": [
             {
                 "id": "#keys-1",
-                "type": "Ed25519Verification2018",
+                "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "abcd",
             },

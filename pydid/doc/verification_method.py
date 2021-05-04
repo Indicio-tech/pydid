@@ -197,10 +197,10 @@ class JwkVerificationMethod(VerificationMethod):
     public_key_jwk: Annotated[dict, VerificationMaterial]
 
 
-class Ed25519Verification2018(Base58VerificationMethod):
-    """Ed25519Verification2018 VerificationMethod."""
+class Ed25519VerificationKey2018(Base58VerificationMethod):
+    """Ed25519VerificationKey2018 VerificationMethod."""
 
-    type: Literal["Ed25519Verification2018"]
+    type: Literal["Ed25519VerificationKey2018"]
 
 
 class OpenPgpVerificationKey2019(PemVerificationMethod):
@@ -273,7 +273,7 @@ class UnknownVerificationMethod(VerificationMethod):
 
 
 KnownVerificationMethods = Union[
-    Ed25519Verification2018,
+    Ed25519VerificationKey2018,
     OpenPgpVerificationKey2019,
     JsonWebKey2020,
     EcdsaSecp256k1VerificationKey2019,
