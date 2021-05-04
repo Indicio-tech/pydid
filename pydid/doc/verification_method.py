@@ -4,11 +4,16 @@ from typing import Type, Union
 from inflection import underscore
 
 from pydantic import create_model
+from pydantic.class_validators import root_validator, validator
 from typing_extensions import Literal
 
 from ..did import DID
-from ..did_url import DIDUrl
+from ..did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
+
+
+class VerificationMaterialUnknown(NotImplementedError):
+    """Raised when verification material is unknown but access is attempted."""
 
 
 class VerificationMethod(Resource):
@@ -18,57 +23,185 @@ class VerificationMethod(Resource):
     type: str
     controller: DID
 
+    @property
+    def material(self):
+        """Return material."""
+        raise VerificationMaterialUnknown(
+            "Verification Material was not specified on class"
+        )
+
     @classmethod
     def suite(cls: Type, typ: str, material: str, material_type: Type):
         """Return a subclass of VerificationMethod for a given type."""
-        return create_model(
+        model = create_model(
             typ,
             __module__=cls.__module__,
             __base__=cls,
             type=(Literal[typ], ...),
-            **{underscore(material): (material_type, ...)}
+            **{underscore(material): (material_type, ...)},
         )
+        model.material = property(lambda self: getattr(self, underscore(material)))
+        return model
+
+    @validator("type", pre=True)
+    @classmethod
+    def _allow_type_list(cls, value: Union[str, list]):
+        """Unwrap type list.
+
+        This validator handles a common DID Document mutation.
+        """
+        if isinstance(value, list):
+            return value[0]
+        return value
+
+    @validator("controller", pre=True)
+    @classmethod
+    def _allow_controller_list(cls, value: Union[str, list]):
+        """Unwrap controller list.
+
+        This validator handles a common DID Document mutation.
+        """
+        if isinstance(value, list):
+            return value[0]
+        return value
+
+    @root_validator(pre=True)
+    @classmethod
+    def _allow_missing_controller(cls, values: dict):
+        """Derive controller value from ID.
+
+        This validator handles a common DID Document mutation.
+        """
+        if "id" not in values:
+            raise ValueError(
+                "Could not derive controller: no id present in verification method"
+            )
+        if "controller" not in values:
+            try:
+                ident = DIDUrl.parse(values["id"])
+            except InvalidDIDUrlError:
+                return values
+            else:
+                values["controller"] = ident.did
+        return values
+
+    @root_validator(pre=True)
+    @classmethod
+    def _method_appears_to_contain_material(cls, values: dict):
+        """Validate that the method appears to contain verification materla."""
+        if len(values) < 4:
+            raise ValueError(
+                "Key material expected, only found id, type, and controller"
+            )
+        return values
 
 
 # Verification Method Suites registered in DID Spec
 
-Ed25519Verification2018 = VerificationMethod.suite(
-    "Ed25519Verification2018", "publicKeyBase58", str
-)
 
-OpenPgpVerificationKey2019 = VerificationMethod.suite(
-    "OpenPgpVerificationKey2019", "publicKeyPem", str
-)
+class Base58VerificationMethod(VerificationMethod):
+    """Verification Method where material is base58."""
 
-JsonWebKey2020 = VerificationMethod.suite("JsonWebKey2020", "publicKeyJwk", dict)
+    public_key_base58: str
 
-EcdsaSecp256k1VerificationKey2019 = VerificationMethod.suite(
-    "EcdsaSecp256k1VerificationKey2019", "publicKeyJwk", dict
-)
+    @property
+    def material(self):
+        """Return material."""
+        return self.public_key_base58
 
-Bls1238G1Key2020 = VerificationMethod.suite("Bls1238G1Key2020", "publicKeyBase58", str)
 
-Bls1238G2Key2020 = VerificationMethod.suite("Bls1238G2Key2020", "publicKeyBase58", str)
+class PemVerificationMethod(VerificationMethod):
+    """Verification Method where material is pem."""
 
-GpgVerifcationKey2020 = VerificationMethod.suite(
-    "GpgVerifcationKey2020", "publicKeyGpg", str
-)
+    public_key_pem: str
 
-RsaVerificationKey2018 = VerificationMethod.suite(
-    "RsaVerificationKey2018", "publicKeyJwk", str
-)
+    @property
+    def material(self):
+        """Return material."""
+        return self.public_key_pem
 
-X25519KeyAgreementKey2019 = VerificationMethod.suite(
-    "X25519KeyAgreementKey2019", "publicKeyBase58", str
-)
 
-SchnorrSecp256k1VerificationKey2019 = VerificationMethod.suite(
-    "SchnorrSecp256k1VerificationKey2019", "publicKeyJwk", dict
-)
+class JwkVerificationMethod(VerificationMethod):
+    """Verification Method where material is jwk."""
 
-EcdsaSecp256k1RecoveryMethod2020 = VerificationMethod.suite(
-    "EcdsaSecp256k1RecoveryMethod2020", "publicKeyJwk", str
-)
+    public_key_jwk: dict
+
+    @property
+    def material(self):
+        """Return material."""
+        return self.public_key_jwk
+
+
+class Ed25519Verification2018(Base58VerificationMethod):
+    """Ed25519Verification2018 VerificationMethod."""
+
+    type: Literal["Ed25519Verification2018"]
+
+
+class OpenPgpVerificationKey2019(PemVerificationMethod):
+    """OpenPgpVerificationKey2019 VerificationMethod."""
+
+    type: Literal["OpenPgpVerificationKey2019"]
+
+
+class JsonWebKey2020(JwkVerificationMethod):
+    """JsonWebKey2020 VerificationMethod."""
+
+    type: Literal["JsonWebKey2020"]
+
+
+class EcdsaSecp256k1VerificationKey2019(JwkVerificationMethod):
+    """EcdsaSecp256k1VerificationKey2019 VerificationMethod."""
+
+    type: Literal["EcdsaSecp256k1VerificationKey2019"]
+
+
+class Bls1238G1Key2020(Base58VerificationMethod):
+    """Bls1238G1Key2020 VerificationMethod."""
+
+    type: Literal["Bls1238G1Key2020"]
+
+
+class Bls1238G2Key2020(Base58VerificationMethod):
+    """Bls1238G2Key2020 VerificationMethod."""
+
+    type: Literal["Bls1238G2Key2020"]
+
+
+class GpgVerifcationKey2020(VerificationMethod):
+    """GpgVerifcationKey2020 VerificationMethod."""
+
+    type: Literal["GpgVerifcationKey2020"]
+    public_key_gpg: str
+
+    @property
+    def material(self):
+        """Return material."""
+        return self.public_key_gpg
+
+
+class RsaVerificationKey2018(JwkVerificationMethod):
+    """RsaVerificationKey2018 VerificationMethod."""
+
+    type: Literal["RsaVerificationKey2018"]
+
+
+class X25519KeyAgreementKey2019(Base58VerificationMethod):
+    """X25519KeyAgreementKey2019 VerificationMethod."""
+
+    type: Literal["X25519KeyAgreementKey2019"]
+
+
+class SchnorrSecp256k1VerificationKey2019(JwkVerificationMethod):
+    """SchnorrSecp256k1VerificationKey2019 VerificationMethod."""
+
+    type: Literal["SchnorrSecp256k1VerificationKey2019"]
+
+
+class EcdsaSecp256k1RecoveryMethod2020(JwkVerificationMethod):
+    """EcdsaSecp256k1RecoveryMethod2020 VerificationMethod."""
+
+    type: Literal["EcdsaSecp256k1RecoveryMethod2020"]
 
 
 class UnsupportedVerificationMethod(VerificationMethod):

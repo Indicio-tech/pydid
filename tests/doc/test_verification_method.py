@@ -7,7 +7,6 @@ from pydid.did_url import DIDUrl
 from pydid.doc.verification_method import (
     VerificationMethod,
 )
-from pydid.doc.verification_method_options import VerificationMethodOptions
 
 VMETHOD0 = {
     "id": "did:example:123#keys-1",
@@ -63,7 +62,6 @@ INVALID_VMETHODS = [
 @pytest.mark.parametrize("vmethod_raw", VMETHODS)
 def test_serialization(vmethod_raw):
     vmethod = VerificationMethod.deserialize(vmethod_raw)
-    print(type(vmethod))
     assert vmethod.id == DIDUrl.parse(vmethod_raw["id"])
     assert vmethod.type == vmethod_raw["type"]
     assert vmethod.controller == DID(vmethod_raw["controller"])
@@ -82,20 +80,43 @@ def test_deserialized_member_types():
     assert isinstance(vmethod.controller, DID)
 
 
-def test_option_allow_type_list():
+def test_suite_creation():
+    MyVerificationMethod = VerificationMethod.suite(
+        "MyVerificationMethod", "publicKeyExample", str
+    )
+    vmethod = MyVerificationMethod(
+        id="did:example:123#test",
+        type="MyVerificationMethod",
+        controller="did:example:123",
+        public_key_example="test",
+    )
+    assert vmethod.material == "test"
+
+
+def test_generic_verification_method_has_props():
+    vmethod = VerificationMethod(
+        id="did:example:123#test",
+        type="MyVerificationMethod",
+        controller="did:example:123",
+        publicKeyExample="test",
+    )
+    assert hasattr(vmethod, "publicKeyExample")
+    assert "publicKeyExample" in vmethod.serialize()
+
+
+def test_validator_allow_type_list():
     vmethod = VerificationMethod.deserialize(
         {
             "id": "did:example:123#keys-1",
             "type": ["Ed25519Signature2018"],
             "controller": "did:example:123",
             "publicKeyBase58": "12345",
-        },
-        options={VerificationMethodOptions.allow_type_list},
+        }
     )
     assert vmethod.type == "Ed25519Signature2018"
 
 
-def test_option_allow_controller_list():
+def test_validator_allow_controller_list():
     vmethod = VerificationMethod.deserialize(
         {
             "id": "did:example:123#keys-1",
@@ -103,19 +124,17 @@ def test_option_allow_controller_list():
             "controller": ["did:example:123"],
             "publicKeyBase58": "12345",
         },
-        options={VerificationMethodOptions.allow_controller_list},
     )
     assert vmethod.controller == "did:example:123"
 
 
-def test_option_allow_missing_controller():
+def test_validator_allow_missing_controller():
     vmethod = VerificationMethod.deserialize(
         {
             "id": "did:example:123#keys-1",
             "type": "Ed25519Signature2018",
             "publicKeyBase58": "12345",
         },
-        options={VerificationMethodOptions.allow_missing_controller},
     )
     assert vmethod.controller == "did:example:123"
     with pytest.raises(ValueError):
@@ -124,5 +143,4 @@ def test_option_allow_missing_controller():
                 "type": "Ed25519Signature2018",
                 "publicKeyBase58": "12345",
             },
-            options={VerificationMethodOptions.allow_missing_controller},
         )
