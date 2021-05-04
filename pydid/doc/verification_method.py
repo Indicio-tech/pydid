@@ -5,7 +5,7 @@ from typing import Any, Optional, Type, Union
 from inflection import underscore
 from pydantic import create_model
 from pydantic.class_validators import root_validator, validator
-from typing_extensions import Annotated, Literal, get_type_hints
+from typing_extensions import Annotated, Literal
 import typing_extensions
 
 from ..did import DID
@@ -23,6 +23,10 @@ if hasattr(typing_extensions, "get_args"):
         """Return if type is annotated."""
         return typing_extensions.get_origin(type_) is Annotated
 
+    def get_type_hints(type_, **kwargs):
+        """Return type hints for type."""
+        return typing_extensions.get_type_hints(type_, **kwargs)
+
 
 else:
 
@@ -33,6 +37,10 @@ else:
     def is_annotated(type_):
         """Return if type is annotated."""
         return hasattr(type_, "__origin__") and type_.__origin__ is Annotated
+
+    def get_type_hints(type_, **kwargs):
+        """Return type hints for type."""
+        return type_.__annotations__
 
 
 class VerificationMaterial:
