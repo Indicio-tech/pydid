@@ -5,7 +5,7 @@ from typing import Any, List, Type, Union, Iterator, Optional
 from ..did import DID
 from ..did_url import DIDUrl
 from .service import DIDCommService
-from .doc import DIDDocument, Methods, Relationships, Services
+from .doc import DIDDocument
 from .service import Service
 from .verification_method import VerificationMethod
 
@@ -26,7 +26,7 @@ class VerificationMethodBuilder:
         did: DID,
         *,
         id_base: str = None,
-        methods: Methods[VerificationMethod] = None
+        methods: Optional[List[VerificationMethod]] = None
     ):
         self._did = did
         self.methods = methods or []
@@ -67,7 +67,7 @@ class RelationshipBuilder(VerificationMethodBuilder):
         did: DID,
         id_base: str,
         *,
-        methods: Relationships[VerificationMethod] = None
+        methods: Optional[List[Union[VerificationMethod, DIDUrl]]] = None
     ):
         super().__init__(did, id_base=id_base)
         self.methods = methods or []
@@ -104,7 +104,7 @@ class RelationshipBuilder(VerificationMethodBuilder):
 class ServiceBuilder:
     """Builder for services."""
 
-    def __init__(self, did: DID, *, services: Services[Service] = None):
+    def __init__(self, did: DID, *, services: Optional[List[Service]] = None):
         self._did = did
         self.services = services or []
         self._id_generator = _default_id_generator("service", start=len(self.services))

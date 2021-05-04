@@ -32,7 +32,7 @@ else:
 
     def annotated_args(annotated):
         """Return annotated arguments."""
-        return annotated.__args__
+        return [annotated.__args__[0], *annotated.__args__[1]]
 
     def is_annotated(type_):
         """Return if type is annotated."""
@@ -40,7 +40,9 @@ else:
 
     def get_type_hints(type_, **kwargs):
         """Return type hints for type."""
-        return type_.__annotations__
+        if type_ is VerificationMethod:
+            return {}
+        return {**type_.__annotations__, **get_type_hints(type_.__base__)}
 
 
 class VerificationMaterial:

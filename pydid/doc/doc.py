@@ -11,7 +11,7 @@ from . import DIDDocumentError
 from ..did import DID
 from ..did_url import DIDUrl
 from .resource import Resource
-from .service import DIDCommService, Service
+from .service import DIDCommService, Service, UnknownService
 from .verification_method import (
     KnownVerificationMethods,
     UnknownVerificationMethod,
@@ -27,13 +27,6 @@ class IDNotFoundError(DIDDocumentError):
     """Raised when Resource ID not found in DID Document."""
 
 
-VerificationMethodType = TypeVar("VerificationMethodType", bound=VerificationMethod)
-ServiceType = TypeVar("ServiceType", bound=Service)
-Methods = Optional[List[VerificationMethodType]]
-Relationships = Optional[List[Union[DIDUrl, VerificationMethodType]]]
-Services = Optional[List[ServiceType]]
-
-
 class DIDDocumentRoot(Resource):
     """Representation of DID Document."""
 
@@ -45,13 +38,13 @@ class DIDDocumentRoot(Resource):
     id: DID
     also_known_as: Optional[List[str]] = None
     controller: Optional[List[DID]] = None
-    verification_method: Methods[VerificationMethod] = None
-    authentication: Relationships[VerificationMethod] = None
-    assertion_method: Relationships[VerificationMethod] = None
-    key_agreement: Relationships[VerificationMethod] = None
-    capability_invocation: Relationships[VerificationMethod] = None
-    capability_delegation: Relationships[VerificationMethod] = None
-    service: Services[Service] = None
+    verification_method: Optional[List[VerificationMethod]] = None
+    authentication: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    assertion_method: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    key_agreement: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    capability_invocation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    capability_delegation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
+    service: Optional[List[Service]] = None
 
     @validator("context", "controller", pre=True, allow_reuse=True)
     @classmethod
@@ -148,7 +141,7 @@ class BasicDIDDocument(DIDDocumentRoot):
 
 
 PossibleMethodTypes = Union[KnownVerificationMethods, UnknownVerificationMethod]
-PossibleServiceTypes = Union[DIDCommService, Service]
+PossibleServiceTypes = Union[DIDCommService, UnknownService]
 
 
 class DIDDocument(BasicDIDDocument):
@@ -158,13 +151,13 @@ class DIDDocument(BasicDIDDocument):
     Registered verification method and service types are parsed into specific objects.
     """
 
-    verification_method: Methods[PossibleMethodTypes] = None
-    authentication: Relationships[PossibleMethodTypes] = None
-    assertion_method: Relationships[PossibleMethodTypes] = None
-    key_agreement: Relationships[PossibleMethodTypes] = None
-    capability_invocation: Relationships[PossibleMethodTypes] = None
-    capability_delegation: Relationships[PossibleMethodTypes] = None
-    service: Services[PossibleServiceTypes] = None
+    verification_method: Optional[List[PossibleMethodTypes]] = None
+    authentication: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    assertion_method: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    key_agreement: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    capability_invocation: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    capability_delegation: Optional[List[Union[DIDUrl, PossibleMethodTypes]]] = None
+    service: Optional[List[PossibleServiceTypes]] = None
 
     @classmethod
     def deserialize(cls, value: dict) -> "DIDDocument":
@@ -180,6 +173,9 @@ if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
 
     VM = TypeVar("VM", bound=VerificationMethod)
     SV = TypeVar("SV", bound=Service)
+    Methods = Optional[List[VM]]
+    Relationships = Optional[List[Union[DIDUrl, VM]]]
+    Services = Optional[List[SV]]
 
     class GenericDIDDocumentRoot(DIDDocumentRoot, GenericModel, Generic[VM, SV]):
         """DID Document Root with Generics."""

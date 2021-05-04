@@ -29,3 +29,7 @@ class DIDCommService(Service):
     recipient_keys: List[DIDUrl]
     routing_keys: List[DIDUrl] = []
     priority: int = 0
+
+
+class UnknownService(Service):
+    """Unknown Service."""
