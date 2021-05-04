@@ -34,7 +34,6 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.6.9"
-voluptuous = "^0.12.1"
 pydantic = "^1.8.1"
 typing-extensions = "^3.7.4"
 inflection = "^0.5.1"
