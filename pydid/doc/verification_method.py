@@ -5,11 +5,34 @@ from typing import Any, Optional, Type, Union
 from inflection import underscore
 from pydantic import create_model
 from pydantic.class_validators import root_validator, validator
-from typing_extensions import Annotated, Literal, get_args, get_origin, get_type_hints
+from typing_extensions import Annotated, Literal, get_type_hints
+import typing_extensions
 
 from ..did import DID
 from ..did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
+
+
+if hasattr(typing_extensions, "get_args"):
+
+    def annotated_args(annotated):
+        """Return annotated arguments."""
+        return typing_extensions.get_args(annotated)
+
+    def is_annotated(type_):
+        """Return if type is annotated."""
+        return typing_extensions.get_origin(type_) is Annotated
+
+
+else:
+
+    def annotated_args(annotated):
+        """Return annotated arguments."""
+        return annotated.__args__
+
+    def is_annotated(type_):
+        """Return if type is annotated."""
+        return hasattr(type_, "__origin__") and type_.__origin__ is Annotated
 
 
 class VerificationMaterial:
@@ -106,9 +129,7 @@ class VerificationMethod(Resource):
     def _determine_material_prop(cls) -> Optional[str]:
         """Return the name of the property containing the verification material."""
         for name, type_ in get_type_hints(cls, include_extras=True).items():
-            if get_origin(type_) is Annotated and VerificationMaterial in get_args(
-                type_
-            ):
+            if is_annotated(type_) and VerificationMaterial in annotated_args(type_):
                 return name
 
         return None

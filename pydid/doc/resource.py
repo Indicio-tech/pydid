@@ -4,12 +4,38 @@ from typing import Any, Dict, Type, TypeVar
 
 from inflection import camelize
 from pydantic import BaseModel, Extra, parse_obj_as
-from typing_extensions import Literal, get_args, get_origin
+from typing_extensions import Literal
+import typing_extensions
 
 from ..validation import wrap_validation_error
 
 
 ResourceType = TypeVar("ResourceType", bound="Resource")
+
+
+if hasattr(typing_extensions, "get_args"):
+    from typing_extensions import get_args, get_origin
+
+    def get_literal_values(literal):
+        """Return the args of a literal."""
+        return get_args(literal)
+
+    def is_literal(type_):
+        """Return if type is literal."""
+        return get_origin(type_) is Literal
+
+
+else:
+    # Python 3.6 and Literals behave differently
+    from typing_extensions import _Literal
+
+    def get_literal_values(literal):
+        """Return the args of a literal."""
+        return literal.__values__
+
+    def is_literal(type_):
+        """Return if type is literal."""
+        return isinstance(type_, _Literal)
 
 
 class Resource(BaseModel):
@@ -55,10 +81,10 @@ class Resource(BaseModel):
         for field in cls.__fields__.values():
             if (
                 field.required
-                and get_origin(field.type_) is Literal
+                and is_literal(field.type_)
                 and (field.name not in kwargs or kwargs[field.name] is None)
             ):
-                kwargs[field.name] = get_args(field.type_)[0]
+                kwargs[field.name] = get_literal_values(field.type_)[0]
         return kwargs
 
     @classmethod
