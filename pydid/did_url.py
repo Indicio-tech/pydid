@@ -2,7 +2,7 @@
 from typing import Dict, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-from .common import DID_PATTERN, DIDError
+from .common import DID_URL_DID_PART_PATTERN, DIDError
 
 
 class InvalidDIDUrlError(DIDError, ValueError):
@@ -15,12 +15,12 @@ class DIDUrl(str):
     def __init__(self, url: str):
         """Parse DID URL from string."""
         super().__init__()
-        matches = DID_PATTERN.match(url)
+        matches = DID_URL_DID_PART_PATTERN.match(url)
 
         if not matches:
             raise InvalidDIDUrlError("DID could not be parsed from URL {}".format(url))
 
-        self.did = matches.group(0)
+        self.did = matches.group(1)
         _, url_component = url.split(self.did)
 
         if not url_component:

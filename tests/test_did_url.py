@@ -53,3 +53,7 @@ def test_is_valid(url):
 @pytest.mark.parametrize("bad_url", [TEST_DID0, "not a did url"])
 def test_is_valid_x(bad_url):
     assert not DIDUrl.is_valid(bad_url)
+
+
+def test_partial_match_url():
+    assert not DIDUrl.is_valid("did:bad:char'@='acters:example:1234abcd#4")

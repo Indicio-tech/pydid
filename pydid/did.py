@@ -28,7 +28,7 @@ class DID(str):
             self._id = did._id
             return
 
-        matched = DID_PATTERN.fullmatch(did)
+        matched = DID_PATTERN.match(did)
         if not matched:
             raise InvalidDIDError("Unable to parse DID {}".format(did))
         self._method = matched.group(1)
@@ -69,7 +69,7 @@ class DID(str):
     @classmethod
     def is_valid(cls, did: str):
         """Return if the passed string is a valid DID."""
-        return DID_PATTERN.fullmatch(did)
+        return DID_PATTERN.match(did)
 
     @classmethod
     def validate(cls, did: str):

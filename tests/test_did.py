@@ -111,6 +111,7 @@ def test_validate(did):
         "did:nomethodspecificidentifier",
         "did:invalid-chars-in-method:method-specific-id",
         "bad-prefix:method:method-specific-id",
+        "did:bad:char'@='acters:example:1234abcd",
         *TEST_DID_URLS,
     ],
 )
