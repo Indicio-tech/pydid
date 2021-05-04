@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from pydid.doc.doc import BasicDIDDocument
-from pydid.doc.doc_corrections import insert_missing_ids
+from pydid.doc.corrections import insert_missing_ids
 from pydid.validation import coerce
 
 DOCS_PATH = Path(__file__).parent / "test_docs.json"

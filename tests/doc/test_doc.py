@@ -9,7 +9,7 @@ from pydid.validation import coerce
 import pytest
 
 from pydid.did_url import InvalidDIDUrlError
-from pydid.doc import doc_corrections
+from pydid.doc import corrections
 from pydid.doc.doc import (
     DIDDocument,
     DIDDocumentError,
@@ -625,7 +625,7 @@ def test_dereference_and_membership_check():
 
 
 def test_correction_insert_missing_ids_x():
-    MyDIDDocument = coerce([doc_corrections.insert_missing_ids])(DIDDocument)
+    MyDIDDocument = coerce([corrections.insert_missing_ids])(DIDDocument)
     doc_raw = {
         "@context": "https://www.w3.org/ns/did/v1",
         "authentication": [
