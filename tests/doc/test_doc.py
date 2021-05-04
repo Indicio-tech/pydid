@@ -3,28 +3,21 @@
 from collections import namedtuple
 import copy
 
-from typing_extensions import Annotated, Literal
-from pydid.validation import coerce
-
 import pytest
+from typing_extensions import Annotated, Literal
 
 from pydid.did_url import InvalidDIDUrlError
 from pydid.doc import corrections
-from pydid.doc.doc import (
-    DIDDocument,
-    DIDDocumentError,
-    IDNotFoundError,
-)
-from pydid.doc.builder import (
-    DIDDocumentBuilder,
-)
-from pydid.doc.service import Service
-from pydid.doc.service import DIDCommService
-from pydid.doc.verification_method import (
+from pydid.doc.builder import DIDDocumentBuilder
+from pydid.doc.doc import DIDDocument, DIDDocumentError, IDNotFoundError
+from pydid.service import Service
+from pydid.service import DIDCommService
+from pydid.verification_method import (
     Ed25519VerificationKey2018,
     VerificationMaterial,
     VerificationMethod,
 )
+from pydid.validation import coerce
 
 VerificationSuite = namedtuple(
     "VerificationSuite", ["type", "verification_material_prop"]

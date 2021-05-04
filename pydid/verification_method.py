@@ -8,8 +8,8 @@ from pydantic.class_validators import root_validator, validator
 from typing_extensions import Annotated, Literal
 import typing_extensions
 
-from ..did import DID
-from ..did_url import DIDUrl, InvalidDIDUrlError
+from .did import DID
+from .did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
 
 

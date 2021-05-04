@@ -7,7 +7,7 @@ from pydantic import BaseModel, Extra, parse_obj_as
 from typing_extensions import Literal
 import typing_extensions
 
-from ..validation import wrap_validation_error
+from .validation import wrap_validation_error
 
 
 ResourceType = TypeVar("ResourceType", bound="Resource")
