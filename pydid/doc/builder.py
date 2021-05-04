@@ -1,13 +1,12 @@
 """DID Document and resource builders."""
 
-from typing import Any, List, Type, Union, Iterator, Optional
+from typing import Any, Iterator, List, Optional, Type, Union
 
 from ..did import DID
 from ..did_url import DIDUrl
-from .service import DIDCommService
+from ..service import DIDCommService, Service
+from ..verification_method import VerificationMethod
 from .doc import DIDDocument
-from .service import Service
-from .verification_method import VerificationMethod
 
 
 def _default_id_generator(base: str, start: int = 0) -> Iterator[str]:

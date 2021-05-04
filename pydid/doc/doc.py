@@ -1,22 +1,24 @@
 """DID Document Object."""
 
 import json
-import sys
-from typing import List, Optional, Union, TypeVar
+from typing import List, Optional, Union
 
 from pydantic import Field, root_validator, validator
 from typing_extensions import Annotated
 
-from . import DIDDocumentError
 from ..did import DID
 from ..did_url import DIDUrl
-from .resource import Resource
-from .service import DIDCommService, Service, UnknownService
-from .verification_method import (
+from ..resource import Resource
+from ..service import DIDCommService, Service, UnknownService
+from ..verification_method import (
     KnownVerificationMethods,
     UnknownVerificationMethod,
     VerificationMethod,
 )
+
+
+class DIDDocumentError(Exception):
+    """Base Exception for problems with DID Documents."""
 
 
 class IdentifiedResourceMismatch(DIDDocumentError):
@@ -171,37 +173,3 @@ class DIDDocument(BasicDIDDocument):
         """Wrap deserialization with a basic validation pass before matching to type."""
         DIDDocumentRoot.deserialize(value)
         return super(DIDDocument, cls).deserialize(value)
-
-
-if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
-    # In Python 3.7+, we can use Generics with Pydantic to simplify subclassing
-    from pydantic.generics import GenericModel
-    from typing import Generic
-
-    VM = TypeVar("VM", bound=VerificationMethod)
-    SV = TypeVar("SV", bound=Service)
-    Methods = Optional[List[VM]]
-    Relationships = Optional[List[Union[DIDUrl, VM]]]
-    Services = Optional[List[SV]]
-
-    class GenericDIDDocumentRoot(DIDDocumentRoot, GenericModel, Generic[VM, SV]):
-        """DID Document Root with Generics."""
-
-        verification_method: Methods[VM] = None
-        authentication: Relationships[VM] = None
-        assertion_method: Relationships[VM] = None
-        key_agreement: Relationships[VM] = None
-        capability_invocation: Relationships[VM] = None
-        capability_delegation: Relationships[VM] = None
-        service: Services[SV] = None
-
-    class GenericBasicDIDDocument(BasicDIDDocument, GenericModel, Generic[VM, SV]):
-        """BasicDIDDocument with Generics."""
-
-        verification_method: Methods[VM] = None
-        authentication: Relationships[VM] = None
-        assertion_method: Relationships[VM] = None
-        key_agreement: Relationships[VM] = None
-        capability_invocation: Relationships[VM] = None
-        capability_delegation: Relationships[VM] = None
-        service: Services[SV] = None

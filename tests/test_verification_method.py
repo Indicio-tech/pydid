@@ -5,7 +5,7 @@ from typing_extensions import Literal
 
 from pydid.did import DID
 from pydid.did_url import DIDUrl
-from pydid.doc.verification_method import (
+from pydid.verification_method import (
     Base58VerificationMethod,
     Ed25519VerificationKey2018,
     VerificationMaterialUnknown,

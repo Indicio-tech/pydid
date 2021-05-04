@@ -5,7 +5,7 @@ from typing import Union, List
 from pydantic import AnyUrl, Extra
 from typing_extensions import Literal
 
-from ..did_url import DIDUrl
+from .did_url import DIDUrl
 from .resource import Resource
 
 
