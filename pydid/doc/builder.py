@@ -29,7 +29,7 @@ class VerificationMethodBuilder:
     ):
         self._did = did
         self.methods = methods or []
-        self._id_base = id_base or "keys"
+        self._id_base = id_base or "key"
         self._id_generator = self._default_id_generator()
 
     def _default_id_generator(self):

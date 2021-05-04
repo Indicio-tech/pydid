@@ -228,14 +228,14 @@ DOC6 = {
     "id": "did:example:123",
     "verificationMethod": [
         {
-            "id": "did:example:123#keys-0",
+            "id": "did:example:123#key-0",
             "type": "Ed25519VerificationKey2018",
             "controller": "did:example:123",
             "publicKeyBase58": "1234",
         }
     ],
     "authentication": [
-        "did:example:123#keys-0",
+        "did:example:123#key-0",
         {
             "id": "did:example:123#auth-0",
             "type": "Ed25519VerificationKey2018",
@@ -418,13 +418,13 @@ def test_programmatic_construction_didcomm():
         "id": "did:example:123",
         "verificationMethod": [
             {
-                "id": "did:example:123#keys-0",
+                "id": "did:example:123#key-0",
                 "type": "Example",
                 "controller": "did:example:123",
                 "publicKeyExample": "1234",
             },
             {
-                "id": "did:example:123#keys-1",
+                "id": "did:example:123#key-1",
                 "type": "Example",
                 "controller": "did:example:123",
                 "publicKeyExample": "abcd",
@@ -435,8 +435,8 @@ def test_programmatic_construction_didcomm():
                 "id": "did:example:123#service-0",
                 "type": "did-communication",
                 "serviceEndpoint": "https://example.com",
-                "recipientKeys": ["did:example:123#keys-0"],
-                "routingKeys": ["did:example:123#keys-1"],
+                "recipientKeys": ["did:example:123#key-0"],
+                "routingKeys": ["did:example:123#key-1"],
                 "priority": 0,
             }
         ],
@@ -466,14 +466,14 @@ def test_all_relationship_builders():
         "id": "did:example:123",
         "verificationMethod": [
             {
-                "id": "did:example:123#keys-0",
+                "id": "did:example:123#key-0",
                 "type": "Ed25519VerificationKey2018",
                 "controller": "did:example:123",
                 "publicKeyBase58": "12345",
             },
         ],
         "authentication": [
-            "did:example:123#keys-0",
+            "did:example:123#key-0",
             {
                 "id": "did:example:123#auth-0",
                 "type": "Example",
@@ -482,7 +482,7 @@ def test_all_relationship_builders():
             },
         ],
         "assertionMethod": [
-            "did:example:123#keys-0",
+            "did:example:123#key-0",
             {
                 "id": "did:example:123#assert-0",
                 "type": "Example",
@@ -491,7 +491,7 @@ def test_all_relationship_builders():
             },
         ],
         "keyAgreement": [
-            "did:example:123#keys-0",
+            "did:example:123#key-0",
             {
                 "id": "did:example:123#key-agreement-0",
                 "type": "Example",
@@ -500,7 +500,7 @@ def test_all_relationship_builders():
             },
         ],
         "capabilityInvocation": [
-            "did:example:123#keys-0",
+            "did:example:123#key-0",
             {
                 "id": "did:example:123#capability-invocation-0",
                 "type": "Example",
@@ -509,7 +509,7 @@ def test_all_relationship_builders():
             },
         ],
         "capabilityDelegation": [
-            "did:example:123#keys-0",
+            "did:example:123#key-0",
             {
                 "id": "did:example:123#capability-delegation-0",
                 "type": "Example",
@@ -556,7 +556,7 @@ def test_builder_from_doc_remove():
 
 def test_key_rotation_from_doc():
     doc = DIDDocument.deserialize(DOC6)
-    vmethod0 = doc.dereference("did:example:123#keys-0")
+    vmethod0 = doc.dereference("did:example:123#key-0")
 
     builder = DIDDocumentBuilder.from_doc(doc)
     builder.verification_method.remove(vmethod0)
