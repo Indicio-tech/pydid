@@ -1,17 +1,29 @@
 """DID Document deserialization options."""
 
-from enum import Enum
 from typing import Union
 
-from voluptuous import ALLOW_EXTRA, Invalid, Schema
-
 from ..did import DID
-from ..validation import Into
 
 
-def _insert_missing_ids(value: dict):
+def insert_missing_ids(value: dict):
+    """Insert missing resource IDs.
+
+    This correction can be applied using the coerce decorator on your Document class:
+
+    >>> from pydid.validation import coerce
+    >>> from pydid.doc import DIDDocument
+    >>> @coerce([insert_missing_ids])
+    >>> class MyDIDDocument(DIDDocument):
+    >>>     '''My cool DID Document.'''
+    >>>     # Other attributes...
+
+    Or by decorating an existing class:
+    >>> from pydid.validation import coerce
+    >>> from pydid.doc import DIDDocument
+    >>> MyDIDDocument = coerce([insert_missing_ids])(DIDDocument)
+    """
     if "id" not in value:
-        raise Invalid("No DID found in value.")
+        raise ValueError("No ID found in Document.")
 
     did = DID(value["id"])
     index = 0
@@ -34,20 +46,3 @@ def _insert_missing_ids(value: dict):
         _walk(nested)
 
     return value
-
-
-class DIDDocumentTransformations(Enum):
-    """Container for validation options for DID Documents.
-
-    Aggregates options of nested objects.
-    """
-
-    allow_public_key = Schema(
-        {Into("publicKey", "verificationMethod"): [dict]},
-        extra=ALLOW_EXTRA,
-    )
-    insert_missing_ids = Schema(_insert_missing_ids)
-
-    def __call__(self, value):
-        """Call the schema."""
-        return self.value(value)
