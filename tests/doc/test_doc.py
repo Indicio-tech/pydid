@@ -2,11 +2,13 @@
 
 from collections import namedtuple
 import copy
+from pydid.validation import coerce
 from typing import cast
 
 import pytest
 
 from pydid.did_url import InvalidDIDUrlError
+from pydid.doc import doc_corrections
 from pydid.doc.doc import (
     DIDDocument,
     DIDDocumentError,
@@ -661,7 +663,8 @@ def test_dereference_and_membership_check():
     assert vmethod in doc.assertion_method
 
 
-def test_option_insert_missing_ids_x():
+def test_correction_insert_missing_ids_x():
+    MyDIDDocument = coerce([doc_corrections.insert_missing_ids])(DIDDocument)
     doc_raw = {
         "@context": "https://www.w3.org/ns/did/v1",
         "authentication": [
@@ -672,5 +675,5 @@ def test_option_insert_missing_ids_x():
             },
         ],
     }
-    with pytest.raises(DIDDocumentError):
-        DIDDocument.deserialize(doc_raw)
+    with pytest.raises(ValueError):
+        MyDIDDocument.deserialize(doc_raw)
