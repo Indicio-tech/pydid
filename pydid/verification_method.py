@@ -1,48 +1,16 @@
 """DID Doc Verification Method."""
 
-from typing import Any, ClassVar, List, Optional, Type, Union
+from pydid.validation import required_group
+from typing import ClassVar, Optional, Set, Type, Union
 
 from inflection import underscore
 from pydantic import create_model
 from pydantic.class_validators import root_validator, validator
-from typing_extensions import Annotated, Literal
-import typing_extensions
+from typing_extensions import Literal
 
 from .did import DID
 from .did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
-
-
-if hasattr(typing_extensions, "get_args"):
-
-    def annotated_args(annotated):
-        """Return annotated arguments."""
-        return typing_extensions.get_args(annotated)
-
-    def is_annotated(type_):
-        """Return if type is annotated."""
-        return typing_extensions.get_origin(type_) is Annotated
-
-    def get_type_hints(type_, **kwargs):
-        """Return type hints for type."""
-        return typing_extensions.get_type_hints(type_, **kwargs)
-
-
-else:
-
-    def annotated_args(annotated):
-        """Return annotated arguments."""
-        return [annotated.__args__[0], *annotated.__args__[1]]
-
-    def is_annotated(type_):
-        """Return if type is annotated."""
-        return hasattr(type_, "__origin__") and type_.__origin__ is Annotated
-
-    def get_type_hints(type_, **kwargs):
-        """Return type hints for type."""
-        if type_ is VerificationMethod:
-            return {}
-        return {**type_.__annotations__, **get_type_hints(type_.__base__)}
 
 
 class VerificationMaterial:
@@ -56,24 +24,30 @@ class VerificationMaterialUnknown(NotImplementedError):
 class VerificationMethod(Resource):
     """Representation of DID Document Verification Methods."""
 
-    KNOWN_MATERIAL_PROPERTIES: ClassVar[List[str]] = [
-        "publicKeyJwk",
-        "publicKeyBase58",
-        "publicKeyHex",
-        "blockchainAccountId",
-        "ethereumAddress",
-    ]
+    material_properties: ClassVar[Set[str]] = {
+        "blockchain_account_id",
+        "ethereum_address",
+        "public_key_base58",
+        "public_key_gpg",
+        "public_key_hex",
+        "public_key_jwk",
+        "public_key_pem",
+    }
 
     id: DIDUrl
     type: str
     controller: DID
-    _material_prop: Optional[str]
+    public_key_hex: Optional[str] = None
+    public_key_base58: Optional[str] = None
+    public_key_pem: Optional[str] = None
+    blockchain_account_id: Optional[str] = None
+    ethereum_address: Optional[str] = None
+    public_key_jwk: Optional[dict] = None
+    _material_prop: Optional[str] = None
 
     def __init__(self, **data):
         super().__init__(**data)
-        self._material_prop = self._determine_annotated_material_prop()
-        if not self._material_prop:
-            self._material_prop = self._infer_material_prop(data)
+        self._material_prop = self._material_prop or self._infer_material_prop()
 
     @classmethod
     def suite(cls: Type, typ: str, material: str, material_type: Type):
@@ -90,9 +64,6 @@ class VerificationMethod(Resource):
             lambda self, value: setattr(self, underscore(material), value),
         )
         model._material_prop = underscore(material)
-        model._determine_annotated_material_prop = classmethod(
-            lambda cls: underscore(material)
-        )
         return model
 
     @validator("type", pre=True)
@@ -143,27 +114,33 @@ class VerificationMethod(Resource):
         """Validate that the method appears to contain verification material."""
         if len(values) < 4:
             raise ValueError(
-                "Key material expected, only found id, type, and controller"
+                "Key material expected, found: {}".format(list(values.keys()))
             )
         return values
 
+    @root_validator
     @classmethod
-    def _determine_annotated_material_prop(cls) -> Optional[str]:
-        """Return the name of the property containing the verification material."""
-        for name, type_ in get_type_hints(cls, include_extras=True).items():
-            if is_annotated(type_) and VerificationMaterial in annotated_args(type_):
-                return name
+    def _no_more_than_one_material_prop(cls, values: dict):
+        """Validate that exactly one material property was specified on method."""
+        set_material_properties = cls.material_properties & {
+            key for key, value in values.items() if value is not None
+        }
+        if len(set_material_properties) > 1:
+            raise ValueError(
+                "Found properties {}; only one is allowed".format(
+                    ", ".join(set_material_properties)
+                )
+            )
+        return values
 
-        return None
-
-    @classmethod
-    def _infer_material_prop(cls, values: dict) -> Optional[str]:
+    def _infer_material_prop(self) -> Optional[str]:
         """
         Guess the property that appears to be the verification material based
         on known material property names.
         """
-        for prop in cls.KNOWN_MATERIAL_PROPERTIES:
-            if prop in values:
+
+        for prop, value in self:
+            if prop in self.material_properties and value is not None:
                 return prop
 
         return None
@@ -186,106 +163,86 @@ class VerificationMethod(Resource):
             )
         return setattr(self, self._material_prop, value)
 
-    @classmethod
-    def make(cls, id_: DIDUrl, controller: DID, material: Any, **kwargs):
-        """Construct an instance of VerificationMethod, filling in known values."""
-        material_prop = cls._determine_annotated_material_prop()
-        if not material_prop:
-            raise VerificationMaterialUnknown(
-                "Verification Material is not known for this method"
-            )
-
-        return super(VerificationMethod, cls).make(
-            id=id_, controller=controller, **{material_prop: material}, **kwargs
-        )
-
 
 # Verification Method Suites registered in DID Spec
 
 
-class Base58VerificationMethod(VerificationMethod):
-    """Verification Method where material is base58."""
-
-    public_key_base58: Annotated[str, VerificationMaterial]
-
-
-class PemVerificationMethod(VerificationMethod):
-    """Verification Method where material is pem."""
-
-    public_key_pem: Annotated[str, VerificationMaterial]
-
-
-class JwkVerificationMethod(VerificationMethod):
-    """Verification Method where material is jwk."""
-
-    public_key_jwk: Annotated[dict, VerificationMaterial]
-
-
-class Ed25519VerificationKey2018(Base58VerificationMethod):
+class Ed25519VerificationKey2018(VerificationMethod):
     """Ed25519VerificationKey2018 VerificationMethod."""
 
     type: Literal["Ed25519VerificationKey2018"]
+    public_key_base58: str
 
 
-class OpenPgpVerificationKey2019(PemVerificationMethod):
+class OpenPgpVerificationKey2019(VerificationMethod):
     """OpenPgpVerificationKey2019 VerificationMethod."""
 
     type: Literal["OpenPgpVerificationKey2019"]
+    public_key_pem: str
 
 
-class JsonWebKey2020(JwkVerificationMethod):
+class JsonWebKey2020(VerificationMethod):
     """JsonWebKey2020 VerificationMethod."""
 
     type: Literal["JsonWebKey2020"]
+    public_key_jwk: dict
 
 
-class EcdsaSecp256k1VerificationKey2019(JwkVerificationMethod):
+class EcdsaSecp256k1VerificationKey2019(VerificationMethod):
     """EcdsaSecp256k1VerificationKey2019 VerificationMethod."""
 
     type: Literal["EcdsaSecp256k1VerificationKey2019"]
+    _require_one_of = required_group({"public_key_jwk", "public_key_hex"})
 
 
-class Bls1238G1Key2020(Base58VerificationMethod):
+class Bls1238G1Key2020(VerificationMethod):
     """Bls1238G1Key2020 VerificationMethod."""
 
     type: Literal["Bls1238G1Key2020"]
+    public_key_base58: str
 
 
-class Bls1238G2Key2020(Base58VerificationMethod):
+class Bls1238G2Key2020(VerificationMethod):
     """Bls1238G2Key2020 VerificationMethod."""
 
     type: Literal["Bls1238G2Key2020"]
+    public_key_base58: str
 
 
 class GpgVerifcationKey2020(VerificationMethod):
     """GpgVerifcationKey2020 VerificationMethod."""
 
     type: Literal["GpgVerifcationKey2020"]
-    public_key_gpg: Annotated[str, VerificationMaterial]
+    public_key_gpg: str
 
 
-class RsaVerificationKey2018(JwkVerificationMethod):
+class RsaVerificationKey2018(VerificationMethod):
     """RsaVerificationKey2018 VerificationMethod."""
 
     type: Literal["RsaVerificationKey2018"]
+    public_key_jwk: dict
 
 
-class X25519KeyAgreementKey2019(Base58VerificationMethod):
+class X25519KeyAgreementKey2019(VerificationMethod):
     """X25519KeyAgreementKey2019 VerificationMethod."""
 
     type: Literal["X25519KeyAgreementKey2019"]
+    public_key_base58: str
 
 
-class SchnorrSecp256k1VerificationKey2019(JwkVerificationMethod):
+class SchnorrSecp256k1VerificationKey2019(VerificationMethod):
     """SchnorrSecp256k1VerificationKey2019 VerificationMethod."""
 
     type: Literal["SchnorrSecp256k1VerificationKey2019"]
 
 
-class EcdsaSecp256k1RecoveryMethod2020(JwkVerificationMethod):
+class EcdsaSecp256k1RecoveryMethod2020(VerificationMethod):
     """EcdsaSecp256k1RecoveryMethod2020 VerificationMethod."""
 
     type: Literal["EcdsaSecp256k1RecoveryMethod2020"]
+    _require_one_of = required_group(
+        {"public_key_jwk", "public_key_hex", "ethereum_address"}
+    )
 
 
 class UnsupportedVerificationMethod(VerificationMethod):

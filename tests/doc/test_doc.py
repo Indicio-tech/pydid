@@ -397,17 +397,23 @@ def test_didcomm_service_deserialized():
 def test_programmatic_construction():
     builder = DIDDocumentBuilder("did:example:123")
     assert builder.context == ["https://www.w3.org/ns/did/v1"]
-    vmethod1 = builder.verification_method.add(Ed25519VerificationKey2018, "1234")
+    vmethod1 = builder.verification_method.add(
+        Ed25519VerificationKey2018, public_key_base58="1234"
+    )
     builder.authentication.reference(vmethod1.id)
-    builder.authentication.embed(Ed25519VerificationKey2018, "abcd")
+    builder.authentication.embed(Ed25519VerificationKey2018, public_key_base58="abcd")
     builder.service.add(type_="example", service_endpoint="https://example.com")
     assert builder.build().serialize() == DOC6
 
 
 def test_programmatic_construction_didcomm():
     builder = DIDDocumentBuilder("did:example:123")
-    key = builder.verification_method.add(ExampleVerificationMethod, "1234")
-    route = builder.verification_method.add(ExampleVerificationMethod, "abcd")
+    key = builder.verification_method.add(
+        ExampleVerificationMethod, public_key_example="1234"
+    )
+    route = builder.verification_method.add(
+        ExampleVerificationMethod, public_key_example="abcd"
+    )
     builder.service.add_didcomm(
         endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
     )
@@ -445,20 +451,26 @@ def test_programmatic_construction_didcomm():
 
 def test_all_relationship_builders():
     builder = DIDDocumentBuilder("did:example:123")
-    vmethod = builder.verification_method.add(Ed25519VerificationKey2018, "12345")
+    vmethod = builder.verification_method.add(
+        Ed25519VerificationKey2018, public_key_base58="12345"
+    )
     builder.authentication.reference(vmethod.id)
-    builder.authentication.embed(ExampleVerificationMethod, "auth")
+    builder.authentication.embed(ExampleVerificationMethod, public_key_example="auth")
     builder.assertion_method.reference(vmethod.id)
-    builder.assertion_method.embed(ExampleVerificationMethod, "assert")
+    builder.assertion_method.embed(
+        ExampleVerificationMethod, public_key_example="assert"
+    )
     builder.key_agreement.reference(vmethod.id)
-    builder.key_agreement.embed(ExampleVerificationMethod, "key_agreement")
+    builder.key_agreement.embed(
+        ExampleVerificationMethod, public_key_example="key_agreement"
+    )
     builder.capability_invocation.reference(vmethod.id)
     builder.capability_invocation.embed(
-        ExampleVerificationMethod, "capability_invocation"
+        ExampleVerificationMethod, public_key_example="capability_invocation"
     )
     builder.capability_delegation.reference(vmethod.id)
     builder.capability_delegation.embed(
-        ExampleVerificationMethod, "capability_delegation"
+        ExampleVerificationMethod, public_key_example="capability_delegation"
     )
 
     assert builder.build().serialize() == {
@@ -529,14 +541,18 @@ def test_relationship_builder_ref_x():
 def test_builder_from_doc():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    builder.verification_method.add(ExampleVerificationMethod, "1234")
+    builder.verification_method.add(
+        ExampleVerificationMethod, public_key_example="1234"
+    )
     assert len(builder.build().serialize()["verificationMethod"]) == 2
 
 
 def test_builder_from_doc_remove():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    vmethod = builder.verification_method.add(ExampleVerificationMethod, "1234")
+    vmethod = builder.verification_method.add(
+        ExampleVerificationMethod, public_key_example="1234"
+    )
     assert len(builder.build().serialize()["verificationMethod"]) == 2
     builder.verification_method.remove(vmethod)
     assert len(builder.build().serialize()["verificationMethod"]) == 1
@@ -547,7 +563,7 @@ def test_builder_from_doc_remove():
     assertion = builder.assertion_method.add(
         ExampleVerificationMethod,
         ident="123",
-        material="1234",
+        public_key_example="1234",
     )
     assert len(builder.build().serialize()["assertionMethod"]) == 1
     builder.assertion_method.remove(assertion)
