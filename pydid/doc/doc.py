@@ -148,6 +148,13 @@ class BasicDIDDocument(DIDDocumentRoot):
         """Serialize DID Document to JSON."""
         return self.json()
 
+    @classmethod
+    def construct(cls, **data):
+        """Construct and index."""
+        doc = super(Resource, cls).construct(**data)
+        doc._index_resources()
+        return doc
+
 
 PossibleMethodTypes = Union[KnownVerificationMethods, UnknownVerificationMethod]
 PossibleServiceTypes = Union[DIDCommService, UnknownService]

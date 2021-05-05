@@ -228,7 +228,7 @@ class DIDDocumentBuilder:
     def build(self) -> DIDDocument:
         """Build document."""
         return DIDDocument.construct(
-            id=str(self.id),
+            id=self.id,
             context=self.context,
             also_known_as=self.also_known_as,
             controller=self.controller,
