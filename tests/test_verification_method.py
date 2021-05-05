@@ -6,9 +6,7 @@ from typing_extensions import Literal
 from pydid.did import DID
 from pydid.did_url import DIDUrl
 from pydid.verification_method import (
-    Base58VerificationMethod,
     Ed25519VerificationKey2018,
-    VerificationMaterialUnknown,
     VerificationMethod,
 )
 
@@ -152,15 +150,13 @@ def test_validator_allow_missing_controller():
 
 def test_make():
     did = DID("did:example:123")
-    kwargs = {"id_": did.ref("1"), "controller": did, "material": "test"}
-    with pytest.raises(VerificationMaterialUnknown):
-        VerificationMethod.make(**kwargs)
-
+    kwargs = {"id": did.ref("1"), "controller": did, "public_key_base58": "test"}
     vmethod = Ed25519VerificationKey2018.make(**kwargs)
     assert "publicKeyBase58" in vmethod.serialize()
 
-    class ExampleVerificationMethod(Base58VerificationMethod):
+    class ExampleVerificationMethod(VerificationMethod):
         type: Literal["Example"]
+        public_key_base58: str
 
     vmethod = ExampleVerificationMethod.make(**kwargs)
     assert "publicKeyBase58" in vmethod.serialize()
@@ -171,3 +167,14 @@ def test_make():
 
     vmethod = ExampleVerificationMethod.make(**kwargs)
     assert "publicKeyBase58" in vmethod.serialize()
+
+
+def test_infer_material():
+    vmethod_raw = {
+        "id": "did:example:123#vm-3",
+        "controller": "did:example:123",
+        "type": "EcdsaSecp256k1RecoveryMethod2020",
+        "blockchainAccountId": "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+    }
+    vmethod = VerificationMethod.deserialize(vmethod_raw)
+    assert vmethod.material == vmethod_raw["blockchainAccountId"]

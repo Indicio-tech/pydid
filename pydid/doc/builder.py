@@ -1,6 +1,6 @@
 """DID Document and resource builders."""
 
-from typing import Any, Iterator, List, Optional, Type, Union
+from typing import Iterator, List, Optional, Type, Union
 
 from ..did import DID
 from ..did_url import DIDUrl
@@ -39,7 +39,6 @@ class VerificationMethodBuilder:
     def add(
         self,
         type_: Type[VerificationMethod],
-        material: Any,
         ident: Optional[str] = None,
         controller: DID = None,
         **kwargs
@@ -47,9 +46,7 @@ class VerificationMethodBuilder:
         """Add verification method from parts and context."""
         ident = ident or next(self._id_generator)
         controller = controller or self._did
-        vmethod = type_.make(
-            id_=self._did.ref(ident), controller=controller, material=material, **kwargs
-        )
+        vmethod = type_.make(id=self._did.ref(ident), controller=controller, **kwargs)
         self.methods.append(vmethod)
         return vmethod
 
@@ -174,14 +171,14 @@ class DIDDocumentBuilder:
 
     def __init__(
         self,
-        id_: Union[str, DID],
+        id: Union[str, DID],
         context: List[str] = None,
         *,
         also_known_as: List[str] = None,
         controller: Union[List[str], List[DID]] = None
     ):
         """Initliaze builder."""
-        self.id: DID = DID(id_)
+        self.id: DID = DID(id)
         self.context = context or self.DEFAULT_CONTEXT
         self.also_known_as = also_known_as
         self.controller = controller
@@ -202,7 +199,7 @@ class DIDDocumentBuilder:
     def from_doc(cls, doc: DIDDocument) -> "DIDDocumentBuilder":
         """Create a Builder from an existing DIDDocument."""
         builder = cls(
-            id_=doc.id,
+            id=doc.id,
             context=doc.context,
             also_known_as=doc.also_known_as,
             controller=doc.controller,
