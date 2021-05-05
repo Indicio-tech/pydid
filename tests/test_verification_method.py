@@ -178,3 +178,7 @@ def test_infer_material():
     }
     vmethod = VerificationMethod.deserialize(vmethod_raw)
     assert vmethod.material == vmethod_raw["blockchainAccountId"]
+
+
+def test_method_type():
+    assert Ed25519VerificationKey2018.method_type == "Ed25519VerificationKey2018"
