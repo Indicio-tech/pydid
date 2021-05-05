@@ -415,10 +415,10 @@ def test_programmatic_construction_didcomm():
         ExampleVerificationMethod, public_key_example="abcd"
     )
     builder.service.add_didcomm(
-        endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
+        service_endpoint="https://example.com",
+        recipient_keys=[key],
+        routing_keys=[route],
     )
-    print(builder.build())
-    print(builder.build().serialize())
     assert builder.build().serialize() == {
         "@context": ["https://www.w3.org/ns/did/v1"],
         "id": "did:example:123",
@@ -596,6 +596,15 @@ def test_key_rotation_from_doc():
             }
         ],
     }
+
+
+def test_build_and_dereference():
+    builder = DIDDocumentBuilder("did:example:123")
+    builder.verification_method.add(
+        Ed25519VerificationKey2018, public_key_base58="test", ident="1"
+    )
+    doc = builder.build()
+    assert doc.dereference("#1")
 
 
 def test_dereference_and_membership_check():

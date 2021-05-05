@@ -136,7 +136,7 @@ class ServiceBuilder:
 
     def add_didcomm(
         self,
-        endpoint: str,
+        service_endpoint: str,
         recipient_keys: List[VerificationMethod],
         routing_keys: List[VerificationMethod] = None,
         *,
@@ -150,7 +150,7 @@ class ServiceBuilder:
         priority = priority or self._determine_next_priority()
         service = DIDCommService.make(
             id=self._did.ref(ident),
-            service_endpoint=endpoint,
+            service_endpoint=service_endpoint,
             recipient_keys=[vmethod.id for vmethod in recipient_keys],
             routing_keys=[vmethod.id for vmethod in routing_keys],
             type=type_,
@@ -228,7 +228,7 @@ class DIDDocumentBuilder:
     def build(self) -> DIDDocument:
         """Build document."""
         return DIDDocument.construct(
-            id=str(self.id),
+            id=self.id,
             context=self.context,
             also_known_as=self.also_known_as,
             controller=self.controller,
