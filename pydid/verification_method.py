@@ -164,7 +164,6 @@ class VerificationMethod(Resource):
         return setattr(self, self._material_prop, value)
 
     @classmethod
-    @property
     def method_type(cls) -> Optional[str]:
         """Return method type if known."""
         return cls._fill_in_required_literals().get("type")

@@ -181,4 +181,4 @@ def test_infer_material():
 
 
 def test_method_type():
-    assert Ed25519VerificationKey2018.method_type == "Ed25519VerificationKey2018"
+    assert Ed25519VerificationKey2018.method_type() == "Ed25519VerificationKey2018"
