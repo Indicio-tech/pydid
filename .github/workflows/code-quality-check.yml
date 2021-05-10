@@ -5,9 +5,9 @@ name: Code Quality Check
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, v0.2.x ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, v0.2.x ]
 
 jobs:
   format:
