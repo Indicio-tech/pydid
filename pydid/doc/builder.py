@@ -177,6 +177,8 @@ class ServiceBuilder:
 
     def add(self, type_: str, endpoint: str, ident: str = None, **extra):
         """Add service."""
+        if not ident and not self._id_generator:
+            raise ValueError("No ident provided for service")
         ident = ident or next(self._id_generator)
         service = Service(self._did.ref(ident), type_, endpoint, **extra)
         self.services.append(service)
@@ -193,6 +195,8 @@ class ServiceBuilder:
         ident: str = None
     ):
         """Add DIDComm Service."""
+        if not ident and not self._id_generator:
+            raise ValueError("No ident provided for service")
         ident = ident or next(self._id_generator)
         recipient_keys = [vmethod.id for vmethod in recipient_keys]
         routing_keys = routing_keys or []
