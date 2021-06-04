@@ -11,6 +11,7 @@ TEST_DID1 = "did:btcr:8kyt-fzzq-qpqq-ljsc-5l"
 TEST_DID2 = "did:ethr:mainnet:0xb9c5714089478a327f09197987f16f9e5d936e8a"
 TEST_DID3 = "did:ion:EiDahaOGH-liLLdDtTxEAdc8i-cfCz-WUcQdRJheMVNn3A"
 TEST_DID4 = "did:github:ghdid"
+TEST_DID5 = "did:web:localhost%3A8443"
 
 TEST_DIDS = [
     TEST_DID0,
@@ -18,6 +19,7 @@ TEST_DIDS = [
     TEST_DID2,
     TEST_DID3,
     TEST_DID4,
+    TEST_DID5,
 ]
 
 TEST_DID_METHOD0 = "sov"
@@ -25,6 +27,7 @@ TEST_DID_METHOD1 = "btcr"
 TEST_DID_METHOD2 = "ethr"
 TEST_DID_METHOD3 = "ion"
 TEST_DID_METHOD4 = "github"
+TEST_DID_METHOD5 = "web"
 
 TEST_DID_METHODS = [
     TEST_DID_METHOD0,
@@ -32,6 +35,7 @@ TEST_DID_METHODS = [
     TEST_DID_METHOD2,
     TEST_DID_METHOD3,
     TEST_DID_METHOD4,
+    TEST_DID_METHOD5,
 ]
 
 TEST_METHOD_SPECIFIC_ID0 = "Kkyqu7CJFuQSvBp468uaDe"
@@ -39,6 +43,7 @@ TEST_METHOD_SPECIFIC_ID1 = "8kyt-fzzq-qpqq-ljsc-5l"
 TEST_METHOD_SPECIFIC_ID2 = "mainnet:0xb9c5714089478a327f09197987f16f9e5d936e8a"
 TEST_METHOD_SPECIFIC_ID3 = "EiDahaOGH-liLLdDtTxEAdc8i-cfCz-WUcQdRJheMVNn3A"
 TEST_METHOD_SPECIFIC_ID4 = "ghdid"
+TEST_METHOD_SPECIFIC_ID5 = "localhost%3A8443"
 
 TEST_METHOD_SPECIFIC_IDS = [
     TEST_METHOD_SPECIFIC_ID0,
@@ -46,6 +51,7 @@ TEST_METHOD_SPECIFIC_IDS = [
     TEST_METHOD_SPECIFIC_ID2,
     TEST_METHOD_SPECIFIC_ID3,
     TEST_METHOD_SPECIFIC_ID4,
+    TEST_METHOD_SPECIFIC_ID5,
 ]
 
 TEST_DID_URL0 = TEST_DID0 + "/test/path"
@@ -53,8 +59,8 @@ TEST_DID_URL1 = TEST_DID1 + "?key=value"
 TEST_DID_URL2 = TEST_DID2 + "#fragment"
 TEST_DID_URL3 = TEST_DID3 + "/test/path?key=value"
 TEST_DID_URL4 = TEST_DID4 + "/test/path#fragment"
-TEST_DID_URL5 = TEST_DID0 + "/test/path?key=value#fragment"
-TEST_DID_URL6 = TEST_DID1 + "/test/path?key=value&another=thing#1"
+TEST_DID_URL5 = TEST_DID5 + "/test/path?key=value#fragment"
+TEST_DID_URL6 = TEST_DID0 + "/test/path?key=value&another=thing#1"
 TEST_DID_URLS = [
     TEST_DID_URL0,
     TEST_DID_URL1,
@@ -71,13 +77,13 @@ TEST_DID_URL_PARTS2 = {"did": TEST_DID2, "fragment": "fragment"}
 TEST_DID_URL_PARTS3 = {"did": TEST_DID3, "path": "test/path", "query": {"key": "value"}}
 TEST_DID_URL_PARTS4 = {"did": TEST_DID4, "path": "test/path", "fragment": "fragment"}
 TEST_DID_URL_PARTS5 = {
-    "did": TEST_DID0,
+    "did": TEST_DID5,
     "path": "test/path",
     "query": {"key": "value"},
     "fragment": "fragment",
 }
 TEST_DID_URL_PARTS6 = {
-    "did": TEST_DID1,
+    "did": TEST_DID0,
     "path": "/test/path",
     "query": {"key": "value", "another": "thing"},
     "fragment": 1,
