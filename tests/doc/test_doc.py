@@ -447,6 +447,55 @@ def test_programmatic_construction_didcomm():
     }
 
 
+def test_add_didcomm_without_defaults():
+    builder = DIDDocumentBuilder("did:example:123")
+    with builder.verification_methods.defaults(
+        suite=VerificationSuite("Example", "publicKeyBase58")
+    ) as vmethods:
+        key = vmethods.add("1234")
+        route = vmethods.add("abcd")
+
+    with pytest.raises(ValueError):
+        builder.services.add_didcomm(
+            endpoint="https://example.com", recipient_keys=[key], routing_keys=[route]
+        )
+
+    builder.services.add_didcomm(
+        ident="service-0",
+        endpoint="https://example.com",
+        recipient_keys=[key],
+        routing_keys=[route],
+    )
+    assert builder.build().serialize() == {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "verificationMethod": [
+            {
+                "id": "did:example:123#keys-0",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+            {
+                "id": "did:example:123#keys-1",
+                "type": "Example",
+                "controller": "did:example:123",
+                "publicKeyBase58": "abcd",
+            },
+        ],
+        "service": [
+            {
+                "id": "did:example:123#service-0",
+                "type": "did-communication",
+                "serviceEndpoint": "https://example.com",
+                "recipientKeys": ["did:example:123#keys-0"],
+                "routingKeys": ["did:example:123#keys-1"],
+                "priority": 0,
+            }
+        ],
+    }
+
+
 def test_all_relationship_builders():
     builder = DIDDocumentBuilder("did:example:123")
     with builder.verification_methods.defaults() as vmethods:
