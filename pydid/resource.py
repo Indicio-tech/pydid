@@ -48,6 +48,7 @@ class Resource(BaseModel):
         underscore_attrs_are_private = True
         extra = Extra.allow
         allow_population_by_field_name = True
+        allow_mutation = False
 
         @classmethod
         def alias_generator(cls, string: str) -> str:

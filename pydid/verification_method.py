@@ -154,15 +154,6 @@ class VerificationMethod(Resource):
             )
         return getattr(self, self._material_prop)
 
-    @material.setter
-    def material(self, value):
-        """Set material."""
-        if not self._material_prop:
-            raise VerificationMaterialUnknown(
-                "Verification Material is not known for this method"
-            )
-        return setattr(self, self._material_prop, value)
-
     @classmethod
     def method_type(cls) -> Optional[str]:
         """Return method type if known."""
