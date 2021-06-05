@@ -71,10 +71,12 @@ class DIDDocumentRoot(Resource):
 class BaseDIDDocument(DIDDocumentRoot, IndexedResource, ABC):
     """Abstract BaseDIDDocument class."""
 
+    @property
     def is_nonconformant(self):
         """Return whether doc is non-conformant."""
         return isinstance(self, NonconformantDocument)
 
+    @property
     def is_conformant(self):
         """Return whether doc is conformant."""
         return not isinstance(self, NonconformantDocument)
