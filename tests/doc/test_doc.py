@@ -14,6 +14,7 @@ from pydid.doc.doc import (
     DIDDocumentError,
     DIDDocumentRoot,
     IDNotFoundError,
+    NonconformantDocument,
 )
 from pydid.service import Service
 from pydid.service import DIDCommService
@@ -365,8 +366,9 @@ def test_dereference():
     assert service0.serialize() == DOC0["service"][0]
 
 
-def test_dereference_x():
-    doc = DIDDocument.deserialize(DOC0)
+@pytest.mark.parametrize("cls", [DIDDocument, NonconformantDocument])
+def test_dereference_x(cls):
+    doc = cls.deserialize(DOC0)
     with pytest.raises(InvalidDIDUrlError):
         doc.dereference("bogus")
 
@@ -663,7 +665,8 @@ def test_correction_insert_missing_ids_x():
         MyDIDDocument.deserialize(doc_raw)
 
 
-def test_relative_ids():
+@pytest.mark.parametrize("cls", [DIDDocument, NonconformantDocument])
+def test_relative_ids(cls):
     doc_raw = {
         "@context": "https://www.w3.org/ns/did/v1",
         "id": "did:example:123",
@@ -691,7 +694,7 @@ def test_relative_ids():
             }
         ],
     }
-    doc = DIDDocument.deserialize(doc_raw)
+    doc = cls.deserialize(doc_raw)
     assert doc.dereference("did:example:123#keys-0") == doc.dereference("#keys-0")
     assert doc.dereference("did:example:123#keys-1") == doc.dereference("#keys-1")
     assert doc.dereference("did:example:123#service-0") == doc.dereference("#service-0")

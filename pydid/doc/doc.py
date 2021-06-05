@@ -7,7 +7,7 @@ from pydantic import Field, root_validator, validator
 from typing_extensions import Annotated
 
 from ..did import DID, InvalidDIDError
-from ..did_url import DIDUrl
+from ..did_url import DIDUrl, InvalidDIDUrlError
 from ..resource import IndexedResource, Resource
 from ..service import DIDCommService, Service, UnknownService
 from ..verification_method import (
@@ -212,7 +212,7 @@ class NonconformantDocument(BaseDIDDocument):
                     key = ref.as_absolute(self.id)
                 else:
                     key = ref
-            except InvalidDIDError:
+            except (InvalidDIDError, InvalidDIDUrlError):
                 key = item["id"]
 
             self._index[key] = Resource(**item)
@@ -226,7 +226,9 @@ class NonconformantDocument(BaseDIDDocument):
 
     def dereference(self, reference: Union[str, DIDUrl]):
         """Dereference a DID URL to a document resource."""
-        if isinstance(reference, DIDUrl) and not reference.did:
+        if isinstance(reference, str):
+            reference = DIDUrl.parse(reference)
+        if not reference.did:
             reference = reference.as_absolute(self.id)
 
         if reference not in self._index:
