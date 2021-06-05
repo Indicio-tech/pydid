@@ -40,7 +40,7 @@ class DID(str):
         yield cls._validate
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __modify_schema__(cls, field_schema):  # pragma: no cover
         """Update schema fields."""
         field_schema.update(pattern=DID_PATTERN)
 

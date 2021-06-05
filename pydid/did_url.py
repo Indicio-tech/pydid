@@ -4,7 +4,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 
 from .common import DID_URL_DID_PART_PATTERN, DIDError, DID_URL_RELATIVE_FRONT
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .did import DID
 
 
@@ -43,7 +43,7 @@ class DIDUrl(str):
         yield cls.validate
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
+    def __modify_schema__(cls, field_schema):  # pragma: no cover
         """Update schema fields."""
         field_schema.update(examples=["did:example:123/some/path?query=test#fragment"])
 
