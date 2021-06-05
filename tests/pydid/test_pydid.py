@@ -3,6 +3,7 @@
 import json
 import logging
 from pathlib import Path
+from pydid.doc import corrections
 
 import pytest
 
@@ -28,3 +29,18 @@ def test_strict_doc_deserialization(value):
             pydid.deserialize_document(value, strict=True)
     elif doc.is_conformant:
         pydid.deserialize_document(value, strict=True)
+
+
+def test_corrections():
+    doc_raw = {
+        "@context": "https://www.w3.org/ns/did/v1",
+        "id": "did:example:123",
+        "authentication": [
+            {
+                "type": "Ed25519VerificationKey2018",
+                "controller": "did:example:123",
+                "publicKeyBase58": "1234",
+            },
+        ],
+    }
+    pydid.deserialize_document(doc_raw, corrections=[corrections.insert_missing_ids])

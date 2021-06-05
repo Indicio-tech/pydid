@@ -1,7 +1,7 @@
 """PyDID"""
 
 import logging
-from typing import Type
+from typing import Callable, List, Optional, Type
 
 from .common import DIDError
 from .did import DID, InvalidDIDError
@@ -20,7 +20,7 @@ from .verification_method import (
     VerificationMaterialUnknown,
     VerificationMethod,
 )
-from .doc import generic
+from .doc import generic, corrections
 
 __all__ = [
     "BasicDIDDocument",
@@ -39,6 +39,7 @@ __all__ = [
     "VerificationMaterialUnknown",
     "Resource",
     "generic",
+    "corrections",
 ]
 
 
@@ -47,11 +48,16 @@ LOGGER = logging.getLogger(__name__)
 
 def deserialize_document(
     value: dict,
+    corrections: Optional[List[Callable]] = None,
     *,
     strict: bool = False,
     cls: Type[BaseDIDDocument] = None,
 ) -> BaseDIDDocument:
     """Deserialize a document from a dictionary."""
+    if corrections:
+        for correction in corrections:
+            value = correction(value)
+
     cls = cls or DIDDocument
     if strict:
         return cls.deserialize(value)

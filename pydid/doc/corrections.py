@@ -5,22 +5,22 @@ from typing import Union
 from ..did import DID
 
 
-def insert_missing_ids(value: dict):
+def insert_missing_ids(value: dict) -> dict:
     """Insert missing resource IDs.
 
-    This correction can be applied using the coerce decorator on your Document class:
+    This correction can be applied directly to a raw document dictionary or
+    with the pydid.deserialize_document method:
 
-    >>> from pydid.validation import coerce
-    >>> from pydid.doc import DIDDocument
-    >>> @coerce([insert_missing_ids])
-    >>> class MyDIDDocument(DIDDocument):
-    >>>     '''My cool DID Document.'''
-    >>>     # Other attributes...
+    >>> import pydid
+    >>> doc_raw = {"@context": "http://example.com", "id": "did:example:123"}
+    >>> doc_raw = pydid.corrections.insert_missing_ids(doc_raw)
 
-    Or by decorating an existing class:
-    >>> from pydid.validation import coerce
-    >>> from pydid.doc import DIDDocument
-    >>> MyDIDDocument = coerce([insert_missing_ids])(DIDDocument)
+    Or:
+    >>> import pydid
+    >>> doc_raw = {"@context": "http://example.com", "id": "did:example:123"}
+    >>> doc = pydid.deserialize_document(
+    ...     doc, corrections=[pydid.corrections.insert_missing_ids]
+    ... )
     """
     if "id" not in value:
         raise ValueError("No ID found in Document.")

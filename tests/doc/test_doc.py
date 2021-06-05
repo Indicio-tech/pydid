@@ -7,7 +7,6 @@ import pytest
 from typing_extensions import Annotated, Literal
 
 from pydid.did_url import InvalidDIDUrlError
-from pydid.doc import corrections
 from pydid.doc.builder import DIDDocumentBuilder
 from pydid.doc.doc import (
     DIDDocument,
@@ -23,7 +22,6 @@ from pydid.verification_method import (
     VerificationMaterial,
     VerificationMethod,
 )
-from pydid.validation import coerce
 
 VerificationSuite = namedtuple(
     "VerificationSuite", ["type", "verification_material_prop"]
@@ -647,22 +645,6 @@ def test_dereference_and_membership_check():
     assert not doc.verification_method
     assert vmethod in doc.authentication
     assert vmethod in doc.assertion_method
-
-
-def test_correction_insert_missing_ids_x():
-    MyDIDDocument = coerce([corrections.insert_missing_ids])(DIDDocument)
-    doc_raw = {
-        "@context": "https://www.w3.org/ns/did/v1",
-        "authentication": [
-            {
-                "type": "Ed25519VerificationKey2018",
-                "controller": "did:example:123",
-                "publicKeyBase58": "1234",
-            },
-        ],
-    }
-    with pytest.raises(ValueError):
-        MyDIDDocument.deserialize(doc_raw)
 
 
 @pytest.mark.parametrize("cls", [DIDDocument, NonconformantDocument])

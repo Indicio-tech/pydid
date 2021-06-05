@@ -1,9 +1,9 @@
 """Validation tools and helpers."""
 
 from contextlib import contextmanager
-from typing import Any, Callable, List, Set, Type
+from typing import Set, Type
 
-from pydantic import ValidationError, root_validator, create_model
+from pydantic import ValidationError, root_validator
 
 
 @contextmanager
@@ -15,28 +15,6 @@ def wrap_validation_error(error_to_raise: Type[Exception], message: str = None):
         raise error_to_raise(
             ":\n".join([message, str(error)]) if message else str(error)
         ) from error
-
-
-def validator(transformers: List[Callable]):
-    """Transform or validate data before parsing into model."""
-
-    def _do_validation(_model: Type, values: dict):
-        for transformer in transformers:
-            values = transformer(values)
-        return values
-
-    def _validation(typ: Type[Any]):
-        return create_model(
-            typ.__name__,
-            __module__=typ.__module__,
-            __base__=typ,
-            do_coercion=root_validator(pre=True, allow_reuse=True)(_do_validation),
-        )
-
-    return _validation
-
-
-coerce = validator
 
 
 def required_group(props: Set[str]):
