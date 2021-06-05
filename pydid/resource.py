@@ -1,5 +1,6 @@
 """Resource class that forms the base of all DID Document components."""
-
+from abc import ABC, abstractmethod
+import json
 from typing import Any, Dict, Type, TypeVar
 
 from inflection import camelize
@@ -76,6 +77,16 @@ class Resource(BaseModel):
             return parse_obj_as(type_, value)
 
     @classmethod
+    def from_json(cls, value: str):
+        """Deserialize Resource from JSON."""
+        loaded: dict = json.loads(value)
+        return cls.deserialize(loaded)
+
+    def to_json(self):
+        """Serialize Resource to JSON."""
+        return self.json(exclude_none=True, by_alias=True)
+
+    @classmethod
     def _fill_in_required_literals(cls, **kwargs) -> Dict[str, Any]:
         """Return dictionary of field name to value from literals."""
         for field in cls.__fields__.values():
@@ -101,3 +112,28 @@ class Resource(BaseModel):
         kwargs = cls._fill_in_required_literals(**kwargs)
         kwargs = cls._overwrite_none_with_defaults(**kwargs)
         return cls(**kwargs)
+
+
+class IndexedResource(Resource, ABC):
+    """Resource with index for supporting dereferencing nested objects."""
+
+    _index: dict = {}
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._index_resources()
+
+    @abstractmethod
+    def _index_resources(self):
+        """Index nested resources."""
+
+    @abstractmethod
+    def dereference(self, reference):
+        """Dereference a nested object."""
+
+    @classmethod
+    def construct(cls, **data):
+        """Construct and index."""
+        resource = super(Resource, cls).construct(**data)
+        resource._index_resources()
+        return resource
