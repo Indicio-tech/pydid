@@ -9,7 +9,12 @@ from typing_extensions import Annotated, Literal
 from pydid.did_url import InvalidDIDUrlError
 from pydid.doc import corrections
 from pydid.doc.builder import DIDDocumentBuilder
-from pydid.doc.doc import DIDDocument, DIDDocumentError, IDNotFoundError
+from pydid.doc.doc import (
+    DIDDocument,
+    DIDDocumentError,
+    DIDDocumentRoot,
+    IDNotFoundError,
+)
 from pydid.service import Service
 from pydid.service import DIDCommService
 from pydid.verification_method import (
@@ -690,3 +695,8 @@ def test_relative_ids():
     assert doc.dereference("did:example:123#keys-0") == doc.dereference("#keys-0")
     assert doc.dereference("did:example:123#keys-1") == doc.dereference("#keys-1")
     assert doc.dereference("did:example:123#service-0") == doc.dereference("#service-0")
+
+
+def test_listify():
+    doc = DIDDocumentRoot.deserialize({"id": "did:example:123", "controller": None})
+    assert doc.controller is None
