@@ -20,6 +20,7 @@ from .verification_method import (
     VerificationMaterialUnknown,
     VerificationMethod,
 )
+from .doc import generic
 
 __all__ = [
     "BasicDIDDocument",
@@ -37,6 +38,7 @@ __all__ = [
     "VerificationMaterial",
     "VerificationMaterialUnknown",
     "Resource",
+    "generic",
 ]
 
 
