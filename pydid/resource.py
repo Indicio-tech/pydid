@@ -1,7 +1,7 @@
 """Resource class that forms the base of all DID Document components."""
 from abc import ABC, abstractmethod
 import json
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, Dict, Type, TypeVar, cast
 
 from inflection import camelize
 from pydantic import BaseModel, Extra, parse_obj_as
@@ -120,8 +120,19 @@ class IndexedResource(Resource, ABC):
         """Index nested resources."""
 
     @abstractmethod
-    def dereference(self, reference):
+    def dereference(self, reference: str) -> Resource:
         """Dereference a nested object."""
+
+    def dereference_as(self, typ: Type[ResourceType], reference: str) -> ResourceType:
+        """Dereference a resource to a specific type."""
+        resource = self.dereference(reference)
+        if not isinstance(resource, typ):
+            raise ValueError(
+                "Dereferenced resource {} is not an instance of {}".format(
+                    resource, typ.__name__
+                )
+            )
+        return cast(typ, resource)
 
     @classmethod
     def construct(cls, **data):

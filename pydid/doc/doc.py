@@ -132,7 +132,7 @@ class BasicDIDDocument(BaseDIDDocument):
         ):
             _indexer(item)
 
-    def dereference(self, reference: Union[str, DIDUrl]):
+    def dereference(self, reference: Union[str, DIDUrl]) -> Resource:
         """Dereference a DID URL to a document resource."""
         if isinstance(reference, str):
             reference = DIDUrl.parse(reference)
@@ -230,7 +230,7 @@ class NonconformantDocument(BaseDIDDocument):
         for _, value in self:
             _indexer(value)
 
-    def dereference(self, reference: Union[str, DIDUrl]):
+    def dereference(self, reference: Union[str, DIDUrl]) -> Any:
         """Dereference a DID URL to a document resource."""
         if isinstance(reference, str):
             reference = DIDUrl.parse(reference)
