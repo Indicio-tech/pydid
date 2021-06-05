@@ -14,7 +14,7 @@ from .validation import wrap_validation_error
 ResourceType = TypeVar("ResourceType", bound="Resource")
 
 
-if hasattr(typing_extensions, "get_args"):
+if hasattr(typing_extensions, "get_args"):  # pragma: no cover
     from typing_extensions import get_args, get_origin
 
     def get_literal_values(literal):
@@ -26,7 +26,7 @@ if hasattr(typing_extensions, "get_args"):
         return get_origin(type_) is Literal
 
 
-else:
+else:  # pragma: no cover
     # Python 3.6 and Literals behave differently
     from typing_extensions import _Literal
 
@@ -66,15 +66,6 @@ class Resource(BaseModel):
             message="Failed to deserialize {}".format(cls.__name__),
         ):
             return parse_obj_as(cls, value)
-
-    @classmethod
-    def deserialize_into(cls, value: dict, type_: Type[ResourceType]) -> ResourceType:
-        """Deserialize resource into type_."""
-        with wrap_validation_error(
-            ValueError,
-            message="Failed to deserialize {}".format(cls.__name__),
-        ):
-            return parse_obj_as(type_, value)
 
     @classmethod
     def from_json(cls, value: str):
