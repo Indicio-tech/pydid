@@ -197,6 +197,12 @@ class NonconformantDocument(BaseDIDDocument):
         """
 
         def _indexer(item):
+            if isinstance(item, list):
+                # Recurse on lists
+                for subitem in item:
+                    _indexer(subitem)
+                return
+
             if not isinstance(item, dict):
                 # Only dictionaries are indexable
                 return
