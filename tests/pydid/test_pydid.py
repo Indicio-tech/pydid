@@ -6,20 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from pydid.doc.doc import BasicDIDDocument
-from pydid.doc.corrections import insert_missing_ids
-from pydid.validation import coerce
+import pydid
 
 DOCS_PATH = Path(__file__).parent / "test_docs.json"
 DOCS = json.loads(DOCS_PATH.read_text())
 LOGGER = logging.getLogger(__name__)
 
 
-@pytest.mark.int
 @pytest.mark.parametrize("doc", DOCS)
-def test_uniresolver_docs(caplog, doc):
+def test_sample_doc_deserialization(caplog, doc):
     caplog.set_level(logging.INFO)
     LOGGER.info("Doc\n%s", json.dumps(doc, indent=2))
-    coerce([insert_missing_ids])(BasicDIDDocument).deserialize(
-        doc,
-    )
+    pydid.deserialize_document(doc)

@@ -71,6 +71,14 @@ class DIDDocumentRoot(Resource):
 class BaseDIDDocument(DIDDocumentRoot, IndexedResource, ABC):
     """Abstract BaseDIDDocument class."""
 
+    def is_nonconformant(self):
+        """Return whether doc is non-conformant."""
+        return isinstance(self, NonconformantDocument)
+
+    def is_conformant(self):
+        """Return whether doc is conformant."""
+        return not isinstance(self, NonconformantDocument)
+
 
 class BasicDIDDocument(BaseDIDDocument):
     """Basic DID Document."""
@@ -168,6 +176,7 @@ class NonconformantDocument(BaseDIDDocument):
     """
 
     id: DID
+    context: Annotated[Any, Field(alias="@context")] = None  # noqa: F722
     also_known_as: Any = None
     controller: Any = None
     verification_method: Any = None
