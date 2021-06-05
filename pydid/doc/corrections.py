@@ -1,4 +1,4 @@
-"""DID Document deserialization options."""
+"""Common DID Document corrections."""
 
 from typing import Union
 
