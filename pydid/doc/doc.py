@@ -63,8 +63,8 @@ class DIDDocumentRoot(Resource):
 
         This validator handles a common DID Document mutation.
         """
-        if "publickKey" in values:
-            values["verificationMethod"] = values["publickKey"]
+        if "publicKey" in values:
+            values["verificationMethod"] = values["publicKey"]
         return values
 
 
