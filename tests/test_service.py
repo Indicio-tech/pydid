@@ -43,7 +43,7 @@ INVALID_SERVICE2 = {
 INVALID_SERVICE3 = {
     "id": "did:example:123#linked-domain",
     "type": "LinkedDomains",
-    "serviceEndpoint": "not a url",
+    "serviceEndpoint": True,
 }
 
 INVALID_SERVICES = [
@@ -71,7 +71,7 @@ def test_serialization(service_raw):
     assert service.serialize() == service_raw
 
 
-SERVICE0 = {
+DIDCOMM_SERVICE0 = {
     "id": "did:example:123#did-communication",
     "type": "did-communication",
     "serviceEndpoint": "https://agents-r-us.com",
@@ -83,7 +83,7 @@ SERVICE0 = {
     "priority": 0,
 }
 
-SERVICE1 = {
+DIDCOMM_SERVICE1 = {
     "id": "did:example:123#did-communication",
     "type": "did-communication",
     "serviceEndpoint": "https://agents-r-us.com",
@@ -92,7 +92,7 @@ SERVICE1 = {
     "priority": 0,
 }
 
-SERVICE2 = {
+DIDCOMM_SERVICE2 = {
     "id": "did:example:123#indy-agent",
     "type": "IndyAgent",
     "serviceEndpoint": "https://agents-r-us.com",
@@ -101,7 +101,7 @@ SERVICE2 = {
     "priority": 0,
 }
 
-SERVICES = [SERVICE0, SERVICE1, SERVICE2]
+DIDCOMM_SERVICES = [DIDCOMM_SERVICE0, DIDCOMM_SERVICE1, DIDCOMM_SERVICE2]
 
 DIDCOMM_INVALID_SERVICE0 = {
     "id": "did:example:123#linked-domain",
@@ -118,25 +118,31 @@ DIDCOMM_INVALID_SERVICE1 = {
     "extra key": "that should fail",
 }
 
-INVALID_SERVICES = [
+DIDCOMM_INVALID_SERVICES = [
     *INVALID_SERVICES,
     DIDCOMM_INVALID_SERVICE0,
     DIDCOMM_INVALID_SERVICE1,
 ]
 
 
-@pytest.mark.parametrize("service", SERVICES)
-def test_validate(service):
+@pytest.mark.parametrize("service", DIDCOMM_SERVICES)
+def test_didcomm_validate(service):
     DIDCommService.validate(service)
 
 
-@pytest.mark.parametrize("service", INVALID_SERVICES)
+@pytest.mark.parametrize("service", DIDCOMM_INVALID_SERVICES)
 def test_didcomm_fails_invalid(service):
     with pytest.raises(ValueError):
         DIDCommService.validate(service)
 
 
-@pytest.mark.parametrize("service_raw", SERVICES)
+@pytest.mark.parametrize("service_raw", DIDCOMM_SERVICES)
 def test_didcomm_serialization(service_raw):
     service = DIDCommService.deserialize(service_raw)
     assert service.serialize() == service_raw
+
+
+def test_use_endpoint():
+    service = Service.deserialize(SERVICE0)
+    assert service.service_endpoint == "https://bar.example.com"
+    assert "https" in service.service_endpoint

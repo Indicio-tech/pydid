@@ -1,5 +1,6 @@
 """Resource class that forms the base of all DID Document components."""
-
+from abc import ABC, abstractmethod
+import json
 from typing import Any, Dict, Type, TypeVar
 
 from inflection import camelize
@@ -13,7 +14,7 @@ from .validation import wrap_validation_error
 ResourceType = TypeVar("ResourceType", bound="Resource")
 
 
-if hasattr(typing_extensions, "get_args"):
+if hasattr(typing_extensions, "get_args"):  # pragma: no cover
     from typing_extensions import get_args, get_origin
 
     def get_literal_values(literal):
@@ -25,7 +26,7 @@ if hasattr(typing_extensions, "get_args"):
         return get_origin(type_) is Literal
 
 
-else:
+else:  # pragma: no cover
     # Python 3.6 and Literals behave differently
     from typing_extensions import _Literal
 
@@ -47,6 +48,7 @@ class Resource(BaseModel):
         underscore_attrs_are_private = True
         extra = Extra.allow
         allow_population_by_field_name = True
+        allow_mutation = False
 
         @classmethod
         def alias_generator(cls, string: str) -> str:
@@ -67,13 +69,14 @@ class Resource(BaseModel):
             return parse_obj_as(cls, value)
 
     @classmethod
-    def deserialize_into(cls, value: dict, type_: Type[ResourceType]) -> ResourceType:
-        """Deserialize resource into type_."""
-        with wrap_validation_error(
-            ValueError,
-            message="Failed to deserialize {}".format(cls.__name__),
-        ):
-            return parse_obj_as(type_, value)
+    def from_json(cls, value: str):
+        """Deserialize Resource from JSON."""
+        loaded: dict = json.loads(value)
+        return cls.deserialize(loaded)
+
+    def to_json(self):
+        """Serialize Resource to JSON."""
+        return self.json(exclude_none=True, by_alias=True)
 
     @classmethod
     def _fill_in_required_literals(cls, **kwargs) -> Dict[str, Any]:
@@ -101,3 +104,28 @@ class Resource(BaseModel):
         kwargs = cls._fill_in_required_literals(**kwargs)
         kwargs = cls._overwrite_none_with_defaults(**kwargs)
         return cls(**kwargs)
+
+
+class IndexedResource(Resource, ABC):
+    """Resource with index for supporting dereferencing nested objects."""
+
+    _index: dict = {}
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._index_resources()
+
+    @abstractmethod
+    def _index_resources(self):
+        """Index nested resources."""
+
+    @abstractmethod
+    def dereference(self, reference):
+        """Dereference a nested object."""
+
+    @classmethod
+    def construct(cls, **data):
+        """Construct and index."""
+        resource = super(Resource, cls).construct(**data)
+        resource._index_resources()
+        return resource

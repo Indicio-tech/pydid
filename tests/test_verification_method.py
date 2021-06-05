@@ -7,6 +7,7 @@ from pydid.did import DID
 from pydid.did_url import DIDUrl
 from pydid.verification_method import (
     Ed25519VerificationKey2018,
+    VerificationMaterialUnknown,
     VerificationMethod,
 )
 
@@ -182,3 +183,31 @@ def test_infer_material():
 
 def test_method_type():
     assert Ed25519VerificationKey2018.method_type() == "Ed25519VerificationKey2018"
+
+
+def test_deserialize_x_multiple_material_properties():
+    with pytest.raises(ValueError):
+        VerificationMethod.deserialize(
+            {
+                "id": "did:example:123#vm-3",
+                "controller": "did:example:123",
+                "type": "EcdsaSecp256k1RecoveryMethod2020",
+                "blockchainAccountId": (
+                    "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1"
+                ),
+                "publicKeyBase58": "abc123",
+            }
+        )
+
+
+def test_unknown_material():
+    vmethod = VerificationMethod.deserialize(
+        {
+            "id": "did:example:123#vm-3",
+            "controller": "did:example:123",
+            "type": "EcdsaSecp256k1RecoveryMethod2020",
+            "unknownMaterial": "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+        }
+    )
+    with pytest.raises(VerificationMaterialUnknown):
+        vmethod.material

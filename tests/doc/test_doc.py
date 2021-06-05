@@ -7,9 +7,14 @@ import pytest
 from typing_extensions import Annotated, Literal
 
 from pydid.did_url import InvalidDIDUrlError
-from pydid.doc import corrections
 from pydid.doc.builder import DIDDocumentBuilder
-from pydid.doc.doc import DIDDocument, DIDDocumentError, IDNotFoundError
+from pydid.doc.doc import (
+    DIDDocument,
+    DIDDocumentError,
+    DIDDocumentRoot,
+    IDNotFoundError,
+    NonconformantDocument,
+)
 from pydid.service import Service
 from pydid.service import DIDCommService
 from pydid.verification_method import (
@@ -17,7 +22,6 @@ from pydid.verification_method import (
     VerificationMaterial,
     VerificationMethod,
 )
-from pydid.validation import coerce
 
 VerificationSuite = namedtuple(
     "VerificationSuite", ["type", "verification_material_prop"]
@@ -360,8 +364,9 @@ def test_dereference():
     assert service0.serialize() == DOC0["service"][0]
 
 
-def test_dereference_x():
-    doc = DIDDocument.deserialize(DOC0)
+@pytest.mark.parametrize("cls", [DIDDocument, NonconformantDocument])
+def test_dereference_x(cls):
+    doc = cls.deserialize(DOC0)
     with pytest.raises(InvalidDIDUrlError):
         doc.dereference("bogus")
 
@@ -642,23 +647,8 @@ def test_dereference_and_membership_check():
     assert vmethod in doc.assertion_method
 
 
-def test_correction_insert_missing_ids_x():
-    MyDIDDocument = coerce([corrections.insert_missing_ids])(DIDDocument)
-    doc_raw = {
-        "@context": "https://www.w3.org/ns/did/v1",
-        "authentication": [
-            {
-                "type": "Ed25519VerificationKey2018",
-                "controller": "did:example:123",
-                "publicKeyBase58": "1234",
-            },
-        ],
-    }
-    with pytest.raises(ValueError):
-        MyDIDDocument.deserialize(doc_raw)
-
-
-def test_relative_ids():
+@pytest.mark.parametrize("cls", [DIDDocument, NonconformantDocument])
+def test_relative_ids(cls):
     doc_raw = {
         "@context": "https://www.w3.org/ns/did/v1",
         "id": "did:example:123",
@@ -686,7 +676,12 @@ def test_relative_ids():
             }
         ],
     }
-    doc = DIDDocument.deserialize(doc_raw)
+    doc = cls.deserialize(doc_raw)
     assert doc.dereference("did:example:123#keys-0") == doc.dereference("#keys-0")
     assert doc.dereference("did:example:123#keys-1") == doc.dereference("#keys-1")
     assert doc.dereference("did:example:123#service-0") == doc.dereference("#service-0")
+
+
+def test_listify():
+    doc = DIDDocumentRoot.deserialize({"id": "did:example:123", "controller": None})
+    assert doc.controller is None

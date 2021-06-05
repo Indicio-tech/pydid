@@ -1,14 +1,14 @@
 """DID Document Object."""
 
-import json
-from typing import List, Optional, Union
+from abc import ABC
+from typing import Any, List, Optional, Union
 
 from pydantic import Field, root_validator, validator
 from typing_extensions import Annotated
 
-from ..did import DID
-from ..did_url import DIDUrl
-from ..resource import Resource
+from ..did import DID, InvalidDIDError
+from ..did_url import DIDUrl, InvalidDIDUrlError
+from ..resource import IndexedResource, Resource
 from ..service import DIDCommService, Service, UnknownService
 from ..verification_method import (
     KnownVerificationMethods,
@@ -31,8 +31,6 @@ class IDNotFoundError(DIDDocumentError):
 
 class DIDDocumentRoot(Resource):
     """Representation of DID Document."""
-
-    # pylint: disable=unsubscriptable-object
 
     context: Annotated[List[str], Field(alias="@context")] = [  # noqa: F722
         "https://www.w3.org/ns/did/v1"
@@ -65,20 +63,27 @@ class DIDDocumentRoot(Resource):
 
         This validator handles a common DID Document mutation.
         """
-        if "publickKey" in values:
-            values["verificationMethod"] = values["publickKey"]
+        if "publicKey" in values:
+            values["verificationMethod"] = values["publicKey"]
         return values
 
 
-class BasicDIDDocument(DIDDocumentRoot):
+class BaseDIDDocument(DIDDocumentRoot, IndexedResource, ABC):
+    """Abstract BaseDIDDocument class."""
+
+    @property
+    def is_nonconformant(self):
+        """Return whether doc is non-conformant."""
+        return isinstance(self, NonconformantDocument)
+
+    @property
+    def is_conformant(self):
+        """Return whether doc is conformant."""
+        return not isinstance(self, NonconformantDocument)
+
+
+class BasicDIDDocument(BaseDIDDocument):
     """Basic DID Document."""
-
-    _index: dict = {}
-
-    def __init__(self, **data):
-        """Create DIDDocument."""
-        super().__init__(**data)
-        self._index_resources()
 
     def _index_resources(self):
         """Index resources by ID.
@@ -138,23 +143,6 @@ class BasicDIDDocument(DIDDocumentRoot):
             raise IDNotFoundError("ID {} not found in document".format(reference))
         return self._index[reference]
 
-    @classmethod
-    def from_json(cls, value: str):
-        """Deserialize DID Document from JSON."""
-        doc_raw: dict = json.loads(value)
-        return cls.deserialize(doc_raw)
-
-    def to_json(self):
-        """Serialize DID Document to JSON."""
-        return self.json()
-
-    @classmethod
-    def construct(cls, **data):
-        """Construct and index."""
-        doc = super(Resource, cls).construct(**data)
-        doc._index_resources()
-        return doc
-
 
 PossibleMethodTypes = Union[KnownVerificationMethods, UnknownVerificationMethod]
 PossibleServiceTypes = Union[DIDCommService, UnknownService]
@@ -180,3 +168,75 @@ class DIDDocument(BasicDIDDocument):
         """Wrap deserialization with a basic validation pass before matching to type."""
         DIDDocumentRoot.deserialize(value)
         return super(DIDDocument, cls).deserialize(value)
+
+
+class NonconformantDocument(BaseDIDDocument):
+    """Container for non-conformant documents.
+
+    This container allows us to interact with these documents without going
+    through the more rigorous validation.
+    """
+
+    id: DID
+    context: Annotated[Any, Field(alias="@context")] = None  # noqa: F722
+    also_known_as: Any = None
+    controller: Any = None
+    verification_method: Any = None
+    authentication: Any = None
+    assertion_method: Any = None
+    key_agreement: Any = None
+    capability_invocation: Any = None
+    capability_delegation: Any = None
+    service: Any = None
+
+    def _index_resources(self):
+        """Index resources by ID.
+
+        This is done in the most permissive way possible. ID collisions will
+        result in overwritten data instead of raising an error.
+        """
+
+        def _indexer(item):
+            if isinstance(item, list):
+                # Recurse on lists
+                for subitem in item:
+                    _indexer(subitem)
+                return
+
+            if not isinstance(item, dict):
+                # Only dictionaries are indexable
+                return
+
+            if "id" not in item:
+                # Only dictionaries with IDs are indexed
+                return
+
+            # Attempt to account for relative IDs
+            try:
+                ref = DIDUrl(item["id"])
+                if not ref.did:
+                    key = ref.as_absolute(self.id)
+                else:
+                    key = ref
+            except (InvalidDIDError, InvalidDIDUrlError):
+                key = item["id"]
+
+            self._index[key] = Resource(**item)
+
+            # Recurse
+            for value in item.values():
+                _indexer(value)
+
+        for _, value in self:
+            _indexer(value)
+
+    def dereference(self, reference: Union[str, DIDUrl]):
+        """Dereference a DID URL to a document resource."""
+        if isinstance(reference, str):
+            reference = DIDUrl.parse(reference)
+        if not reference.did:
+            reference = reference.as_absolute(self.id)
+
+        if reference not in self._index:
+            raise IDNotFoundError("ID {} not found in document".format(reference))
+        return self._index[reference]

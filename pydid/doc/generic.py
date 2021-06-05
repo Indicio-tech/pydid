@@ -1,7 +1,10 @@
 """Generic DID Document Classes.
 
 If using Python 3.7+, these can be used to simplify subclassing a DID Document.
+These classes are experimental and subject to change without notice. Use at
+your own risk.
 """
+
 import sys
 
 from typing import TypeVar, Optional, List, Union
@@ -10,7 +13,7 @@ from ..verification_method import VerificationMethod
 from ..service import Service
 from ..did_url import DIDUrl
 
-if sys.version_info.major >= 3 and sys.version_info.minor >= 7:
+if sys.version_info >= (3, 7):  # pragma: no cover
     # In Python 3.7+, we can use Generics with Pydantic to simplify subclassing
     from pydantic.generics import GenericModel
     from typing import Generic

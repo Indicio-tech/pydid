@@ -5,7 +5,7 @@ from pathlib import Path
 import aiohttp
 import asyncio
 
-CONFIG_PATH = Path(__file__).parent.parent / "uniresolver_config.json"
+CONFIG_PATH = Path(__file__).parent / "uniresolver_config.json"
 CONFIG = json.loads(CONFIG_PATH.read_text())
 DIDS = [did for driver in CONFIG["drivers"] for did in driver["testIdentifiers"]]
 
