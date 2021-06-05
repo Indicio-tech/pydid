@@ -1,8 +1,8 @@
 """DID Doc Service."""
 
-from typing import Union, List
+from typing import List, Union
 
-from pydantic import AnyUrl, Extra
+from pydantic import Extra, AnyUrl
 from typing_extensions import Literal
 
 from .did_url import DIDUrl
