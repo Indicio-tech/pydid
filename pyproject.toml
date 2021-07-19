@@ -21,7 +21,7 @@ show_missing = true
 
 [tool.poetry]
 name = "pydid"
-version = "0.3.0"
+version = "0.3.1"
 description = "Python library for validating, constructing, and representing DIDs and DID Documents"
 authors = ["Daniel Bluhm <dbluhm@pm.me>"]
 license = "Apache 2.0"
