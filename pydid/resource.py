@@ -127,11 +127,14 @@ class IndexedResource(Resource, ABC):
         """Dereference a resource to a specific type."""
         resource = self.dereference(reference)
         if not isinstance(resource, typ):
-            raise ValueError(
-                "Dereferenced resource {} is not an instance of {}".format(
-                    resource, typ.__name__
-                )
-            )
+            try:
+                resource = typ(**resource.dict())
+            except ValueError as error:
+                raise ValueError(
+                    "Dereferenced resource {} could not be parsed as {}".format(
+                        resource, typ.__name__
+                    )
+                ) from error
         return cast(typ, resource)
 
     @classmethod
