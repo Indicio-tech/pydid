@@ -1,7 +1,7 @@
 """Resource class that forms the base of all DID Document components."""
 from abc import ABC, abstractmethod
 import json
-from typing import Any, Dict, Type, TypeVar, cast
+from typing import Any, Dict, Type, TypeVar
 
 from inflection import camelize
 from pydantic import BaseModel, Extra, parse_obj_as
@@ -126,16 +126,14 @@ class IndexedResource(Resource, ABC):
     def dereference_as(self, typ: Type[ResourceType], reference: str) -> ResourceType:
         """Dereference a resource to a specific type."""
         resource = self.dereference(reference)
-        if not isinstance(resource, typ):
-            try:
-                resource = typ(**resource.dict())
-            except ValueError as error:
-                raise ValueError(
-                    "Dereferenced resource {} could not be parsed as {}".format(
-                        resource, typ.__name__
-                    )
-                ) from error
-        return cast(typ, resource)
+        try:
+            return parse_obj_as(typ, resource.dict())
+        except ValueError as error:
+            raise ValueError(
+                "Dereferenced resource {} could not be parsed as {}".format(
+                    resource, typ.__name__
+                )
+            ) from error
 
     @classmethod
     def construct(cls, **data):
