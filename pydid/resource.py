@@ -131,7 +131,7 @@ class IndexedResource(Resource, ABC):
         except ValueError as error:
             raise ValueError(
                 "Dereferenced resource {} could not be parsed as {}".format(
-                    resource, typ.__name__
+                    resource, typ
                 )
             ) from error
 

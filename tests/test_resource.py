@@ -93,3 +93,14 @@ def test_dereference_as_vmethod_using_known_methods(mock_indexed_resource):
     assert isinstance(result, Ed25519VerificationKey2018)
     assert result.public_key_base58 == "testing"
     assert result.material == "testing"
+
+
+def test_dereference_as_vmethod_using_known_methods_x(mock_indexed_resource):
+    resource = Resource(
+        id="did:example:123#did-communication",
+        service_endpoint="did:example:123",
+        type="did-communication",
+    )
+    test = mock_indexed_resource(resource)
+    with pytest.raises(ValueError):
+        test.dereference_as(KnownVerificationMethods, "test")
