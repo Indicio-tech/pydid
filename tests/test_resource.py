@@ -1,6 +1,10 @@
 """Test Resource."""
 
-from pydid.verification_method import VerificationMethod
+from pydid.verification_method import (
+    Ed25519VerificationKey2018,
+    KnownVerificationMethods,
+    VerificationMethod,
+)
 from typing import Optional
 import pytest
 from pydid.resource import Resource, IndexedResource
@@ -74,3 +78,18 @@ def test_dereference_as_vmethod_x(mock_indexed_resource):
     test = mock_indexed_resource(resource)
     with pytest.raises(ValueError):
         test.dereference_as(VerificationMethod, "test")
+
+
+def test_dereference_as_vmethod_using_known_methods(mock_indexed_resource):
+    resource = Resource(
+        id="did:example:123#key-1",
+        controller="did:example:123",
+        type="Ed25519VerificationKey2018",
+        public_key_base58="testing",
+    )
+    test = mock_indexed_resource(resource)
+    result = test.dereference_as(KnownVerificationMethods, "test")
+    assert isinstance(result, VerificationMethod)
+    assert isinstance(result, Ed25519VerificationKey2018)
+    assert result.public_key_base58 == "testing"
+    assert result.material == "testing"
