@@ -32,7 +32,9 @@ class IDNotFoundError(DIDDocumentError):
 class DIDDocumentRoot(Resource):
     """Representation of DID Document."""
 
-    context: Annotated[List[Union[str, dict]], Field(alias="@context")] = [  # noqa: F722
+    context: Annotated[
+        List[Union[str, dict]], Field(alias="@context")
+    ] = [  # noqa: F722
         "https://www.w3.org/ns/did/v1"
     ]
     id: DID
