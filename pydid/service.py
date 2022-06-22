@@ -9,18 +9,18 @@ from .did_url import DIDUrl
 from .resource import Resource
 
 
+class ServiceEndpoint(Resource):
+    """List of Service Endpoints"""
+
+    url: Union[DIDUrl, AnyUrl]
+
+
 class Service(Resource):
     """Representation of DID Document Services."""
 
     id: DIDUrl
     type: str
     service_endpoint: Union[DIDUrl, AnyUrl, Literal[""], List[ServiceEndpoint]]
-
-
-class ServiceEndpoint(Resource):
-    """List of Service Endpoints"""
-
-    url: Union[DIDUrl, AnyUrl]
 
 
 class DIDCommService(Service):
