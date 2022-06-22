@@ -66,6 +66,7 @@ class Resource(BaseModel):
             ValueError,
             message="Failed to deserialize {}".format(cls.__name__),
         ):
+            print(value)
             return parse_obj_as(cls, value)
 
     @classmethod
