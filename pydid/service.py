@@ -14,7 +14,13 @@ class Service(Resource):
 
     id: DIDUrl
     type: str
-    service_endpoint: Union[DIDUrl, AnyUrl, Literal[""]]
+    service_endpoint: Union[DIDUrl, AnyUrl, Literal[""], List[ServiceEndpoint]]
+
+
+class ServiceEndpoint(Resource):
+    """List of Service Endpoints"""
+
+    url: Union[DIDUrl, AnyUrl]
 
 
 class DIDCommService(Service):
