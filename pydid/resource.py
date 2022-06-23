@@ -25,7 +25,6 @@ if hasattr(typing_extensions, "get_args"):  # pragma: no cover
         """Return if type is literal."""
         return get_origin(type_) is Literal
 
-
 else:  # pragma: no cover
     # Python 3.6 and Literals behave differently
     from typing_extensions import _Literal

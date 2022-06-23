@@ -24,11 +24,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-formatting-black-20.8b1
+          key: ${{ runner.os }}-formatting-black-22.3.0
       - name: Install black
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
-          pip install black==20.8b1
+          pip install black==22.3.0
       - name: Black Format Check
         run: |
           black --check pydid
