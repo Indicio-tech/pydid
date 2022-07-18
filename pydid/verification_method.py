@@ -32,6 +32,7 @@ class VerificationMethod(Resource):
         "public_key_hex",
         "public_key_jwk",
         "public_key_pem",
+        "public_key_multibase",
     }
 
     id: DIDUrl
@@ -40,6 +41,7 @@ class VerificationMethod(Resource):
     public_key_hex: Optional[str] = None
     public_key_base58: Optional[str] = None
     public_key_pem: Optional[str] = None
+    public_key_multibase: Optional[str] = None
     blockchain_account_id: Optional[str] = None
     ethereum_address: Optional[str] = None
     public_key_jwk: Optional[dict] = None
@@ -170,6 +172,13 @@ class Ed25519VerificationKey2018(VerificationMethod):
     public_key_base58: str
 
 
+class Ed25519VerificationKey2020(VerificationMethod):
+    """Ed25519VerificationKey2020 VerificationMethod."""
+
+    type: Literal["Ed25519VerificationKey2020"]
+    public_key_multibase: str
+
+
 class OpenPgpVerificationKey2019(VerificationMethod):
     """OpenPgpVerificationKey2019 VerificationMethod."""
 
@@ -226,6 +235,13 @@ class X25519KeyAgreementKey2019(VerificationMethod):
     public_key_base58: str
 
 
+class X25519KeyAgreementKey2020(VerificationMethod):
+    """X25519KeyAgreementKey2020 VerificationMethod."""
+
+    type: Literal["X25519KeyAgreementKey2020"]
+    public_key_multibase: str
+
+
 class SchnorrSecp256k1VerificationKey2019(VerificationMethod):
     """SchnorrSecp256k1VerificationKey2019 VerificationMethod."""
 
@@ -251,6 +267,7 @@ class UnknownVerificationMethod(VerificationMethod):
 
 KnownVerificationMethods = Union[
     Ed25519VerificationKey2018,
+    Ed25519VerificationKey2020,
     OpenPgpVerificationKey2019,
     JsonWebKey2020,
     EcdsaSecp256k1VerificationKey2019,
@@ -259,6 +276,7 @@ KnownVerificationMethods = Union[
     GpgVerifcationKey2020,
     RsaVerificationKey2018,
     X25519KeyAgreementKey2019,
+    X25519KeyAgreementKey2020,
     SchnorrSecp256k1VerificationKey2019,
     EcdsaSecp256k1RecoveryMethod2020,
 ]
