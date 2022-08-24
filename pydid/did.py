@@ -7,7 +7,7 @@ January 2021:
 
 """
 
-from typing import Dict
+from typing import Dict, Optional
 
 from .common import DID_PATTERN, DIDError
 from .did_url import DIDUrl
@@ -54,7 +54,12 @@ class DID(str):
         """Return the method specific identifier."""
         return self._id
 
-    def url(self, path: str = None, query: Dict[str, str] = None, fragment: str = None):
+    def url(
+        self,
+        path: Optional[str] = None,
+        query: Optional[Dict[str, str]] = None,
+        fragment: Optional[str] = None,
+    ):
         """Return a DID URL for this DID."""
         return DIDUrl.unparse(self, path, query, fragment)
 
