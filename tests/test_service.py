@@ -99,6 +99,7 @@ DIDCOMM_SERVICE2 = {
     "recipientKeys": ["did:example:123#keys-1"],
     "routingKeys": [],
     "priority": 0,
+    "accept": ["didcomm/aip2;env=rfc19"]
 }
 
 DIDCOMM_SERVICES = [DIDCOMM_SERVICE0, DIDCOMM_SERVICE1, DIDCOMM_SERVICE2]

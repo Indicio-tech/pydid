@@ -138,11 +138,12 @@ class ServiceBuilder:
         self,
         service_endpoint: str,
         recipient_keys: List[VerificationMethod],
-        routing_keys: List[VerificationMethod] = None,
+        routing_keys: Optional[List[VerificationMethod]] = None,
         *,
-        priority: int = None,
-        type_: str = None,
-        ident: Optional[str] = None
+        priority: Optional[int] = None,
+        type_: Optional[str] = None,
+        ident: Optional[str] = None,
+        accept: Optional[List[str]] = None
     ):
         """Add DIDComm Service."""
         ident = ident or next(self._id_generator)
@@ -155,6 +156,7 @@ class ServiceBuilder:
             routing_keys=[vmethod.id for vmethod in routing_keys],
             type=type_,
             priority=priority,
+            accept=accept,
         )
         self.services.append(service)
         return service

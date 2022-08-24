@@ -423,6 +423,12 @@ def test_programmatic_construction_didcomm():
         service_endpoint="https://example.com",
         recipient_keys=[key],
         routing_keys=[route],
+        accept=["didcomm/aip2;env=rfc19"],
+    )
+    builder.service.add_didcomm(
+        service_endpoint="https://example.com",
+        recipient_keys=[key],
+        routing_keys=[route],
     )
     assert builder.build().serialize() == {
         "@context": ["https://www.w3.org/ns/did/v1"],
@@ -449,6 +455,15 @@ def test_programmatic_construction_didcomm():
                 "recipientKeys": ["did:example:123#key-0"],
                 "routingKeys": ["did:example:123#key-1"],
                 "priority": 0,
+                "accept": ["didcomm/aip2;env=rfc19"],
+            },
+            {
+                "id": "did:example:123#service-1",
+                "type": "did-communication",
+                "serviceEndpoint": "https://example.com",
+                "recipientKeys": ["did:example:123#key-0"],
+                "routingKeys": ["did:example:123#key-1"],
+                "priority": 1,
             }
         ],
     }
