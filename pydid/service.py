@@ -1,6 +1,6 @@
 """DID Doc Service."""
 
-from typing import List, Union
+from typing import List, Optional, Union
 
 from pydantic import Extra, AnyUrl
 from typing_extensions import Literal
@@ -34,6 +34,7 @@ class DIDCommService(Service):
     type: Literal["IndyAgent", "did-communication"] = "did-communication"
     recipient_keys: List[DIDUrl]
     routing_keys: List[DIDUrl] = []
+    accept: Optional[List[str]] = None
     priority: int = 0
 
 
