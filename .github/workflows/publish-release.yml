@@ -6,7 +6,8 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # TODO Update to latest after dropping Python 3.6 support
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
