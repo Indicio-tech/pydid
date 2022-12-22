@@ -1,36 +1,19 @@
-[tool.black]
-
-[tool.flake8]
-# https://github.com/ambv/black#line-length
-max-line-length = 90
-exclude = "*/tests/**"
-extend_ignore = "D202, W503"
-per_file_ignores = "*/__init__.py:D104"
-
-[tool.pytest.ini_options]
-addopts = "-p no:warnings --cov pydid"
-markers = "int: integration tests"
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "@abstract"
-]
-precision = 2
-show_missing = true
-
 [tool.poetry]
 name = "pydid"
-version = "0.3.6"
+version = "0.3.7"
 description = "Python library for validating, constructing, and representing DIDs and DID Documents"
 authors = ["Daniel Bluhm <dbluhm@pm.me>"]
 license = "Apache 2.0"
 readme = "README.md"
-homepage = "https://github.com/dbluhm/pydid"
-repository = "https://github.com/dbluhm/pydid"
+homepage = "https://github.com/Indicio-tech/pydid"
+repository = "https://github.com/Indicio-tech/pydid"
 keywords = [
     "decentralized", "identity", "ssi"
 ]
+
+[build-system]
+requires = ["setuptools", "poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.6.9"
@@ -49,6 +32,14 @@ aiohttp = "^3.7.4"
 pytest-asyncio = "^0.14.0"
 coverage = {extras = ["toml"], version = "^5.5"}
 
-[build-system]
-requires = ["setuptools", "poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.pytest.ini_options]
+addopts = "-p no:warnings --cov pydid"
+markers = "int: integration tests"
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "@abstract"
+]
+precision = 2
+show_missing = true
