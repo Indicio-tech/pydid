@@ -3,7 +3,7 @@
 from abc import ABC
 from typing import Any, List, Optional, Union
 
-from pydantic import Field, root_validator, validator
+from pydantic import Field, validator
 from typing_extensions import Annotated
 
 from ..did import DID, InvalidDIDError
@@ -57,6 +57,7 @@ class DIDDocumentRoot(Resource):
         if isinstance(value, list):
             return value
         return [value]
+
 
 class BaseDIDDocument(DIDDocumentRoot, IndexedResource, ABC):
     """Abstract BaseDIDDocument class."""

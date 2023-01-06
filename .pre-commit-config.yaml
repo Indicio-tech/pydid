@@ -5,15 +5,15 @@ repos:
     hooks:
       - id: commitlint
         stages: [commit-msg]
+        args: ["--config", ".commitlint.config.js"]
         additional_dependencies: ['@commitlint/config-conventional']
   - repo: https://github.com/psf/black
     rev: 23.7.0
     hooks:
       - id: black
         stages: [commit]
-  - repo: https://gitlab.com/retnikt/flake9
-    rev: 3.8.3.post1
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.9.0
     hooks:
       - id: flake8
-        additional_dependencies: ['toml']
         stages: [commit]
