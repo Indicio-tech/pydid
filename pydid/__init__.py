@@ -11,6 +11,7 @@ from .doc.doc import (
     BaseDIDDocument,
     BasicDIDDocument,
     DIDDocument,
+    DIDDocumentError,
     NonconformantDocument,
 )
 from .resource import Resource

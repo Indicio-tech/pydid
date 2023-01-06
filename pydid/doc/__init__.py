@@ -6,6 +6,7 @@ from .doc import (
     DIDDocumentRoot,
     BasicDIDDocument,
     DIDDocument,
+    DIDDocumentError,
 )
 
 from .builder import (
