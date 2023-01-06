@@ -22,8 +22,7 @@ class Service(Resource):
     type: str
     service_endpoint: Union[DIDUrl, AnyUrl, Literal[""], List[ServiceEndpoint]]
 
-
-class DIDCommService(Service):
+class DIDCommV1Service(Service):
     """DID Communication Service."""
 
     class Config:
@@ -36,6 +35,28 @@ class DIDCommService(Service):
     routing_keys: List[DIDUrl] = []
     accept: Optional[List[str]] = None
     priority: int = 0
+
+
+DIDCommService = DIDCommV1Service
+
+
+class DIDCommV2ServiceEndpoint(ServiceEndpoint):
+    """DID Communication Service Endpoint."""
+    uri: Union[DIDUrl, AnyUrl]
+    accept: Optional[List[str]] = None
+    routing_keys: List[DIDUrl] = []
+
+
+class DIDCommV2Service(Service):
+    """DID Communication V2 Service."""
+
+    class Config:
+        """DIDComm Service Config."""
+
+        extra = Extra.forbid
+
+    type: Literal["DIDCommMessageing"] = "DIDCommMessageing"
+    service_endpoint: List[DIDCommV2ServiceEndpoint]
 
 
 class UnknownService(Service):
