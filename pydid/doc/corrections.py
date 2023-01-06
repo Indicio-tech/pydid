@@ -46,3 +46,29 @@ def insert_missing_ids(value: dict) -> dict:
         _walk(nested)
 
     return value
+
+
+def public_key_is_verification_method(value: dict) -> dict:
+    """Transform publicKey to verificationMethod.
+
+    This is helpful if dealing with DID resolvers that have not updated to the
+    latest DID Spec.
+
+    This correction can be applied directly to a raw document dictionary or
+    with the pydid.deserialize_document method:
+
+    >>> import pydid
+    >>> doc_raw = {"@context": "http://example.com", "id": "did:example:123"}
+    >>> doc_raw = pydid.corrections.public_key_is_verification_method(doc_raw)
+
+    Or:
+    >>> import pydid
+    >>> doc_raw = {"@context": "http://example.com", "id": "did:example:123"}
+    >>> doc = pydid.deserialize_document(
+    ...     doc, corrections=[pydid.corrections.public_key_is_verification_method]
+    ... )
+    """
+
+    if "publicKey" in value:
+        value["verificationMethod"] = value["publicKey"]
+    return value
