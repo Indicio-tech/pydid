@@ -33,7 +33,7 @@ pytest-asyncio = "^0.21.0"
 coverage = {extras = ["toml"], version = "^7.2.0"}
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings --cov pydid"
+addopts = "-p no:warnings --cov pydid --doctest-modules"
 markers = "int: integration tests"
 
 [tool.coverage.report]
