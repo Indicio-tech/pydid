@@ -700,3 +700,18 @@ def test_relative_ids(cls):
 def test_listify():
     doc = DIDDocumentRoot.deserialize({"id": "did:example:123", "controller": None})
     assert doc.controller is None
+
+
+def test_default_context_should_not_mutate():
+    # given
+
+    doc_builder = DIDDocumentBuilder("did:example:123")
+    # save a copy of the default context before mutating the document's contexts
+    original_default_context = [context for context in doc_builder.context]
+
+    # when
+
+    doc_builder.context.append("https://some-required-context")
+
+    # then
+    assert DIDDocumentBuilder("did:example:123").context == original_default_context
