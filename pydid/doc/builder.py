@@ -169,8 +169,6 @@ class ServiceBuilder:
 class DIDDocumentBuilder:
     """Builder for constructing DID Documents programmatically."""
 
-    DEFAULT_CONTEXT = ["https://www.w3.org/ns/did/v1"]
-
     def __init__(
         self,
         id: Union[str, DID],
@@ -181,7 +179,7 @@ class DIDDocumentBuilder:
     ):
         """Initliaze builder."""
         self.id: DID = DID(id)
-        self.context = context or self.DEFAULT_CONTEXT
+        self.context = context or self.__default_context()
         self.also_known_as = also_known_as
         self.controller = controller
         self.verification_method = VerificationMethodBuilder(self.id)
@@ -196,6 +194,10 @@ class DIDDocumentBuilder:
         )
         self.service = ServiceBuilder(self.id)
         self.extra = {}
+
+    @staticmethod
+    def __default_context() -> List[str]:
+        return ["https://www.w3.org/ns/did/v1"]
 
     @classmethod
     def from_doc(cls, doc: DIDDocument) -> "DIDDocumentBuilder":
