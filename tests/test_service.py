@@ -1,56 +1,74 @@
 """Test Service."""
 
+from typing import Union
+from pydantic import parse_obj_as
 import pytest
 
 from pydid import Service, DIDCommService
+from pydid.service import DIDCommV1Service, DIDCommV2Service
 
-SERVICE0 = {
-    "id": "did:example:123#linked-domain",
-    "type": "LinkedDomains",
-    "serviceEndpoint": "https://bar.example.com",
-}
-SERVICE1 = {
-    "id": "did:example:123#did-communication",
-    "type": "did-communication",
-    "serviceEndpoint": "https://agents-r-us.com",
-    "recipientKeys": ["did:example:123#keys-1"],
-    "routingKeys": [
-        "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-        "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-    ],
-}
-SERVICE2 = {
-    "id": "did:example:123#linked-domain",
-    "type": "LinkedDomains",
-    "serviceEndpoint": "",
-}
-
-SERVICES = [SERVICE0, SERVICE1, SERVICE2]
-
-INVALID_SERVICE0 = {"type": "xdi", "serviceEndpoint": "https://example.com"}
-
-INVALID_SERVICE1 = {
-    "id": "did:example:123#linked-domain",
-    "serviceEndpoint": "https://bar.example.com",
-}
-
-INVALID_SERVICE2 = {
-    "id": "did:example:123",
-    "type": "LinkedDomains",
-    "serviceEndpoint": "https://bar.example.com",
-}
-
-INVALID_SERVICE3 = {
-    "id": "did:example:123#linked-domain",
-    "type": "LinkedDomains",
-    "serviceEndpoint": True,
-}
+SERVICES = [
+    {
+        "id": "did:example:123#linked-domain",
+        "type": "LinkedDomains",
+        "serviceEndpoint": "https://bar.example.com",
+    },
+    {
+        "id": "did:example:123#did-communication",
+        "type": "did-communication",
+        "serviceEndpoint": "https://agents-r-us.com",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [
+            "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+            "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+        ],
+    },
+    {
+        "id": "did:example:123#linked-domain",
+        "type": "LinkedDomains",
+        "serviceEndpoint": "",
+    },
+    {
+        "id": "did:example:123#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": "https://example.com/endpoint1",
+        "routingKeys": ["did:example:somemediator#somekey1"],
+        "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+    },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": [
+            {
+                "uri": "https://example.com/path",
+                "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+                "routingKeys": ["did:example:somemediator#somekey"],
+            }
+        ],
+    },
+]
 
 INVALID_SERVICES = [
-    INVALID_SERVICE0,
-    INVALID_SERVICE1,
-    INVALID_SERVICE2,
-    INVALID_SERVICE3,
+    {"type": "xdi", "serviceEndpoint": "https://example.com"},
+    {
+        "id": "did:example:123#linked-domain",
+        "serviceEndpoint": "https://bar.example.com",
+    },
+    {
+        "id": "did:example:123",
+        "type": "LinkedDomains",
+        "serviceEndpoint": "https://bar.example.com",
+    },
+    {
+        "id": "did:example:123#linked-domain",
+        "type": "LinkedDomains",
+        "serviceEndpoint": True,
+    },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": ["http://example.com"],
+    },
 ]
 
 
@@ -71,79 +89,93 @@ def test_serialization(service_raw):
     assert service.serialize() == service_raw
 
 
-DIDCOMM_SERVICE0 = {
-    "id": "did:example:123#did-communication",
-    "type": "did-communication",
-    "serviceEndpoint": "https://agents-r-us.com",
-    "recipientKeys": ["did:example:123#keys-1"],
-    "routingKeys": [
-        "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-        "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
-    ],
-    "priority": 0,
-}
-
-DIDCOMM_SERVICE1 = {
-    "id": "did:example:123#did-communication",
-    "type": "did-communication",
-    "serviceEndpoint": "https://agents-r-us.com",
-    "recipientKeys": ["did:example:123#keys-1"],
-    "routingKeys": [],
-    "priority": 0,
-}
-
-DIDCOMM_SERVICE2 = {
-    "id": "did:example:123#indy-agent",
-    "type": "IndyAgent",
-    "serviceEndpoint": "https://agents-r-us.com",
-    "recipientKeys": ["did:example:123#keys-1"],
-    "routingKeys": [],
-    "priority": 0,
-    "accept": ["didcomm/aip2;env=rfc19"]
-}
-
-DIDCOMM_SERVICES = [DIDCOMM_SERVICE0, DIDCOMM_SERVICE1, DIDCOMM_SERVICE2]
-
-DIDCOMM_INVALID_SERVICE0 = {
-    "id": "did:example:123#linked-domain",
-    "type": "LinkedDomains",
-    "serviceEndpoint": "https://bar.example.com",
-}
-
-DIDCOMM_INVALID_SERVICE1 = {
-    "id": "did:example:123#did-communication",
-    "type": "did-communication",
-    "serviceEndpoint": "https://agents-r-us.com",
-    "recipientKeys": ["did:example:123#keys-1"],
-    "routingKeys": [],
-    "extra key": "that should fail",
-}
+DIDCOMM_SERVICES = [
+    {
+        "id": "did:example:123#did-communication",
+        "type": "did-communication",
+        "serviceEndpoint": "https://agents-r-us.com",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [
+            "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+            "#z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+        ],
+        "priority": 0,
+    },
+    {
+        "id": "did:example:123#did-communication",
+        "type": "did-communication",
+        "serviceEndpoint": "https://agents-r-us.com",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [],
+        "priority": 0,
+    },
+    {
+        "id": "did:example:123#indy-agent",
+        "type": "IndyAgent",
+        "serviceEndpoint": "https://agents-r-us.com",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [],
+        "priority": 0,
+        "accept": ["didcomm/aip2;env=rfc19"],
+    },
+    {
+        "id": "did:example:123#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": "https://example.com/endpoint1",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": ["did:example:somemediator#somekey1"],
+        "priority": 0,
+        "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+    },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": [
+            {
+                "uri": "https://example.com/path",
+                "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+                "routingKeys": ["did:example:somemediator#somekey"],
+            }
+        ],
+    },
+]
 
 DIDCOMM_INVALID_SERVICES = [
     *INVALID_SERVICES,
-    DIDCOMM_INVALID_SERVICE0,
-    DIDCOMM_INVALID_SERVICE1,
+    {
+        "id": "did:example:123#linked-domain",
+        "type": "LinkedDomains",
+        "serviceEndpoint": "https://bar.example.com",
+    },
+    {
+        "id": "did:example:123#did-communication",
+        "type": "did-communication",
+        "serviceEndpoint": "https://agents-r-us.com",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [],
+        "extra key": "that should fail",
+    },
 ]
 
 
 @pytest.mark.parametrize("service", DIDCOMM_SERVICES)
 def test_didcomm_validate(service):
-    DIDCommService.validate(service)
+    parse_obj_as(Union[DIDCommV1Service, DIDCommV2Service], service)
 
 
 @pytest.mark.parametrize("service", DIDCOMM_INVALID_SERVICES)
 def test_didcomm_fails_invalid(service):
     with pytest.raises(ValueError):
-        DIDCommService.validate(service)
+        parse_obj_as(Union[DIDCommV1Service, DIDCommV2Service], service)
 
 
 @pytest.mark.parametrize("service_raw", DIDCOMM_SERVICES)
 def test_didcomm_serialization(service_raw):
-    service = DIDCommService.deserialize(service_raw)
+    service = parse_obj_as(Union[DIDCommV1Service, DIDCommV2Service], service_raw)
     assert service.serialize() == service_raw
 
 
 def test_use_endpoint():
-    service = Service.deserialize(SERVICE0)
+    service = Service.deserialize(SERVICES[0])
     assert service.service_endpoint == "https://bar.example.com"
     assert "https" in service.service_endpoint

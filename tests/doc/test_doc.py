@@ -15,7 +15,7 @@ from pydid.doc.doc import (
     IDNotFoundError,
     NonconformantDocument,
 )
-from pydid.service import Service
+from pydid.service import DIDCommV2Service, Service
 from pydid.service import DIDCommService
 from pydid.verification_method import (
     Ed25519VerificationKey2018,
@@ -288,7 +288,41 @@ DOC7 = {
     ],
 }
 
-DOCS = [DOC0, DOC1, DOC2, DOC3, DOC4, DOC5, DOC6, DOC7]
+DOC8 = {
+    "@context": ["https://www.w3.org/ns/did/v1"],
+    "id": "did:example:123",
+    "verificationMethod": [
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "1234",
+        }
+    ],
+    "authentication": [
+        "did:example:123#keys-0",
+        {
+            "id": "did:example:123#auth-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "abcd",
+        },
+    ],
+    "service": [
+        {
+            "id": "did:example:123456789abcdefghi#didcomm-1",
+            "type": "DIDCommMessaging",
+            "serviceEndpoint": [
+                {
+                    "uri": "https://example.com/path",
+                    "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+                    "routingKeys": ["did:example:somemediator#somekey"],
+                }
+            ],
+        },
+    ],
+}
+DOCS = [DOC0, DOC1, DOC2, DOC3, DOC4, DOC5, DOC6, DOC7, DOC8]
 
 INVALID_DOC0 = {}
 INVALID_DOC1 = {
@@ -399,6 +433,20 @@ def test_didcomm_service_deserialized():
     assert isinstance(doc.service[0], DIDCommService)
 
 
+def test_didcommv2_service_deserialized():
+    """Test whether a DIDCommService is returned when deserialized."""
+    doc = DIDDocument.deserialize(DOC8)
+    assert isinstance(doc.service[0], DIDCommV2Service)
+
+
+def test_didcommv2_service_dereference():
+    """Test whether a DIDCommService is returned when deserialized."""
+    doc = DIDDocument.deserialize(DOC8)
+    assert isinstance(
+        doc.dereference_as(DIDCommV2Service, DOC8["service"][0]["id"]), DIDCommV2Service
+    )
+
+
 def test_programmatic_construction():
     builder = DIDDocumentBuilder("did:example:123")
     assert builder.context == ["https://www.w3.org/ns/did/v1"]
@@ -464,7 +512,7 @@ def test_programmatic_construction_didcomm():
                 "recipientKeys": ["did:example:123#key-0"],
                 "routingKeys": ["did:example:123#key-1"],
                 "priority": 1,
-            }
+            },
         ],
     }
 
