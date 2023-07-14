@@ -37,7 +37,7 @@ class VerificationMethod(Resource):
 
     id: DIDUrl
     type: str
-    controller: DID
+    controller: Union[DID, DIDUrl]
     public_key_hex: Optional[str] = None
     public_key_base58: Optional[str] = None
     public_key_pem: Optional[str] = None

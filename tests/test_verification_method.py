@@ -146,6 +146,18 @@ def test_validator_allow_controller_list():
     assert vmethod.controller == "did:example:123"
 
 
+def test_validator_allow_controller_didurl():
+    # https://identity.foundation/peer-did-method-spec/#generation-method
+    vmethod = VerificationMethod.deserialize(
+        {
+            "id": "did:example:123#keys-1",
+            "type": "Ed25519Signature2018",
+            "controller": "#id",
+            "publicKeyBase58": "12345",
+        },
+    )
+    assert vmethod.controller == "#id"
+
 def test_validator_allow_missing_controller():
     vmethod = VerificationMethod.deserialize(
         {
