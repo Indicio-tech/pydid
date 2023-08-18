@@ -137,8 +137,8 @@ class ServiceBuilder:
     def add_didcomm(
         self,
         service_endpoint: str,
-        recipient_keys: List[VerificationMethod],
-        routing_keys: Optional[List[VerificationMethod]] = None,
+        recipient_keys: List[Union[VerificationMethod, DIDUrl, str]],
+        routing_keys: Optional[List[Union[VerificationMethod, DIDUrl, str]]] = None,
         *,
         priority: Optional[int] = None,
         type_: Optional[str] = None,
@@ -152,8 +152,14 @@ class ServiceBuilder:
         service = DIDCommService.make(
             id=self._did.ref(ident),
             service_endpoint=service_endpoint,
-            recipient_keys=[vmethod.id for vmethod in recipient_keys],
-            routing_keys=[vmethod.id for vmethod in routing_keys],
+            recipient_keys=[
+                vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
+                for vmethod in recipient_keys
+            ],
+            routing_keys=[
+                vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
+                for vmethod in routing_keys
+            ],
             type=type_,
             priority=priority,
             accept=accept,
