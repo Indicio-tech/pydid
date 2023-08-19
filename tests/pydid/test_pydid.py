@@ -3,11 +3,11 @@
 import json
 import logging
 from pathlib import Path
-from pydid.doc import corrections
 
 import pytest
 
 import pydid
+from pydid.doc import corrections
 
 DOCS_PATH = Path(__file__).parent / "test_docs.json"
 DOCS = json.loads(DOCS_PATH.read_text())

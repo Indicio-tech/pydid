@@ -1,8 +1,9 @@
 """Test Service."""
 
 from typing import Union
-from pydantic import parse_obj_as
+
 import pytest
+from pydantic import parse_obj_as
 
 from pydid import Service
 from pydid.service import DIDCommV1Service, DIDCommV2Service

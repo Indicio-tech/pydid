@@ -1,7 +1,7 @@
 """Test DIDDocument object."""
 
-from collections import namedtuple
 import copy
+from collections import namedtuple
 
 import pytest
 from typing_extensions import Annotated, Literal
@@ -15,8 +15,7 @@ from pydid.doc.doc import (
     IDNotFoundError,
     NonconformantDocument,
 )
-from pydid.service import DIDCommV2Service, Service
-from pydid.service import DIDCommService
+from pydid.service import DIDCommService, DIDCommV2Service, Service
 from pydid.verification_method import (
     Ed25519VerificationKey2018,
     VerificationMaterial,

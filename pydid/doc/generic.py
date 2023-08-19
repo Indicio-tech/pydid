@@ -6,12 +6,12 @@ your own risk.
 """
 
 import sys
+from typing import List, Optional, TypeVar, Union
 
-from typing import TypeVar, Optional, List, Union
-from .doc import DIDDocumentRoot, BasicDIDDocument
-from ..verification_method import VerificationMethod
-from ..service import Service
 from ..did_url import DIDUrl
+from ..service import Service
+from ..verification_method import VerificationMethod
+from .doc import BasicDIDDocument, DIDDocumentRoot
 
 if sys.version_info >= (3, 7):  # pragma: no cover
     # In Python 3.7+, we can use Generics with Pydantic to simplify subclassing
