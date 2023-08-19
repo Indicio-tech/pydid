@@ -6,6 +6,7 @@ from typing import Callable, List, Optional, Type
 from .common import DIDError
 from .did import DID, InvalidDIDError
 from .did_url import DIDUrl, InvalidDIDUrlError
+from .doc import corrections, generic
 from .doc.builder import DIDDocumentBuilder
 from .doc.doc import (
     BaseDIDDocument,
@@ -21,7 +22,6 @@ from .verification_method import (
     VerificationMaterialUnknown,
     VerificationMethod,
 )
-from .doc import generic, corrections
 
 __all__ = [
     "BasicDIDDocument",

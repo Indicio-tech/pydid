@@ -1,9 +1,9 @@
 """DID URL Object."""
 
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse
 
-from .common import DID_URL_DID_PART_PATTERN, DIDError, DID_URL_RELATIVE_FRONT
+from .common import DID_URL_DID_PART_PATTERN, DID_URL_RELATIVE_FRONT, DIDError
 
 if TYPE_CHECKING:  # pragma: no cover
     from .did import DID

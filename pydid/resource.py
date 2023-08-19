@@ -1,16 +1,15 @@
 """Resource class that forms the base of all DID Document components."""
 
-from abc import ABC, abstractmethod
 import json
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Type, TypeVar
 
+import typing_extensions
 from inflection import camelize
 from pydantic import BaseModel, Extra, parse_obj_as
 from typing_extensions import Literal
-import typing_extensions
 
 from .validation import wrap_validation_error
-
 
 ResourceType = TypeVar("ResourceType", bound="Resource")
 

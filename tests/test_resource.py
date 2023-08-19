@@ -1,13 +1,15 @@
 """Test Resource."""
 
+from typing import Optional
+
+import pytest
+
+from pydid.resource import IndexedResource, Resource
 from pydid.verification_method import (
     Ed25519VerificationKey2018,
     KnownVerificationMethods,
     VerificationMethod,
 )
-from typing import Optional
-import pytest
-from pydid.resource import Resource, IndexedResource
 
 
 @pytest.fixture
