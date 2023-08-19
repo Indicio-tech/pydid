@@ -3,8 +3,7 @@
 from typing import ClassVar, Optional, Set, Type, Union
 
 from inflection import underscore
-from pydantic import create_model
-from pydantic.class_validators import root_validator, validator
+from pydantic import create_model, field_validator, model_validator
 from typing_extensions import Literal
 
 from pydid.validation import required_group
@@ -70,7 +69,7 @@ class VerificationMethod(Resource):
         model._material_prop = underscore(material)
         return model
 
-    @validator("type", pre=True)
+    @field_validator("type", mode="before")
     @classmethod
     def _allow_type_list(cls, value: Union[str, list]):
         """Unwrap type list.
@@ -81,7 +80,7 @@ class VerificationMethod(Resource):
             return value[0]
         return value
 
-    @validator("controller", pre=True)
+    @field_validator("controller", mode="before")
     @classmethod
     def _allow_controller_list(cls, value: Union[str, list]):
         """Unwrap controller list.
@@ -92,7 +91,7 @@ class VerificationMethod(Resource):
             return value[0]
         return value
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
     def _allow_missing_controller(cls, values: dict):
         """Derive controller value from ID.
@@ -112,7 +111,7 @@ class VerificationMethod(Resource):
                 values["controller"] = ident.did
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
     def _method_appears_to_contain_material(cls, values: dict):
         """Validate that the method appears to contain verification material."""
@@ -122,7 +121,7 @@ class VerificationMethod(Resource):
             )
         return values
 
-    @root_validator
+    @model_validator(mode="after")
     @classmethod
     def _no_more_than_one_material_prop(cls, values: dict):
         """Validate that exactly one material property was specified on method."""

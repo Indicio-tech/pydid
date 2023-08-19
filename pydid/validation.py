@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 from typing import Set, Type
 
-from pydantic import ValidationError, root_validator
+from pydantic import ValidationError, model_validator
 
 
 @contextmanager
@@ -30,4 +30,4 @@ def required_group(props: Set[str]):
             )
         return values
 
-    return root_validator(allow_reuse=True)(_require_group)
+    return model_validator(mode="after")(_require_group)
