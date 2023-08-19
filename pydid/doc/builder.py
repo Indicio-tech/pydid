@@ -240,7 +240,7 @@ class DIDDocumentBuilder:
 
     def build(self) -> DIDDocument:
         """Build document."""
-        return DIDDocument.construct(
+        return DIDDocument.model_construct(
             id=self.id,
             context=self.context,
             also_known_as=self.also_known_as,

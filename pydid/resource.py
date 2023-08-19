@@ -138,8 +138,8 @@ class IndexedResource(Resource, ABC):
             ) from error
 
     @classmethod
-    def construct(cls, **data):
+    def model_construct(cls, **data):
         """Construct and index."""
-        resource = super(Resource, cls).construct(**data)
+        resource = super(Resource, cls).model_construct(**data)
         resource._index_resources()
         return resource
