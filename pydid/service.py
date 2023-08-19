@@ -1,14 +1,13 @@
 """DID Doc Service."""
 
 from typing import Any, List, Mapping, Optional, Union
-from typing_extensions import Literal
 
-from pydantic import AnyUrl, Extra, StrictStr
+from pydantic import AnyUrl, ConfigDict, Extra, StrictStr
+from typing_extensions import Literal
 
 from .did import DID
 from .did_url import DIDUrl
 from .resource import Resource
-
 
 EndpointStrings = Union[DID, DIDUrl, AnyUrl, StrictStr]
 
@@ -28,10 +27,7 @@ class Service(Resource):
 class DIDCommV1Service(Service):
     """DID Communication Service."""
 
-    class Config:
-        """DIDComm Service Config."""
-
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
     type: Literal["IndyAgent", "did-communication", "DIDCommMessaging"] = (
         "did-communication"
@@ -57,10 +53,7 @@ class DIDCommV2ServiceEndpoint(Resource):
 class DIDCommV2Service(Service):
     """DID Communication V2 Service."""
 
-    class Config:
-        """DIDComm Service Config."""
-
-        extra = Extra.forbid
+    model_config = ConfigDict(extra="forbid")
 
     type: Literal["DIDCommMessaging"] = "DIDCommMessaging"
     service_endpoint: Union[List[DIDCommV2ServiceEndpoint], DIDCommV2ServiceEndpoint]
