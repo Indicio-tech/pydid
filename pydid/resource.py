@@ -56,7 +56,7 @@ class Resource(BaseModel):
 
     def serialize(self):
         """Return serialized representation of Resource."""
-        return self.dict(exclude_none=True, by_alias=True)
+        return self.model_dump(exclude_none=True, by_alias=True)
 
     @classmethod
     def deserialize(cls: Type[ResourceType], value: dict) -> ResourceType:
@@ -75,7 +75,7 @@ class Resource(BaseModel):
 
     def to_json(self):
         """Serialize Resource to JSON."""
-        return self.json(exclude_none=True, by_alias=True)
+        return self.model_dump_json(exclude_none=True, by_alias=True)
 
     @classmethod
     def _fill_in_required_literals(cls, **kwargs) -> Dict[str, Any]:
