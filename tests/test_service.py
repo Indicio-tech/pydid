@@ -92,13 +92,13 @@ INVALID_SERVICES = [
 
 @pytest.mark.parametrize("service", SERVICES)
 def test_validates_valid(service):
-    Service.validate(service)
+    Service.model_validate(service)
 
 
 @pytest.mark.parametrize("service", INVALID_SERVICES)
 def test_fails_invalid(service):
     with pytest.raises(ValueError):
-        Service.validate(service)
+        Service.model_validate(service)
 
 
 @pytest.mark.parametrize("service_raw", SERVICES)
