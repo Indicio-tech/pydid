@@ -82,7 +82,7 @@ class DID(str):
         return DID_PATTERN.match(did)
 
     @classmethod
-    def validate(cls, did: str):
+    def model_validate(cls, did: str):
         """Validate the given string as a DID."""
         if not cls.is_valid(did):
             raise InvalidDIDError('"{}" is not a valid DID'.format(did))
