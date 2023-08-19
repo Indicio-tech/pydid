@@ -8,14 +8,14 @@ your own risk.
 import sys
 from typing import List, Optional, TypeVar, Union
 
+from pydantic import BaseModel
+
 from ..did_url import DIDUrl
 from ..service import Service
 from ..verification_method import VerificationMethod
 from .doc import BasicDIDDocument, DIDDocumentRoot
 
 if sys.version_info >= (3, 7):  # pragma: no cover
-    # In Python 3.7+, we can use Generics with Pydantic to simplify subclassing
-    from pydantic.generics import GenericModel
     from typing import Generic
 
     VM = TypeVar("VM", bound=VerificationMethod)
@@ -24,7 +24,7 @@ if sys.version_info >= (3, 7):  # pragma: no cover
     Relationships = Optional[List[Union[DIDUrl, VM]]]
     Services = Optional[List[SV]]
 
-    class GenericDIDDocumentRoot(DIDDocumentRoot, GenericModel, Generic[VM, SV]):
+    class GenericDIDDocumentRoot(DIDDocumentRoot, BaseModel, Generic[VM, SV]):
         """DID Document Root with Generics."""
 
         verification_method: Methods[VM] = None
@@ -35,7 +35,7 @@ if sys.version_info >= (3, 7):  # pragma: no cover
         capability_delegation: Relationships[VM] = None
         service: Services[SV] = None
 
-    class GenericBasicDIDDocument(BasicDIDDocument, GenericModel, Generic[VM, SV]):
+    class GenericBasicDIDDocument(BasicDIDDocument, BaseModel, Generic[VM, SV]):
         """BasicDIDDocument with Generics."""
 
         verification_method: Methods[VM] = None
