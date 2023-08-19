@@ -1,7 +1,11 @@
 """DID URL Object."""
 
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 from urllib.parse import parse_qsl, urlencode, urlparse
+
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema, core_schema
 
 from .common import DID_URL_DID_PART_PATTERN, DID_URL_RELATIVE_FRONT, DIDError
 
@@ -39,14 +43,20 @@ class DIDUrl(str):
         self.fragment = parts.fragment or None
 
     @classmethod
-    def __get_validators__(cls):
-        """Yield validators."""
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        """Update schema fields."""
+        return core_schema.no_info_after_validator_function(cls, handler(str))
 
     @classmethod
-    def __modify_schema__(cls, field_schema):  # pragma: no cover
+    def __get_pydantic_json_schema__(
+        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
         """Update schema fields."""
-        field_schema.update(examples=["did:example:123/some/path?query=test#fragment"])
+        json_schema = handler(core_schema)
+        json_schema["examples"] = ["did:example:123/some/path?query=test#fragment"]
+        return json_schema
 
     @classmethod
     def parse(cls, url: str):
