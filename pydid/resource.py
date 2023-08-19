@@ -6,7 +6,7 @@ from typing import Any, Dict, Type, TypeVar
 
 import typing_extensions
 from inflection import camelize
-from pydantic import BaseModel, Extra, parse_obj_as
+from pydantic import BaseModel, Extra, TypeAdapter
 from typing_extensions import Literal
 
 from .validation import wrap_validation_error
@@ -65,7 +65,8 @@ class Resource(BaseModel):
             ValueError,
             message="Failed to deserialize {}".format(cls.__name__),
         ):
-            return parse_obj_as(cls, value)
+            ResourceAdapter: TypeAdapter[ResourceType] = TypeAdapter(cls)
+            return ResourceAdapter.validate_python(value)
 
     @classmethod
     def from_json(cls, value: str):
@@ -126,8 +127,9 @@ class IndexedResource(Resource, ABC):
     def dereference_as(self, typ: Type[ResourceType], reference: str) -> ResourceType:
         """Dereference a resource to a specific type."""
         resource = self.dereference(reference)
+        ResourceAdapter: TypeAdapter[ResourceType] = TypeAdapter(typ)
         try:
-            return parse_obj_as(typ, resource.dict())
+            return ResourceAdapter.validate_python(resource.model_dump())
         except ValueError as error:
             raise ValueError(
                 "Dereferenced resource {} could not be parsed as {}".format(
