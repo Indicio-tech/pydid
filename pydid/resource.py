@@ -5,8 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Type, TypeVar
 
 import typing_extensions
-from inflection import camelize
-from pydantic import BaseModel, Extra, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Extra, TypeAdapter, alias_generators
 from typing_extensions import Literal
 
 from .validation import wrap_validation_error
@@ -41,18 +40,11 @@ else:  # pragma: no cover
 class Resource(BaseModel):
     """Base class for DID Document components."""
 
-    class Config:
-        """Configuration for Resources."""
-
-        underscore_attrs_are_private = True
-        extra = Extra.allow
-        allow_population_by_field_name = True
-        allow_mutation = False
-
-        @classmethod
-        def alias_generator(cls, string: str) -> str:
-            """Transform snake_case to camelCase."""
-            return camelize(string, uppercase_first_letter=False)
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra=Extra.allow,
+        alias_generator=alias_generators.to_camel,
+    )
 
     def serialize(self):
         """Return serialized representation of Resource."""
