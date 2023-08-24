@@ -65,6 +65,7 @@ def public_key_is_verification_method(value: dict) -> dict:
     ... }
     >>> doc_raw = pydid.corrections.public_key_is_verification_method(doc_raw)
     >>> assert "verificationMethod" in doc_raw
+    >>> assert "publicKey" not in doc_raw
 
     Or:
     >>> import pydid
@@ -80,5 +81,5 @@ def public_key_is_verification_method(value: dict) -> dict:
     """
 
     if "publicKey" in value:
-        value["verificationMethod"] = value["publicKey"]
+        value["verificationMethod"] = value.pop("publicKey")
     return value
