@@ -11,6 +11,7 @@ from .doc.doc import (
     BaseDIDDocument,
     BasicDIDDocument,
     DIDDocument,
+    DIDDocumentError,
     NonconformantDocument,
 )
 from .resource import Resource
@@ -51,7 +52,7 @@ def deserialize_document(
     corrections: Optional[List[Callable]] = None,
     *,
     strict: bool = False,
-    cls: Type[BaseDIDDocument] = None,
+    cls: Optional[Type[BaseDIDDocument]] = None,
 ) -> BaseDIDDocument:
     """Deserialize a document from a dictionary."""
     if corrections:

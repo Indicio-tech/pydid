@@ -3,7 +3,7 @@
 from abc import ABC
 from typing import Any, List, Optional, Union
 
-from pydantic import Field, root_validator, validator
+from pydantic import Field, validator
 from typing_extensions import Annotated
 
 from ..did import DID, InvalidDIDError
@@ -57,17 +57,6 @@ class DIDDocumentRoot(Resource):
         if isinstance(value, list):
             return value
         return [value]
-
-    @root_validator(pre=True, allow_reuse=True)
-    @classmethod
-    def _allow_publickey_instead_of_verification_method(cls, values: dict):
-        """Accept publickKey, transforming to verificationMethod.
-
-        This validator handles a common DID Document mutation.
-        """
-        if "publicKey" in values:
-            values["verificationMethod"] = values["publicKey"]
-        return values
 
 
 class BaseDIDDocument(DIDDocumentRoot, IndexedResource, ABC):
