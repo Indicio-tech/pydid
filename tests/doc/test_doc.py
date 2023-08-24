@@ -6,7 +6,7 @@ import copy
 import pytest
 from typing_extensions import Annotated, Literal
 
-from pydid.did_url import InvalidDIDUrlError
+from pydid.did_url import DIDUrl, InvalidDIDUrlError
 from pydid.doc.builder import DIDDocumentBuilder
 from pydid.doc.doc import (
     DIDDocument,
@@ -467,6 +467,8 @@ def test_programmatic_construction_didcomm():
     route = builder.verification_method.add(
         ExampleVerificationMethod, public_key_example="abcd"
     )
+    another_route = DIDUrl("did:example:123#key-5")
+    yet_another_route = "did:example:123#key-6"
     builder.service.add_didcomm(
         service_endpoint="https://example.com",
         recipient_keys=[key],
@@ -476,7 +478,7 @@ def test_programmatic_construction_didcomm():
     builder.service.add_didcomm(
         service_endpoint="https://example.com",
         recipient_keys=[key],
-        routing_keys=[route],
+        routing_keys=[route, another_route, yet_another_route],
     )
     assert builder.build().serialize() == {
         "@context": ["https://www.w3.org/ns/did/v1"],
@@ -510,7 +512,11 @@ def test_programmatic_construction_didcomm():
                 "type": "did-communication",
                 "serviceEndpoint": "https://example.com",
                 "recipientKeys": ["did:example:123#key-0"],
-                "routingKeys": ["did:example:123#key-1"],
+                "routingKeys": [
+                    "did:example:123#key-1",
+                    "did:example:123#key-5",
+                    "did:example:123#key-6",
+                ],
                 "priority": 1,
             },
         ],
