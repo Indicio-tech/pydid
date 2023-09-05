@@ -4,7 +4,7 @@ from typing import Union
 from pydantic import parse_obj_as
 import pytest
 
-from pydid import Service, DIDCommService
+from pydid import Service
 from pydid.service import DIDCommV1Service, DIDCommV2Service
 
 SERVICES = [
