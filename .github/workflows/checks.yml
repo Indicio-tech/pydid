@@ -8,27 +8,14 @@ on:
 
 jobs:
   format:
-    name: Formatting
+    name: Format and Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v4
+      - uses: psf/black@stable
         with:
-          python-version: 3.9
-      - name: Cache python environment
-        id: cache-env
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-formatting-black-23.7.0
-      - name: Install black
-        if: steps.cache-env.outputs.cache-hit != 'true'
-        run: |
-          pip install black==23.7.0
-      - name: Black Format Check
-        run: |
-          black --check pydid
+          src: "./pydid"
+      - uses: chartboost/ruff-action@v1
 
   test:
     name: Tests

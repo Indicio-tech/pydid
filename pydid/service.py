@@ -10,7 +10,7 @@ from .resource import Resource
 
 
 class ServiceEndpoint(Resource):
-    """List of Service Endpoints"""
+    """List of Service Endpoints."""
 
     uri: Union[DIDUrl, AnyUrl]
 

@@ -48,6 +48,7 @@ class VerificationMethod(Resource):
     _material_prop: Optional[str] = None
 
     def __init__(self, **data):
+        """Initialize a VerificationMethod."""
         super().__init__(**data)
         self._material_prop = self._material_prop or self._infer_material_prop()
 
@@ -136,9 +137,9 @@ class VerificationMethod(Resource):
         return values
 
     def _infer_material_prop(self) -> Optional[str]:
-        """
-        Guess the property that appears to be the verification material based
-        on known material property names.
+        """Guess the property that appears to be the verification material.
+
+        Guess is based on known material property names.
         """
 
         for prop, value in self:
