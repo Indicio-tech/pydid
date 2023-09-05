@@ -27,6 +27,7 @@ class VerificationMethodBuilder:
         id_base: str = None,
         methods: Optional[List[VerificationMethod]] = None
     ):
+        """Initialize builder."""
         self._did = did
         self.methods = methods or []
         self._id_base = id_base or "key"
@@ -65,6 +66,7 @@ class RelationshipBuilder(VerificationMethodBuilder):
         *,
         methods: Optional[List[Union[VerificationMethod, DIDUrl]]] = None
     ):
+        """Initialize builder."""
         super().__init__(did, id_base=id_base)
         self.methods = methods or []
 
@@ -101,6 +103,7 @@ class ServiceBuilder:
     """Builder for services."""
 
     def __init__(self, did: DID, *, services: Optional[List[Service]] = None):
+        """Initialize builder."""
         self._did = did
         self.services = services or []
         self._id_generator = _default_id_generator("service", start=len(self.services))

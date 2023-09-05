@@ -140,8 +140,7 @@ PossibleServiceTypes = Union[DIDCommV1Service, DIDCommV2Service, UnknownService]
 
 
 class DIDDocument(BasicDIDDocument):
-    """
-    DID Document for DID Spec version 1.0.
+    """DID Document for DID Spec version 1.0.
 
     Registered verification method and service types are parsed into specific objects.
     """

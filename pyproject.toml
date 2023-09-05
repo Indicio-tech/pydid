@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/Indicio-tech/pydid"
 repository = "https://github.com/Indicio-tech/pydid"
 keywords = [
-    "decentralized", "identity", "ssi"
+    "decentralized", "identity", "ssi", "DID", "DID Document"
 ]
 
 [build-system]
@@ -26,7 +26,7 @@ pytest = "^7.4.0"
 black = "^23.7.0"
 poetry = "^1.5.0"
 pre-commit = "^3.3.0"
-flake8 = "^6.0.0"
+ruff = "^0.0.287"
 pytest-coverage = "^0.0"
 aiohttp = "^3.8.0"
 pytest-asyncio = "^0.21.0"
@@ -44,4 +44,18 @@ exclude_lines = [
 precision = 2
 show_missing = true
 
-[tool.flake8]
+[tool.ruff]
+select = ["E", "F", "C", "D"]
+
+ignore = [
+    # Google Python Doc Style
+    "D203", "D204", "D213", "D215", "D400", "D401", "D404", "D406", "D407",
+    "D408", "D409", "D413",
+    "D202", # Allow blank line after docstring
+    "D104", # Don't require docstring in public package
+]
+
+line-length = 90
+
+[tool.ruff.per-file-ignores]
+"**/{tests}/*" = ["F841", "D", "E501"]

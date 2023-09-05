@@ -761,7 +761,7 @@ def test_default_context_should_not_mutate():
 
     doc_builder = DIDDocumentBuilder("did:example:123")
     # save a copy of the default context before mutating the document's contexts
-    original_default_context = [context for context in doc_builder.context]
+    original_default_context = list(doc_builder.context)
 
     # when
 

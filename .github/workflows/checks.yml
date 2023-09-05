@@ -8,27 +8,14 @@ on:
 
 jobs:
   format:
-    name: Formatting
+    name: Format and Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v4
+      - uses: psf/black@stable
         with:
-          python-version: 3.9
-      - name: Cache python environment
-        id: cache-env
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-formatting-black-23.7.0
-      - name: Install black
-        if: steps.cache-env.outputs.cache-hit != 'true'
-        run: |
-          pip install black==23.7.0
-      - name: Black Format Check
-        run: |
-          black --check pydid
+          src: "./pydid"
+      - uses: chartboost/ruff-action@v1
 
   test:
     name: Tests
@@ -48,11 +35,5 @@ jobs:
           cache: poetry
       - name: Install dependencies
         run: poetry install
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Run pytest
         run: poetry run pytest

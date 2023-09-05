@@ -111,6 +111,7 @@ class IndexedResource(Resource, ABC):
     _index: dict = {}
 
     def __init__(self, **data):
+        """Initialize Resource."""
         super().__init__(**data)
         self._index_resources()
 
