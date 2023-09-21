@@ -1,18 +1,16 @@
 """DID Doc Service."""
 
-from typing import List, Optional, Union
-
-from pydantic import Extra, AnyUrl
+from typing import Any, List, Mapping, Optional, Union
 from typing_extensions import Literal
 
+from pydantic import AnyUrl, Extra, StrictStr
+
+from .did import DID
 from .did_url import DIDUrl
 from .resource import Resource
 
 
-class ServiceEndpoint(Resource):
-    """List of Service Endpoints."""
-
-    uri: Union[DIDUrl, AnyUrl]
+EndpointStrings = Union[DID, DIDUrl, AnyUrl, StrictStr]
 
 
 class Service(Resource):
@@ -20,7 +18,11 @@ class Service(Resource):
 
     id: DIDUrl
     type: str
-    service_endpoint: Union[DIDUrl, AnyUrl, Literal[""], List[ServiceEndpoint]]
+    service_endpoint: Union[
+        EndpointStrings,
+        List[Union[EndpointStrings, Mapping[str, Any]]],
+        Mapping[str, Any],
+    ]
 
 
 class DIDCommV1Service(Service):
@@ -34,6 +36,7 @@ class DIDCommV1Service(Service):
     type: Literal[
         "IndyAgent", "did-communication", "DIDCommMessaging"
     ] = "did-communication"
+    service_endpoint: EndpointStrings
     recipient_keys: List[DIDUrl]
     routing_keys: List[DIDUrl] = []
     accept: Optional[List[str]] = None
@@ -43,10 +46,10 @@ class DIDCommV1Service(Service):
 DIDCommService = DIDCommV1Service
 
 
-class DIDCommV2ServiceEndpoint(ServiceEndpoint):
+class DIDCommV2ServiceEndpoint(Resource):
     """DID Communication Service Endpoint."""
 
-    uri: Union[DIDUrl, AnyUrl]
+    uri: EndpointStrings
     accept: Optional[List[str]] = None
     routing_keys: List[DIDUrl] = []
 

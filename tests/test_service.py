@@ -36,6 +36,14 @@ SERVICES = [
         "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
     },
     {
+        "id": "did:example:123#didcomm-1",
+        "type": "did-communication",
+        "serviceEndpoint": "didcomm:transport/queue",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [],
+        "accept": ["didcomm/aip2;env=rfc587"],
+    },
+    {
         "id": "did:example:123456789abcdefghi#didcomm-1",
         "type": "DIDCommMessaging",
         "serviceEndpoint": [
@@ -63,11 +71,6 @@ INVALID_SERVICES = [
         "id": "did:example:123#linked-domain",
         "type": "LinkedDomains",
         "serviceEndpoint": True,
-    },
-    {
-        "id": "did:example:123456789abcdefghi#didcomm-1",
-        "type": "DIDCommMessaging",
-        "serviceEndpoint": ["http://example.com"],
     },
 ]
 
@@ -128,6 +131,15 @@ DIDCOMM_SERVICES = [
         "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
     },
     {
+        "id": "did:example:123#didcomm-1",
+        "type": "did-communication",
+        "serviceEndpoint": "didcomm:transport/queue",
+        "recipientKeys": ["did:example:123#keys-1"],
+        "routingKeys": [],
+        "priority": 0,
+        "accept": ["didcomm/aip2;env=rfc587"],
+    },
+    {
         "id": "did:example:123456789abcdefghi#didcomm-1",
         "type": "DIDCommMessaging",
         "serviceEndpoint": [
@@ -135,6 +147,28 @@ DIDCOMM_SERVICES = [
                 "uri": "https://example.com/path",
                 "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
                 "routingKeys": ["did:example:somemediator#somekey"],
+            }
+        ],
+    },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": [
+            {
+                "uri": "didcomm:transport/queue",
+                "accept": ["didcomm/v2"],
+                "routingKeys": [],
+            }
+        ],
+    },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": [
+            {
+                "uri": "did:example:mediator",
+                "accept": ["didcomm/v2"],
+                "routingKeys": [],
             }
         ],
     },
