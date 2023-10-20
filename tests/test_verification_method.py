@@ -162,6 +162,14 @@ def test_validator_allow_missing_controller():
                 "publicKeyBase58": "12345",
             },
         )
+    with pytest.raises(ValueError):
+        vmethod = VerificationMethod.deserialize(
+            {
+                "id": "hi",
+                "type": "Ed25519Signature2018",
+                "publicKeyBase58": "12345",
+            },
+        )
 
 
 def test_make():
