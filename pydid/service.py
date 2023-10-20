@@ -63,7 +63,7 @@ class DIDCommV2Service(Service):
         extra = Extra.forbid
 
     type: Literal["DIDCommMessaging"] = "DIDCommMessaging"
-    service_endpoint: List[DIDCommV2ServiceEndpoint]
+    service_endpoint: Union[List[DIDCommV2ServiceEndpoint], DIDCommV2ServiceEndpoint]
 
 
 class UnknownService(Service):
