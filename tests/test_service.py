@@ -54,6 +54,15 @@ SERVICES = [
             }
         ],
     },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": {
+            "uri": "https://example.com/path",
+            "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+            "routingKeys": ["did:example:somemediator#somekey"],
+        },
+    },
 ]
 
 INVALID_SERVICES = [
@@ -171,6 +180,15 @@ DIDCOMM_SERVICES = [
                 "routingKeys": [],
             }
         ],
+    },
+    {
+        "id": "did:example:123456789abcdefghi#didcomm-1",
+        "type": "DIDCommMessaging",
+        "serviceEndpoint": {
+            "uri": "https://example.com/path",
+            "accept": ["didcomm/v2", "didcomm/aip2;env=rfc587"],
+            "routingKeys": ["did:example:somemediator#somekey"],
+        },
     },
 ]
 
