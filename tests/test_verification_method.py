@@ -7,6 +7,7 @@ from pydid.did import DID
 from pydid.did_url import DIDUrl
 from pydid.verification_method import (
     Ed25519VerificationKey2018,
+    UnknownVerificationMethod,
     VerificationMaterialUnknown,
     VerificationMethod,
 )
@@ -35,20 +36,20 @@ VMETHOD2 = {
     },
 }
 VMETHOD3 = {
-    "id": "did:example:123#keys-1",
-    "type": "Ed25519Signature2018",
-    "controller": "did:example:123",
-    "something": "random",
-}
-VMETHOD4 = {
     "id": "did:example:1234#z6MkszZtxCmA2Ce4vUV132PCuLQmwnaDD5mw2L23fGNnsiX3",
     "type": "Ed25519VerificationKey2020",
     "controller": "did:example:1234",
     "publicKeyMultibase": "zEYJrMxWigf9boyeJMTRN4Ern8DJMoCXaLK77pzQmxVjf",
 }
-VMETHOD5 = {
+VMETHOD4 = {
     "id": "did:example:123#keys-1",
     "type": "X25519KeyAgreementKey2020",
+    "controller": "did:example:123",
+    "publicKeyMultibase": "z6LSeRSE5Em5oJpwdk3NBaLVERBS332ULC7EQq5EtMsmXhsM",
+}
+VMETHOD5 = {
+    "id": "did:example:123#keys-1",
+    "type": "Multikey",
     "controller": "did:example:123",
     "publicKeyMultibase": "z6LSeRSE5Em5oJpwdk3NBaLVERBS332ULC7EQq5EtMsmXhsM",
 }
@@ -81,9 +82,9 @@ def test_serialization(vmethod_raw):
     assert vmethod.id == DIDUrl.parse(vmethod_raw["id"])
     assert vmethod.type == vmethod_raw["type"]
     assert vmethod.controller == DID(vmethod_raw["controller"])
-    if vmethod.type != "Ed25519Signature2018":
-        assert vmethod.material
+    assert vmethod.material
     assert vmethod.serialize() == vmethod_raw
+    assert not isinstance(vmethod, UnknownVerificationMethod)
 
 
 @pytest.mark.parametrize("invalid_vmethod_raw", INVALID_VMETHODS)
@@ -202,6 +203,15 @@ def test_infer_material():
     }
     vmethod = VerificationMethod.deserialize(vmethod_raw)
     assert vmethod.material == vmethod_raw["blockchainAccountId"]
+    vmethod_unknown_raw = {
+        "id": "did:example:123#keys-1",
+        "type": "Ed25519Signature2018",
+        "controller": "did:example:123",
+        "something": "random",
+    }
+    vmethod = VerificationMethod.deserialize(vmethod_unknown_raw)
+    with pytest.raises(VerificationMaterialUnknown):
+        vmethod.material
 
 
 def test_method_type():

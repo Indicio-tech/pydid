@@ -258,6 +258,13 @@ class EcdsaSecp256k1RecoveryMethod2020(VerificationMethod):
     )
 
 
+class Multikey(VerificationMethod):
+    """Multikey VerificationMethod."""
+
+    type: Literal["Multikey"]
+    public_key_multibase: str
+
+
 class UnsupportedVerificationMethod(VerificationMethod):
     """Model representing unsupported verification methods."""
 
@@ -280,4 +287,5 @@ KnownVerificationMethods = Union[
     X25519KeyAgreementKey2020,
     SchnorrSecp256k1VerificationKey2019,
     EcdsaSecp256k1RecoveryMethod2020,
+    Multikey,
 ]
