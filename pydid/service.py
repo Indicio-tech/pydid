@@ -17,7 +17,7 @@ class Service(Resource):
     """Representation of DID Document Services."""
 
     id: DIDUrl
-    type: str
+    type: Union[str, List[str]]
     service_endpoint: Union[
         EndpointStrings,
         List[Union[EndpointStrings, Mapping[str, Any]]],
