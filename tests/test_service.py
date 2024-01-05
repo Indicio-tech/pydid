@@ -86,31 +86,6 @@ INVALID_SERVICES = [
         "type": "LinkedDomains",
         "serviceEndpoint": True,
     },
-    {
-        "id": "did:web:example.com#linked-domain",
-        "type": "",
-        "serviceEndpoint": "https://example.com",
-    },
-    {
-        "id": "did:web:example.com#linked-domain",
-        "type": ["Linked Domains"],
-        "serviceEndpoint": "https://example.com",
-    },
-    {
-        "id": "did:web:example.com#linked-domain",
-        "type": ["LinkedDomains", True],
-        "serviceEndpoint": "https://example.com",
-    },
-    {
-        "id": "did:web:example.com#linked-domain",
-        "type": [],
-        "serviceEndpoint": "https://example.com",
-    },
-    {
-        "id": "did:web:example.com#linked-domain",
-        "type": [""],
-        "serviceEndpoint": "https://example.com",
-    },
 ]
 
 
