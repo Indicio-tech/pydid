@@ -63,6 +63,11 @@ SERVICES = [
             "routingKeys": ["did:example:somemediator#somekey"],
         },
     },
+    {
+        "id": "did:web:example.com#linked-domain",
+        "type": ["LinkedDomains"],
+        "serviceEndpoint": "https://example.com",
+    },
 ]
 
 INVALID_SERVICES = [
