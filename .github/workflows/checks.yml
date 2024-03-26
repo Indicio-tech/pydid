@@ -16,6 +16,8 @@ jobs:
         with:
           src: "./pydid"
       - uses: chartboost/ruff-action@v1
+        with:
+          version: 0.3.4
 
   test:
     name: Tests
