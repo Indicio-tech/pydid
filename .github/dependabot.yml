@@ -15,5 +15,6 @@ updates:
 
   # Maintain pip dependencies
   - package-ecosystem: pip
+    directory: /
     schedule:
       interval: daily
