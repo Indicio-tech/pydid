@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Type, TypeVar
 
 import typing_extensions
-from pydantic import BaseModel, ConfigDict, Extra, TypeAdapter, alias_generators
+from pydantic import BaseModel, ConfigDict, TypeAdapter, alias_generators
 from typing_extensions import Literal
 
 from .validation import wrap_validation_error
@@ -42,7 +42,7 @@ class Resource(BaseModel):
 
     model_config = ConfigDict(
         populate_by_name=True,
-        extra=Extra.allow,
+        extra="allow",
         alias_generator=alias_generators.to_camel,
     )
 
