@@ -33,9 +33,9 @@ class DIDCommV1Service(Service):
 
         extra = Extra.forbid
 
-    type: Literal[
-        "IndyAgent", "did-communication", "DIDCommMessaging"
-    ] = "did-communication"
+    type: Literal["IndyAgent", "did-communication", "DIDCommMessaging"] = (
+        "did-communication"
+    )
     service_endpoint: EndpointStrings
     recipient_keys: List[DIDUrl]
     routing_keys: List[DIDUrl] = []

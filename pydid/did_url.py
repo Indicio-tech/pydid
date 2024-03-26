@@ -1,4 +1,5 @@
 """DID URL Object."""
+
 from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import parse_qsl, urlencode, urlparse
 

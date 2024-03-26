@@ -1,4 +1,5 @@
 """Test DID Document corrections."""
+
 import pytest
 
 from pydid.doc.corrections import insert_missing_ids

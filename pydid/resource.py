@@ -1,4 +1,5 @@
 """Resource class that forms the base of all DID Document components."""
+
 from abc import ABC, abstractmethod
 import json
 from typing import Any, Dict, Type, TypeVar
