@@ -10,14 +10,14 @@ Python library for validating, constructing, and representing DIDs and DID Docum
 Using a virtual environment is generally recommended:
 
 ```sh
-$ python -m venv env
-$ source env/bin/activate
+python -m venv env
+source env/bin/activate
 ```
 
 Install with pip:
 
 ```sh
-$ pip install pydid
+pip install pydid
 ```
 
 ## Development
@@ -28,12 +28,11 @@ To begin making code changes, clone this repo and do the following to install
 dependencies:
 
 ```sh
-$ python -m venv env
-$ source env/bin/activate
-$ pip install poetry
-$ poetry install
+python -m venv env
+source env/bin/activate
+pip install poetry
+poetry install
 ```
-
 
 ## Contributing
 
