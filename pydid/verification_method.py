@@ -59,7 +59,7 @@ class VerificationMethod(Resource):
             typ,
             __module__=cls.__module__,
             __base__=cls,
-            type=(Literal[typ], ...),
+            type=(Literal[typ], ...),  # type:ignore
             **{underscore(material): (material_type, ...)},
         )
         model.material = property(
