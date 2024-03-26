@@ -1,4 +1,5 @@
 """Resource class that forms the base of all DID Document components."""
+
 from abc import ABC, abstractmethod
 import json
 from typing import Any, Dict, Type, TypeVar
@@ -130,9 +131,7 @@ class IndexedResource(Resource, ABC):
             return parse_obj_as(typ, resource.dict())
         except ValueError as error:
             raise ValueError(
-                "Dereferenced resource {} could not be parsed as {}".format(
-                    resource, typ
-                )
+                "Dereferenced resource {} could not be parsed as {}".format(resource, typ)
             ) from error
 
     @classmethod

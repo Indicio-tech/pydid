@@ -32,9 +32,7 @@ class IDNotFoundError(DIDDocumentError):
 class DIDDocumentRoot(Resource):
     """Representation of DID Document."""
 
-    context: Annotated[
-        List[Union[str, dict]], Field(alias="@context")
-    ] = [  # noqa: F722
+    context: Annotated[List[Union[str, dict]], Field(alias="@context")] = [  # noqa: F722
         "https://www.w3.org/ns/did/v1"
     ]
     id: DID
@@ -100,9 +98,7 @@ class BasicDIDDocument(BaseDIDDocument):
             assert isinstance(item, (VerificationMethod, Service))
             if item.id in self._index and item != self._index[item.id]:
                 raise IdentifiedResourceMismatch(
-                    "ID {} already found in Index and Items do not match".format(
-                        item.id
-                    )
+                    "ID {} already found in Index and Items do not match".format(item.id)
                 )
 
             if not item.id.did:

@@ -25,7 +25,7 @@ class VerificationMethodBuilder:
         did: DID,
         *,
         id_base: str = None,
-        methods: Optional[List[VerificationMethod]] = None
+        methods: Optional[List[VerificationMethod]] = None,
     ):
         """Initialize builder."""
         self._did = did
@@ -42,7 +42,7 @@ class VerificationMethodBuilder:
         type_: Type[VerificationMethod],
         ident: Optional[str] = None,
         controller: DID = None,
-        **kwargs
+        **kwargs,
     ):
         """Add verification method from parts and context."""
         ident = ident or next(self._id_generator)
@@ -64,7 +64,7 @@ class RelationshipBuilder(VerificationMethodBuilder):
         did: DID,
         id_base: str,
         *,
-        methods: Optional[List[Union[VerificationMethod, DIDUrl]]] = None
+        methods: Optional[List[Union[VerificationMethod, DIDUrl]]] = None,
     ):
         """Initialize builder."""
         super().__init__(did, id_base=id_base)
@@ -132,7 +132,7 @@ class ServiceBuilder:
             id=self._did.ref(ident),
             type=type_,
             service_endpoint=service_endpoint,
-            **extra
+            **extra,
         )
         self.services.append(service)
         return service
@@ -146,7 +146,7 @@ class ServiceBuilder:
         priority: Optional[int] = None,
         type_: Optional[str] = None,
         ident: Optional[str] = None,
-        accept: Optional[List[str]] = None
+        accept: Optional[List[str]] = None,
     ):
         """Add DIDComm Service."""
         ident = ident or next(self._id_generator)
@@ -184,7 +184,7 @@ class DIDDocumentBuilder:
         context: List[str] = None,
         *,
         also_known_as: List[str] = None,
-        controller: Union[List[str], List[DID]] = None
+        controller: Union[List[str], List[DID]] = None,
     ):
         """Initliaze builder."""
         self.id: DID = DID(id)
@@ -195,12 +195,8 @@ class DIDDocumentBuilder:
         self.authentication = RelationshipBuilder(self.id, "auth")
         self.assertion_method = RelationshipBuilder(self.id, "assert")
         self.key_agreement = RelationshipBuilder(self.id, "key-agreement")
-        self.capability_invocation = RelationshipBuilder(
-            self.id, "capability-invocation"
-        )
-        self.capability_delegation = RelationshipBuilder(
-            self.id, "capability-delegation"
-        )
+        self.capability_invocation = RelationshipBuilder(self.id, "capability-invocation")
+        self.capability_delegation = RelationshipBuilder(self.id, "capability-delegation")
         self.service = ServiceBuilder(self.id)
         self.extra = {}
 
@@ -252,5 +248,5 @@ class DIDDocumentBuilder:
             capability_invocation=self.capability_invocation.methods or None,
             capability_delegation=self.capability_delegation.methods or None,
             service=self.service.services or None,
-            **self.extra
+            **self.extra,
         )

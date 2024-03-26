@@ -25,9 +25,7 @@ def required_group(props: Set[str]):
             key for key, value in values.items() if value is not None
         }
         if len(defined_props) < 1:
-            raise ValueError(
-                "At least one of {} was required; none found".format(props)
-            )
+            raise ValueError("At least one of {} was required; none found".format(props))
         return values
 
     return root_validator(allow_reuse=True)(_require_group)

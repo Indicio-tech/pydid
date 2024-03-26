@@ -1,4 +1,5 @@
 """Common components."""
+
 import re
 
 DID_REGEX = "did:([a-z0-9]+):((?:[a-zA-Z0-9._%-]*:)*[a-zA-Z0-9._%-]+)"
