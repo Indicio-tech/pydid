@@ -131,7 +131,9 @@ class IndexedResource(Resource, ABC):
             return parse_obj_as(typ, resource.dict())
         except ValueError as error:
             raise ValueError(
-                "Dereferenced resource {} could not be parsed as {}".format(resource, typ)
+                "Dereferenced resource {} could not be parsed as {}".format(
+                    resource, typ
+                )
             ) from error
 
     @classmethod
