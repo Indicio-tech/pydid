@@ -93,11 +93,14 @@ class VerificationMethod(Resource):
 
     @model_validator(mode="before")
     @classmethod
-    def _allow_missing_controller(cls, values: dict):
+    def _allow_missing_controller(cls, values: Union[dict, "VerificationMethod"]):
         """Derive controller value from ID.
 
         This validator handles a common DID Document mutation.
         """
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         if "controller" not in values:
             if "id" not in values:
                 raise ValueError(
@@ -113,8 +116,13 @@ class VerificationMethod(Resource):
 
     @model_validator(mode="before")
     @classmethod
-    def _method_appears_to_contain_material(cls, values: dict):
+    def _method_appears_to_contain_material(
+        cls, values: Union[dict, "VerificationMethod"]
+    ):
         """Validate that the method appears to contain verification material."""
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         if len(values) < 4:
             raise ValueError(
                 "Key material expected, found: {}".format(list(values.keys()))
@@ -123,8 +131,11 @@ class VerificationMethod(Resource):
 
     @model_validator(mode="after")
     @classmethod
-    def _no_more_than_one_material_prop(cls, values: dict):
+    def _no_more_than_one_material_prop(cls, values: Union[dict, "VerificationMethod"]):
         """Validate that exactly one material property was specified on method."""
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         set_material_properties = cls.material_properties & {
             key for key, value in values.items() if value is not None
         }
