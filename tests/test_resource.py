@@ -36,7 +36,7 @@ def test_resource_json_transforms():
 def test_dereference_as_compatible(mock_indexed_resource):
     class One(Resource):
         common: str
-        optiona: Optional[str] = None
+        optional: Optional[str] = None
 
     class Two(Resource):
         common: str

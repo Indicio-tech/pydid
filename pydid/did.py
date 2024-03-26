@@ -1,6 +1,6 @@
 """W3C DID Representation.
 
-DID Parsing rules derived from W3C Decentrialized Identifiers v1.0 Working Draft 18
+DID Parsing rules derived from W3C Decentralized Identifiers v1.0 Working Draft 18
 January 2021:
 
     https://w3c.github.io/did-core/

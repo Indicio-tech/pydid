@@ -215,10 +215,10 @@ class Bls1238G2Key2020(VerificationMethod):
     public_key_base58: str
 
 
-class GpgVerifcationKey2020(VerificationMethod):
-    """GpgVerifcationKey2020 VerificationMethod."""
+class GpgVerificationKey2020(VerificationMethod):
+    """GpgVerificationKey2020 VerificationMethod."""
 
-    type: Literal["GpgVerifcationKey2020"]
+    type: Literal["GpgVerificationKey2020"]
     public_key_gpg: str
 
 
@@ -281,7 +281,7 @@ KnownVerificationMethods = Union[
     EcdsaSecp256k1VerificationKey2019,
     Bls1238G1Key2020,
     Bls1238G2Key2020,
-    GpgVerifcationKey2020,
+    GpgVerificationKey2020,
     RsaVerificationKey2018,
     X25519KeyAgreementKey2019,
     X25519KeyAgreementKey2020,
