@@ -2,7 +2,7 @@
 
 from typing import Any, List, Mapping, Optional, Union
 
-from pydantic import AnyUrl, ConfigDict, Extra, StrictStr
+from pydantic import AnyUrl, ConfigDict, StrictStr
 from typing_extensions import Literal
 
 from .did import DID

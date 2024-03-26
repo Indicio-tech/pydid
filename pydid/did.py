@@ -42,6 +42,7 @@ class DID(str):
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
+        """Get core schema."""
         return core_schema.no_info_after_validator_function(cls, handler(str))
 
     @classmethod

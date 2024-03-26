@@ -3,7 +3,7 @@
 from abc import ABC
 from typing import Any, List, Optional, Union
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
 from ..did import DID, InvalidDIDError
