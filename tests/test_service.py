@@ -1,11 +1,14 @@
 """Test Service."""
 
 from typing import Union
-from pydantic import parse_obj_as
+
 import pytest
+from pydantic import TypeAdapter
 
 from pydid import Service
 from pydid.service import DIDCommV1Service, DIDCommV2Service
+
+DIDCommServiceValidator = TypeAdapter(Union[DIDCommV1Service, DIDCommV2Service])
 
 SERVICES = [
     {
@@ -91,13 +94,13 @@ INVALID_SERVICES = [
 
 @pytest.mark.parametrize("service", SERVICES)
 def test_validates_valid(service):
-    Service.validate(service)
+    Service.model_validate(service)
 
 
 @pytest.mark.parametrize("service", INVALID_SERVICES)
 def test_fails_invalid(service):
     with pytest.raises(ValueError):
-        Service.validate(service)
+        Service.model_validate(service)
 
 
 @pytest.mark.parametrize("service_raw", SERVICES)
@@ -217,18 +220,18 @@ DIDCOMM_INVALID_SERVICES = [
 
 @pytest.mark.parametrize("service", DIDCOMM_SERVICES)
 def test_didcomm_validate(service):
-    parse_obj_as(Union[DIDCommV1Service, DIDCommV2Service], service)
+    assert DIDCommServiceValidator.validate_python(service)
 
 
 @pytest.mark.parametrize("service", DIDCOMM_INVALID_SERVICES)
 def test_didcomm_fails_invalid(service):
     with pytest.raises(ValueError):
-        parse_obj_as(Union[DIDCommV1Service, DIDCommV2Service], service)
+        DIDCommServiceValidator.validate_python(service)
 
 
 @pytest.mark.parametrize("service_raw", DIDCOMM_SERVICES)
 def test_didcomm_serialization(service_raw):
-    service = parse_obj_as(Union[DIDCommV1Service, DIDCommV2Service], service_raw)
+    service = DIDCommServiceValidator.validate_python(service_raw)
     assert service.serialize() == service_raw
 
 

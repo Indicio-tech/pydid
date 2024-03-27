@@ -1,21 +1,19 @@
 """DID Document classes."""
 
+from .builder import (
+    DIDDocumentBuilder,
+    RelationshipBuilder,
+    ServiceBuilder,
+    VerificationMethodBuilder,
+)
 from .doc import (
-    IdentifiedResourceMismatch,
-    IDNotFoundError,
-    DIDDocumentRoot,
     BasicDIDDocument,
     DIDDocument,
     DIDDocumentError,
+    DIDDocumentRoot,
+    IdentifiedResourceMismatch,
+    IDNotFoundError,
 )
-
-from .builder import (
-    VerificationMethodBuilder,
-    RelationshipBuilder,
-    ServiceBuilder,
-    DIDDocumentBuilder,
-)
-
 
 __all__ = [
     "DIDDocumentError",

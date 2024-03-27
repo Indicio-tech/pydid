@@ -1,9 +1,10 @@
 """Retrieve uniresolver examples."""
 
+import asyncio
 import json
 from pathlib import Path
+
 import aiohttp
-import asyncio
 
 CONFIG_PATH = Path(__file__).parent / "uniresolver_config.json"
 CONFIG = json.loads(CONFIG_PATH.read_text())

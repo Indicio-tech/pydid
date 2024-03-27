@@ -1,12 +1,12 @@
 """DID Doc Verification Method."""
 
-from pydid.validation import required_group
 from typing import ClassVar, Optional, Set, Type, Union
 
 from inflection import underscore
-from pydantic import create_model
-from pydantic.class_validators import root_validator, validator
+from pydantic import create_model, field_validator, model_validator
 from typing_extensions import Literal
+
+from pydid.validation import required_group
 
 from .did import DID
 from .did_url import DIDUrl, InvalidDIDUrlError
@@ -59,7 +59,7 @@ class VerificationMethod(Resource):
             typ,
             __module__=cls.__module__,
             __base__=cls,
-            type=(Literal[typ], ...),
+            type=(Literal[typ], ...),  # type:ignore
             **{underscore(material): (material_type, ...)},
         )
         model.material = property(
@@ -69,7 +69,7 @@ class VerificationMethod(Resource):
         model._material_prop = underscore(material)
         return model
 
-    @validator("type", pre=True)
+    @field_validator("type", mode="before")
     @classmethod
     def _allow_type_list(cls, value: Union[str, list]):
         """Unwrap type list.
@@ -80,7 +80,7 @@ class VerificationMethod(Resource):
             return value[0]
         return value
 
-    @validator("controller", pre=True)
+    @field_validator("controller", mode="before")
     @classmethod
     def _allow_controller_list(cls, value: Union[str, list]):
         """Unwrap controller list.
@@ -91,13 +91,16 @@ class VerificationMethod(Resource):
             return value[0]
         return value
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
-    def _allow_missing_controller(cls, values: dict):
+    def _allow_missing_controller(cls, values: Union[dict, "VerificationMethod"]):
         """Derive controller value from ID.
 
         This validator handles a common DID Document mutation.
         """
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         if "controller" not in values:
             if "id" not in values:
                 raise ValueError(
@@ -111,20 +114,28 @@ class VerificationMethod(Resource):
                 values["controller"] = ident.did
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
-    def _method_appears_to_contain_material(cls, values: dict):
+    def _method_appears_to_contain_material(
+        cls, values: Union[dict, "VerificationMethod"]
+    ):
         """Validate that the method appears to contain verification material."""
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         if len(values) < 4:
             raise ValueError(
                 "Key material expected, found: {}".format(list(values.keys()))
             )
         return values
 
-    @root_validator
+    @model_validator(mode="after")
     @classmethod
-    def _no_more_than_one_material_prop(cls, values: dict):
+    def _no_more_than_one_material_prop(cls, values: Union[dict, "VerificationMethod"]):
         """Validate that exactly one material property was specified on method."""
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         set_material_properties = cls.material_properties & {
             key for key, value in values.items() if value is not None
         }
