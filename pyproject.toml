@@ -17,7 +17,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.9.0"
-pydantic = "^2.6.4"
+pydantic = "^2.7.0"
 typing-extensions = "^4.7.0"
 inflection = "^0.5.1"
 
