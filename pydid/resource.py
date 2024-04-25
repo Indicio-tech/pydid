@@ -52,13 +52,13 @@ class Resource(BaseModel):
 
     @classmethod
     def deserialize(cls: Type[ResourceType], value: dict) -> ResourceType:
-        """Deserialize into VerificationMethod."""
+        """Deserialize into Resource subtype."""
         with wrap_validation_error(
             ValueError,
-            message="Failed to deserialize {}".format(cls.__name__),
+            message=f"Failed to deserialize {cls.__name__}",
         ):
-            ResourceAdapter: TypeAdapter[ResourceType] = TypeAdapter(cls)
-            return ResourceAdapter.validate_python(value)
+            resource_adapter = TypeAdapter(cls)
+            return resource_adapter.validate_python(value)
 
     @classmethod
     def from_json(cls, value: str):
@@ -118,16 +118,13 @@ class IndexedResource(Resource, ABC):
 
     def dereference_as(self, typ: Type[ResourceType], reference: str) -> ResourceType:
         """Dereference a resource to a specific type."""
-        resource = self.dereference(reference)
-        ResourceAdapter: TypeAdapter[ResourceType] = TypeAdapter(typ)
-        try:
-            return ResourceAdapter.validate_python(resource.model_dump())
-        except ValueError as error:
-            raise ValueError(
-                "Dereferenced resource {} could not be parsed as {}".format(
-                    resource, typ
-                )
-            ) from error
+        with wrap_validation_error(
+            ValueError,
+            message=f"Dereferenced resource {reference} could not be parsed as {typ}",
+        ):
+            resource = self.dereference(reference)
+            resource_adapter: TypeAdapter[ResourceType] = TypeAdapter(typ)
+            return resource_adapter.validate_python(resource.model_dump())
 
     @classmethod
     def model_construct(cls, **data):
