@@ -122,7 +122,7 @@ class VerificationMethod(Resource):
         if not isinstance(values, dict):
             values = values.__dict__
 
-        if len(values) < 4:
+        if values.get("controller") and len(values) < 4:
             raise ValueError(
                 "Key material expected, found: {}".format(list(values.keys()))
             )
