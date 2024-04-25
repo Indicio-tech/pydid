@@ -114,7 +114,7 @@ class VerificationMethod(Resource):
                 values["controller"] = ident.did
         return values
 
-    @model_validator(mode="before")
+    @model_validator(mode="after")
     @classmethod
     def _method_appears_to_contain_material(
         cls, values: Union[dict, "VerificationMethod"]
