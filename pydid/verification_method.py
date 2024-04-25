@@ -108,10 +108,9 @@ class VerificationMethod(Resource):
                 )
             try:
                 ident = DIDUrl.parse(values["id"])
-            except InvalidDIDUrlError:
-                return values
-            else:
                 values["controller"] = ident.did
+            except InvalidDIDUrlError:
+                pass
         return values
 
     @model_validator(mode="after")
