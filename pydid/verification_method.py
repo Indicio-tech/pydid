@@ -3,7 +3,7 @@
 from typing import ClassVar, Optional, Set, Type, Union
 
 from inflection import underscore
-from pydantic import create_model, field_validator, model_validator
+from pydantic import create_model, field_validator, model_validator, alias_generators
 from typing_extensions import Literal
 
 from pydid.validation import required_group
@@ -11,6 +11,20 @@ from pydid.validation import required_group
 from .did import DID
 from .did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
+
+set_of_material_properties = {
+    "blockchain_account_id",
+    "ethereum_address",
+    "public_key_base58",
+    "public_key_gpg",
+    "public_key_hex",
+    "public_key_jwk",
+    "public_key_pem",
+    "public_key_multibase",
+}
+material_properties_camel = {
+    alias_generators.to_camel(prop) for prop in set_of_material_properties
+}
 
 
 class VerificationMaterial:
@@ -24,16 +38,7 @@ class VerificationMaterialUnknown(NotImplementedError):
 class VerificationMethod(Resource):
     """Representation of DID Document Verification Methods."""
 
-    material_properties: ClassVar[Set[str]] = {
-        "blockchain_account_id",
-        "ethereum_address",
-        "public_key_base58",
-        "public_key_gpg",
-        "public_key_hex",
-        "public_key_jwk",
-        "public_key_pem",
-        "public_key_multibase",
-    }
+    material_properties: ClassVar[Set[str]] = set_of_material_properties
 
     id: DIDUrl
     type: str
@@ -135,10 +140,12 @@ class VerificationMethod(Resource):
         if not isinstance(values, dict):
             values = values.__dict__
 
-        set_material_properties = cls.material_properties & {
-            key for key, value in values.items() if value is not None
-        }
-        if len(set_material_properties) > 1:
+        model_properties = {key for key, value in values.items() if value is not None}
+
+        set_material_properties = set_of_material_properties & model_properties
+        set_material_properties_camel = material_properties_camel & model_properties
+
+        if len(set_material_properties | set_material_properties_camel) > 1:
             raise ValueError(
                 "Found properties {}; only one is allowed".format(
                     ", ".join(set_material_properties)
