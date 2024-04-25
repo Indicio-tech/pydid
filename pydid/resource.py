@@ -74,20 +74,23 @@ class Resource(BaseModel):
     def _fill_in_required_literals(cls, **kwargs) -> Dict[str, Any]:
         """Return dictionary of field name to value from literals."""
         for field in cls.model_fields.values():
+            field_name = field.alias
+            field_type = field.annotation
             if (
-                field.required
-                and is_literal(field.type_)
-                and (field.name not in kwargs or kwargs[field.name] is None)
+                field.is_required()
+                and is_literal(field_type)
+                and (field_name not in kwargs or kwargs[field_name] is None)
             ):
-                kwargs[field.name] = get_literal_values(field.type_)[0]
+                kwargs[field_name] = get_literal_values(field_type)[0]
         return kwargs
 
     @classmethod
     def _overwrite_none_with_defaults(cls, **kwargs) -> Dict[str, Any]:
         """Overwrite none values in kwargs with defaults for corresponding field."""
         for field in cls.model_fields.values():
-            if field.name in kwargs and kwargs[field.name] is None:
-                kwargs[field.name] = field.get_default()
+            field_name = field.alias
+            if field_name in kwargs and kwargs[field_name] is None:
+                kwargs[field_name] = field.get_default()
         return kwargs
 
     @classmethod
