@@ -71,7 +71,7 @@ class VerificationMethod(Resource):
 
     @field_validator("type", mode="before")
     @classmethod
-    def _allow_type_list(cls, value: Union[str, list]):
+    def _allow_type_list(cls, value: Union[str, list[str]]) -> str:
         """Unwrap type list.
 
         This validator handles a common DID Document mutation.
@@ -82,7 +82,7 @@ class VerificationMethod(Resource):
 
     @field_validator("controller", mode="before")
     @classmethod
-    def _allow_controller_list(cls, value: Union[str, list]):
+    def _allow_controller_list(cls, value: Union[DID, list[DID]]) -> DID:
         """Unwrap controller list.
 
         This validator handles a common DID Document mutation.
