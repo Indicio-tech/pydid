@@ -48,10 +48,10 @@ class DIDDocumentRoot(Resource):
 
     @field_validator("context", "controller", mode="before")
     @classmethod
-    def _listify(cls, value):
+    def _listify(cls, value) -> Optional[list]:
         """Transform values into lists that are allowed to be a list or single."""
         if value is None:
-            return value
+            return
         if isinstance(value, list):
             return value
         return [value]
