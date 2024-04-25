@@ -94,7 +94,7 @@ def test_dereference_as_vmethod_using_known_methods(mock_indexed_resource_factor
         public_key_base58="testing",
     )
     test = mock_indexed_resource_factory(resource)
-    result = test.dereference_as(Ed25519VerificationKey2018, "test")
+    result = test.dereference_as(KnownVerificationMethods, "test")
     assert isinstance(result, VerificationMethod)
     assert isinstance(result, Ed25519VerificationKey2018)
     assert result.public_key_base58 == "testing"
