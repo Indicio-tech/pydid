@@ -113,7 +113,7 @@ class VerificationMethod(Resource):
                 pass
         return values
 
-    @model_validator(mode="after")
+    @model_validator(mode="before")
     @classmethod
     def _method_appears_to_contain_material(
         cls, values: Union[dict, "VerificationMethod"]
@@ -128,7 +128,7 @@ class VerificationMethod(Resource):
             )
         return values
 
-    @model_validator(mode="after")
+    @model_validator(mode="before")
     @classmethod
     def _no_more_than_one_material_prop(cls, values: Union[dict, "VerificationMethod"]):
         """Validate that exactly one material property was specified on method."""
