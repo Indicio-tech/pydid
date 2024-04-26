@@ -90,6 +90,11 @@ class DID(str):
         return did
 
     @classmethod
+    def validate(cls, did: str):
+        """Validate the given string as a DID."""
+        return cls.model_validate(did)
+
+    @classmethod
     def _validate(cls, did):
         """Pydantic validator."""
         return cls(did)

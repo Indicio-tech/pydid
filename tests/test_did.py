@@ -107,7 +107,7 @@ def test_can_parse_dids(did):
 
 @pytest.mark.parametrize("did", TEST_DIDS)
 def test_validate(did):
-    DID.model_validate(did)
+    DID.validate(did)
 
 
 @pytest.mark.parametrize(
