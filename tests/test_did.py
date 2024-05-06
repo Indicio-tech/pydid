@@ -123,7 +123,7 @@ def test_validate(did):
 )
 def test_validate_x(bad_did):
     with pytest.raises(InvalidDIDError):
-        DID.validate(bad_did)
+        DID.model_validate(bad_did)
 
 
 @pytest.mark.parametrize(

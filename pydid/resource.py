@@ -1,16 +1,14 @@
 """Resource class that forms the base of all DID Document components."""
 
-from abc import ABC, abstractmethod
 import json
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Type, TypeVar
 
-from inflection import camelize
-from pydantic import BaseModel, Extra, parse_obj_as
-from typing_extensions import Literal
 import typing_extensions
+from pydantic import BaseModel, ConfigDict, TypeAdapter, alias_generators
+from typing_extensions import Literal
 
 from .validation import wrap_validation_error
-
 
 ResourceType = TypeVar("ResourceType", bound="Resource")
 
@@ -42,31 +40,25 @@ else:  # pragma: no cover
 class Resource(BaseModel):
     """Base class for DID Document components."""
 
-    class Config:
-        """Configuration for Resources."""
-
-        underscore_attrs_are_private = True
-        extra = Extra.allow
-        allow_population_by_field_name = True
-        allow_mutation = False
-
-        @classmethod
-        def alias_generator(cls, string: str) -> str:
-            """Transform snake_case to camelCase."""
-            return camelize(string, uppercase_first_letter=False)
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="allow",
+        alias_generator=alias_generators.to_camel,
+    )
 
     def serialize(self):
         """Return serialized representation of Resource."""
-        return self.dict(exclude_none=True, by_alias=True)
+        return self.model_dump(exclude_none=True, by_alias=True)
 
     @classmethod
     def deserialize(cls: Type[ResourceType], value: dict) -> ResourceType:
-        """Deserialize into VerificationMethod."""
+        """Deserialize into Resource subtype."""
         with wrap_validation_error(
             ValueError,
-            message="Failed to deserialize {}".format(cls.__name__),
+            message=f"Failed to deserialize {cls.__name__}",
         ):
-            return parse_obj_as(cls, value)
+            resource_adapter = TypeAdapter(cls)
+            return resource_adapter.validate_python(value)
 
     @classmethod
     def from_json(cls, value: str):
@@ -76,26 +68,29 @@ class Resource(BaseModel):
 
     def to_json(self):
         """Serialize Resource to JSON."""
-        return self.json(exclude_none=True, by_alias=True)
+        return self.model_dump_json(exclude_none=True, by_alias=True)
 
     @classmethod
     def _fill_in_required_literals(cls, **kwargs) -> Dict[str, Any]:
         """Return dictionary of field name to value from literals."""
-        for field in cls.__fields__.values():
+        for field in cls.model_fields.values():
+            field_name = field.alias
+            field_type = field.annotation
             if (
-                field.required
-                and is_literal(field.type_)
-                and (field.name not in kwargs or kwargs[field.name] is None)
+                field.is_required()
+                and is_literal(field_type)
+                and (field_name not in kwargs or kwargs[field_name] is None)
             ):
-                kwargs[field.name] = get_literal_values(field.type_)[0]
+                kwargs[field_name] = get_literal_values(field_type)[0]
         return kwargs
 
     @classmethod
     def _overwrite_none_with_defaults(cls, **kwargs) -> Dict[str, Any]:
         """Overwrite none values in kwargs with defaults for corresponding field."""
-        for field in cls.__fields__.values():
-            if field.name in kwargs and kwargs[field.name] is None:
-                kwargs[field.name] = field.get_default()
+        for field in cls.model_fields.values():
+            field_name = field.alias
+            if field_name in kwargs and kwargs[field_name] is None:
+                kwargs[field_name] = field.get_default()
         return kwargs
 
     @classmethod
@@ -126,19 +121,17 @@ class IndexedResource(Resource, ABC):
 
     def dereference_as(self, typ: Type[ResourceType], reference: str) -> ResourceType:
         """Dereference a resource to a specific type."""
-        resource = self.dereference(reference)
-        try:
-            return parse_obj_as(typ, resource.dict())
-        except ValueError as error:
-            raise ValueError(
-                "Dereferenced resource {} could not be parsed as {}".format(
-                    resource, typ
-                )
-            ) from error
+        with wrap_validation_error(
+            ValueError,
+            message=f"Dereferenced resource {reference} could not be parsed as {typ}",
+        ):
+            resource = self.dereference(reference)
+            resource_adapter: TypeAdapter[ResourceType] = TypeAdapter(typ)
+            return resource_adapter.validate_python(resource.model_dump())
 
     @classmethod
-    def construct(cls, **data):
+    def model_construct(cls, **data):
         """Construct and index."""
-        resource = super(Resource, cls).construct(**data)
+        resource = super(Resource, cls).model_construct(**data)
         resource._index_resources()
         return resource

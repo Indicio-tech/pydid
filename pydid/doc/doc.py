@@ -3,7 +3,7 @@
 from abc import ABC
 from typing import Any, List, Optional, Union
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from typing_extensions import Annotated
 
 from ..did import DID, InvalidDIDError
@@ -46,12 +46,12 @@ class DIDDocumentRoot(Resource):
     capability_delegation: Optional[List[Union[DIDUrl, VerificationMethod]]] = None
     service: Optional[List[Service]] = None
 
-    @validator("context", "controller", pre=True, allow_reuse=True)
+    @field_validator("context", "controller", mode="before")
     @classmethod
-    def _listify(cls, value):
+    def _listify(cls, value) -> Optional[list]:
         """Transform values into lists that are allowed to be a list or single."""
         if value is None:
-            return value
+            return
         if isinstance(value, list):
             return value
         return [value]

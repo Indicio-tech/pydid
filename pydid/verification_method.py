@@ -1,16 +1,30 @@
 """DID Doc Verification Method."""
 
-from pydid.validation import required_group
 from typing import ClassVar, Optional, Set, Type, Union
 
 from inflection import underscore
-from pydantic import create_model
-from pydantic.class_validators import root_validator, validator
+from pydantic import create_model, field_validator, model_validator, alias_generators
 from typing_extensions import Literal
+
+from pydid.validation import required_group
 
 from .did import DID
 from .did_url import DIDUrl, InvalidDIDUrlError
 from .resource import Resource
+
+set_of_material_properties = {
+    "blockchain_account_id",
+    "ethereum_address",
+    "public_key_base58",
+    "public_key_gpg",
+    "public_key_hex",
+    "public_key_jwk",
+    "public_key_pem",
+    "public_key_multibase",
+}
+material_properties_camel = {
+    alias_generators.to_camel(prop) for prop in set_of_material_properties
+}
 
 
 class VerificationMaterial:
@@ -24,16 +38,7 @@ class VerificationMaterialUnknown(NotImplementedError):
 class VerificationMethod(Resource):
     """Representation of DID Document Verification Methods."""
 
-    material_properties: ClassVar[Set[str]] = {
-        "blockchain_account_id",
-        "ethereum_address",
-        "public_key_base58",
-        "public_key_gpg",
-        "public_key_hex",
-        "public_key_jwk",
-        "public_key_pem",
-        "public_key_multibase",
-    }
+    material_properties: ClassVar[Set[str]] = set_of_material_properties
 
     id: DIDUrl
     type: str
@@ -59,7 +64,7 @@ class VerificationMethod(Resource):
             typ,
             __module__=cls.__module__,
             __base__=cls,
-            type=(Literal[typ], ...),
+            type=(Literal[typ], ...),  # type:ignore
             **{underscore(material): (material_type, ...)},
         )
         model.material = property(
@@ -69,9 +74,9 @@ class VerificationMethod(Resource):
         model._material_prop = underscore(material)
         return model
 
-    @validator("type", pre=True)
+    @field_validator("type", mode="before")
     @classmethod
-    def _allow_type_list(cls, value: Union[str, list]):
+    def _allow_type_list(cls, value: Union[str, list[str]]) -> str:
         """Unwrap type list.
 
         This validator handles a common DID Document mutation.
@@ -80,9 +85,9 @@ class VerificationMethod(Resource):
             return value[0]
         return value
 
-    @validator("controller", pre=True)
+    @field_validator("controller", mode="before")
     @classmethod
-    def _allow_controller_list(cls, value: Union[str, list]):
+    def _allow_controller_list(cls, value: Union[DID, list[DID]]) -> DID:
         """Unwrap controller list.
 
         This validator handles a common DID Document mutation.
@@ -91,13 +96,16 @@ class VerificationMethod(Resource):
             return value[0]
         return value
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
-    def _allow_missing_controller(cls, values: dict):
+    def _allow_missing_controller(cls, values: Union[dict, "VerificationMethod"]):
         """Derive controller value from ID.
 
         This validator handles a common DID Document mutation.
         """
+        if not isinstance(values, dict):
+            values = values.__dict__
+
         if "controller" not in values:
             if "id" not in values:
                 raise ValueError(
@@ -105,30 +113,39 @@ class VerificationMethod(Resource):
                 )
             try:
                 ident = DIDUrl.parse(values["id"])
-            except InvalidDIDUrlError:
-                return values
-            else:
                 values["controller"] = ident.did
+            except InvalidDIDUrlError:
+                pass
         return values
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
-    def _method_appears_to_contain_material(cls, values: dict):
+    def _method_appears_to_contain_material(
+        cls, values: Union[dict, "VerificationMethod"]
+    ):
         """Validate that the method appears to contain verification material."""
-        if len(values) < 4:
+        if not isinstance(values, dict):
+            values = values.__dict__
+
+        if values.get("controller") and len(values) < 4:
             raise ValueError(
                 "Key material expected, found: {}".format(list(values.keys()))
             )
         return values
 
-    @root_validator
+    @model_validator(mode="before")
     @classmethod
-    def _no_more_than_one_material_prop(cls, values: dict):
+    def _no_more_than_one_material_prop(cls, values: Union[dict, "VerificationMethod"]):
         """Validate that exactly one material property was specified on method."""
-        set_material_properties = cls.material_properties & {
-            key for key, value in values.items() if value is not None
-        }
-        if len(set_material_properties) > 1:
+        if not isinstance(values, dict):
+            values = values.__dict__
+
+        model_properties = {key for key, value in values.items() if value is not None}
+
+        set_material_properties = set_of_material_properties & model_properties
+        set_material_properties_camel = material_properties_camel & model_properties
+
+        if len(set_material_properties | set_material_properties_camel) > 1:
             raise ValueError(
                 "Found properties {}; only one is allowed".format(
                     ", ".join(set_material_properties)

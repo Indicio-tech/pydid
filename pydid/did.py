@@ -7,7 +7,11 @@ January 2021:
 
 """
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
+
+from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema, core_schema
 
 from .common import DID_PATTERN, DIDError
 from .did_url import DIDUrl
@@ -35,14 +39,20 @@ class DID(str):
         self._id = matched.group(2)
 
     @classmethod
-    def __get_validators__(cls):
-        """Yield validators for pydantic."""
-        yield cls._validate
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        """Get core schema."""
+        return core_schema.no_info_after_validator_function(cls, handler(str))
 
     @classmethod
-    def __modify_schema__(cls, field_schema):  # pragma: no cover
+    def __get_pydantic_json_schema__(
+        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
         """Update schema fields."""
-        field_schema.update(pattern=DID_PATTERN)
+        json_schema = handler(core_schema)
+        json_schema["pattern"] = DID_PATTERN
+        return json_schema
 
     @property
     def method(self):
@@ -73,11 +83,16 @@ class DID(str):
         return DID_PATTERN.match(did)
 
     @classmethod
-    def validate(cls, did: str):
+    def model_validate(cls, did: str):
         """Validate the given string as a DID."""
         if not cls.is_valid(did):
             raise InvalidDIDError('"{}" is not a valid DID'.format(did))
         return did
+
+    @classmethod
+    def validate(cls, did: str):
+        """Validate the given string as a DID."""
+        return cls.model_validate(did)
 
     @classmethod
     def _validate(cls, did):
