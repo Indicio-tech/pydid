@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 from ..did import DID, InvalidDIDError
 from ..did_url import DIDUrl, InvalidDIDUrlError
 from ..resource import IndexedResource, Resource
-from ..service import DIDCommV1Service, DIDCommV2Service, Service, UnknownService
+from ..service import DIDCommV1Service, DIDCommV2Service, Service
 from ..verification_method import (
     KnownVerificationMethods,
     UnknownVerificationMethod,
@@ -134,7 +134,7 @@ class BasicDIDDocument(BaseDIDDocument):
 
 
 PossibleMethodTypes = Union[KnownVerificationMethods, UnknownVerificationMethod]
-PossibleServiceTypes = Union[DIDCommV1Service, DIDCommV2Service, UnknownService]
+PossibleServiceTypes = Union[DIDCommV1Service, DIDCommV2Service, Service]
 
 
 class DIDDocument(BasicDIDDocument):
