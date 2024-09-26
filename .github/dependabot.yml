@@ -17,4 +17,10 @@ updates:
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+    groups:
+      dev:
+        dependency-type: development
+      minor:
+        dependency-type: production
+        update-types: [minor, patch]
