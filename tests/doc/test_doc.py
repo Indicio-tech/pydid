@@ -530,9 +530,7 @@ def test_all_relationship_builders():
     builder.authentication.reference(vmethod.id)
     builder.authentication.embed(ExampleVerificationMethod, public_key_example="auth")
     builder.assertion_method.reference(vmethod.id)
-    builder.assertion_method.embed(
-        ExampleVerificationMethod, public_key_example="assert"
-    )
+    builder.assertion_method.embed(ExampleVerificationMethod, public_key_example="assert")
     builder.key_agreement.reference(vmethod.id)
     builder.key_agreement.embed(
         ExampleVerificationMethod, public_key_example="key_agreement"
@@ -614,9 +612,7 @@ def test_relationship_builder_ref_x():
 def test_builder_from_doc():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    builder.verification_method.add(
-        ExampleVerificationMethod, public_key_example="1234"
-    )
+    builder.verification_method.add(ExampleVerificationMethod, public_key_example="1234")
     assert len(builder.build().serialize()["verificationMethod"]) == 2
 
 
