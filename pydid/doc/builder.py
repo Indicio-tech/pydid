@@ -195,12 +195,8 @@ class DIDDocumentBuilder:
         self.authentication = RelationshipBuilder(self.id, "auth")
         self.assertion_method = RelationshipBuilder(self.id, "assert")
         self.key_agreement = RelationshipBuilder(self.id, "key-agreement")
-        self.capability_invocation = RelationshipBuilder(
-            self.id, "capability-invocation"
-        )
-        self.capability_delegation = RelationshipBuilder(
-            self.id, "capability-delegation"
-        )
+        self.capability_invocation = RelationshipBuilder(self.id, "capability-invocation")
+        self.capability_delegation = RelationshipBuilder(self.id, "capability-delegation")
         self.service = ServiceBuilder(self.id)
         self.extra = {}
 

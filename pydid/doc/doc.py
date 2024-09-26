@@ -98,9 +98,7 @@ class BasicDIDDocument(BaseDIDDocument):
             assert isinstance(item, (VerificationMethod, Service))
             if item.id in self._index and item != self._index[item.id]:
                 raise IdentifiedResourceMismatch(
-                    "ID {} already found in Index and Items do not match".format(
-                        item.id
-                    )
+                    "ID {} already found in Index and Items do not match".format(item.id)
                 )
 
             if not item.id.did:
