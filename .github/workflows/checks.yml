@@ -12,30 +12,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: psf/black@24.8.0
-        with:
-          src: "./pydid"
       - uses: chartboost/ruff-action@v1
         with:
-          version: 0.3.4
+          version: "0.6.8"
+          args: 'format --check'
+      - uses: chartboost/ruff-action@v1
+        with:
+          version: "0.6.8"
 
   test:
     name: Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install poetry
-        run: pipx install poetry
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
+          cache: true
       - name: Install dependencies
-        run: poetry install
+        run: pdm install -G :all
       - name: Run pytest
-        run: poetry run pytest
+        run: pdm run pytest

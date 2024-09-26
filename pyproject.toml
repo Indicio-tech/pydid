@@ -1,35 +1,49 @@
-[tool.poetry]
+[project]
+authors = [
+    {name = "Daniel Bluhm", email = "dbluhm@pm.me"},
+]
+license = {text = "Apache 2.0"}
+requires-python = "<4.0.0,>=3.9.0"
+dependencies = [
+    "pydantic<3.0.0,>=2.7.0",
+    "typing-extensions<5.0.0,>=4.7.0",
+    "inflection<1.0.0,>=0.5.1",
+]
 name = "pydid"
 version = "0.5.1"
 description = "Python library for validating, constructing, and representing DIDs and DID Documents"
-authors = ["Daniel Bluhm <dbluhm@pm.me>"]
-license = "Apache 2.0"
 readme = "README.md"
-homepage = "https://github.com/Indicio-tech/pydid"
-repository = "https://github.com/Indicio-tech/pydid"
 keywords = [
-    "decentralized", "identity", "ssi", "DID", "DID Document"
+    "decentralized",
+    "identity",
+    "ssi",
+    "DID",
+    "DID Document",
 ]
 
+[project.urls]
+homepage = "https://github.com/Indicio-tech/pydid"
+repository = "https://github.com/Indicio-tech/pydid"
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest<9.0.0,>=8.3.3",
+    "poetry<2.0.0,>=1.8.3",
+    "pre-commit<4.0.0,>=3.8.0",
+    "ruff<1.0.0,>=0.6.8",
+    "pytest-coverage<1.0,>=0.0",
+    "aiohttp<4.0.0,>=3.10.6",
+    "pytest-asyncio<1.0.0,>=0.24.0",
+    "coverage[toml]<8.0.0,>=7.6.1",
+]
+
+[tool.pdm.build]
+includes = []
+
 [build-system]
-requires = ["setuptools", "poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.dependencies]
-python = "^3.9.0"
-pydantic = "^2.7.0"
-typing-extensions = "^4.7.0"
-inflection = "^0.5.1"
-
-[tool.poetry.dev-dependencies]
-pytest = "^8.3.3"
-poetry = "^1.8.3"
-pre-commit = "^3.8.0"
-ruff = "^0.6.8"
-pytest-coverage = "^0.0"
-aiohttp = "^3.10.6"
-pytest-asyncio = "^0.24.0"
-coverage = {extras = ["toml"], version = "^7.6.1"}
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.pytest.ini_options]
 addopts = "-p no:warnings --cov pydid --doctest-modules"

@@ -152,3 +152,4 @@ Thumbs.db #thumbnail cache on Windows
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 .vim
+.pdm-python
