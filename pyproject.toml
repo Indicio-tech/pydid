@@ -27,7 +27,7 @@ poetry = "^1.8.3"
 pre-commit = "^3.8.0"
 ruff = "^0.6.8"
 pytest-coverage = "^0.0"
-aiohttp = "^3.10.6"
+aiohttp = "^3.10.8"
 pytest-asyncio = "^0.24.0"
 coverage = {extras = ["toml"], version = "^7.6.1"}
 
