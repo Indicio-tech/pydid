@@ -12,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: psf/black@24.10.0
+      - uses: astral-sh/ruff-action@v2
         with:
+          version: 0.8.2
           src: "./pydid"
-      - uses: chartboost/ruff-action@v1
+      - uses: astral-sh/ruff-action@v2
         with:
-          version: 0.3.4
+          version: 0.8.2
+          src: "./pydid"
+          args: format --check
 
   test:
     name: Tests
