@@ -23,13 +23,13 @@ inflection = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3.4"
-poetry = "^1.8.5"
-pre-commit = "^4.0.1"
-ruff = "^0.8.4"
+poetry = "^2.0.1"
+pre-commit = "^4.1.0"
+ruff = "^0.9.5"
 pytest-coverage = "^0.0"
-aiohttp = "^3.11.11"
-pytest-asyncio = "^0.25.0"
-coverage = {extras = ["toml"], version = "^7.6.10"}
+aiohttp = "^3.11.12"
+pytest-asyncio = "^0.25.3"
+coverage = {extras = ["toml"], version = "^7.6.11"}
 
 [tool.pytest.ini_options]
 addopts = "-p no:warnings --cov pydid --doctest-modules"
