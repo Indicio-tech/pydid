@@ -271,7 +271,7 @@ class EcdsaSecp256k1RecoveryMethod2020(VerificationMethod):
 
     type: Literal["EcdsaSecp256k1RecoveryMethod2020"]
     _require_one_of = required_group(
-        {"public_key_jwk", "public_key_hex", "ethereum_address"}
+        {"public_key_jwk", "public_key_hex", "ethereum_address", "blockchain_account_id"}
     )
 
 
