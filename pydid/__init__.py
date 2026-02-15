@@ -16,7 +16,13 @@ from .doc.doc import (
     NonconformantDocument,
 )
 from .resource import Resource
-from .service import DIDCommService, Service
+from .service import (
+    DIDCommService,
+    DIDCommV1Service,
+    DIDCommV2Service,
+    DIDCommV2ServiceEndpoint,
+    Service,
+)
 from .verification_method import (
     VerificationMaterial,
     VerificationMaterialUnknown,
@@ -27,6 +33,9 @@ __all__ = [
     "BasicDIDDocument",
     "DID",
     "DIDCommService",
+    "DIDCommV1Service",
+    "DIDCommV2Service",
+    "DIDCommV2ServiceEndpoint",
     "DIDDocument",
     "DIDDocumentBuilder",
     "DIDDocumentError",
