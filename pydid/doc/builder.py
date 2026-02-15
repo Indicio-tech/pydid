@@ -237,11 +237,8 @@ class ServiceBuilder:
         )
         # Autodetect when version not provided
         if version is None:
-            if (
-                accept
-                and any(
-                    a for a in accept if isinstance(a, str) and a.startswith("didcomm/v2")
-                )
+            if accept and any(
+                a for a in accept if isinstance(a, str) and a.startswith("didcomm/v2")
             ):
                 version = 2
             else:
