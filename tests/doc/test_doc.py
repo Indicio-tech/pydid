@@ -321,7 +321,72 @@ DOC8 = {
         },
     ],
 }
-DOCS = [DOC0, DOC1, DOC2, DOC3, DOC4, DOC5, DOC6, DOC7, DOC8]
+DOC9 = {
+    "@context": ["https://www.w3.org/ns/did/v1"],
+    "id": "did:example:xyz",
+    "verificationMethod": [
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "1234",
+        }
+    ],
+    "authentication": [
+        "did:example:123#keys-0",
+        {
+            "id": "did:example:123#auth-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "abcd",
+        },
+    ],
+    "service": [
+        {
+            "id": "did:example:xyz#s-1",
+            "type": ["did-communication"],
+            "serviceEndpoint": "https://agents.example.com",
+            "recipientKeys": ["did:example:xyz#keys-1"],
+            "routingKeys": [],
+            "priority": 0,
+        }
+    ],
+}
+
+DOC10 = {
+    "@context": ["https://www.w3.org/ns/did/v1"],
+    "id": "did:example:xyz",
+    "verificationMethod": [
+        {
+            "id": "did:example:123#keys-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "1234",
+        }
+    ],
+    "authentication": [
+        "did:example:123#keys-0",
+        {
+            "id": "did:example:123#auth-0",
+            "type": "Ed25519VerificationKey2018",
+            "controller": "did:example:123",
+            "publicKeyBase58": "abcd",
+        },
+    ],
+    "service": [
+        {
+            "id": "did:example:xyz#s-2",
+            "type": ["DIDCommMessaging"],
+            "serviceEndpoint": {
+                "uri": "https://v2.example.com/path",
+                "accept": ["didcomm/v2"],
+                "routingKeys": [],
+            },
+        }
+    ],
+}
+
+DOCS = [DOC0, DOC1, DOC2, DOC3, DOC4, DOC5, DOC6, DOC7, DOC8, DOC9, DOC10]
 
 INVALID_DOC0 = {}
 INVALID_DOC1 = {
@@ -450,42 +515,11 @@ def test_service_type_list_deserializes_to_v1_and_v2():
     """Ensure services that declare `type` as a list are parsed into the
     appropriate DIDComm V1 or V2 service objects."""
     # V1 as list
-    doc_v1 = {
-        "@context": ["https://www.w3.org/ns/did/v1"],
-        "id": "did:example:xyz",
-        "service": [
-            {
-                "id": "did:example:xyz#s-1",
-                "type": ["did-communication"],
-                "serviceEndpoint": "https://agents.example.com",
-                "recipientKeys": ["did:example:xyz#keys-1"],
-                "routingKeys": [],
-                "priority": 0,
-            }
-        ],
-    }
-
-    parsed_v1 = DIDDocument.deserialize(doc_v1)
+    parsed_v1 = DIDDocument.deserialize(DOC9)
     assert isinstance(parsed_v1.service[0], DIDCommV1Service)
 
     # V2 as list
-    doc_v2 = {
-        "@context": ["https://www.w3.org/ns/did/v1"],
-        "id": "did:example:xyz",
-        "service": [
-            {
-                "id": "did:example:xyz#s-2",
-                "type": ["DIDCommMessaging"],
-                "serviceEndpoint": {
-                    "uri": "https://v2.example.com/path",
-                    "accept": ["didcomm/v2"],
-                    "routingKeys": [],
-                },
-            }
-        ],
-    }
-
-    parsed_v2 = DIDDocument.deserialize(doc_v2)
+    parsed_v2 = DIDDocument.deserialize(DOC10)
     assert isinstance(parsed_v2.service[0], DIDCommV2Service)
 
 
