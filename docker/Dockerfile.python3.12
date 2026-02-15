@@ -1,0 +1,21 @@
+FROM python:3.12-slim
+
+# Install poetry
+RUN pip install --no-cache-dir poetry
+
+WORKDIR /usr/src/app
+
+ADD pydid pydid
+ADD pyproject.toml .
+ADD poetry.lock .
+ADD README.md .
+ADD tests tests
+
+# Install dependencies in the container virtualenv created by poetry
+RUN poetry install --no-root --no-interaction --no-ansi || poetry install --no-interaction --no-ansi
+
+# Make site packages location more accessible (for use with volumes)
+# Adjust the path for Python 3.12
+RUN ln -s $(poetry env info -p)/lib/python3.12/site-packages site-packages || true
+
+ENTRYPOINT ["/bin/sh", "-c", "poetry run pytest tests \"$@\"", "--"]
