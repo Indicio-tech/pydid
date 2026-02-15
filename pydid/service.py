@@ -11,6 +11,9 @@ from .resource import Resource
 
 EndpointStrings = Union[DID, DIDUrl, AnyUrl, StrictStr]
 
+DIDCOMM_V1_TYPE_STRINGS = Literal["IndyAgent", "did-communication", "DIDCommMessaging"]
+DIDCOMM_V2_TYPE_STRINGS = Literal["DIDCommMessaging"]
+
 
 class Service(Resource):
     """Representation of DID Document Services."""
@@ -28,8 +31,7 @@ class DIDCommV1Service(Service):
     """DID Communication Service."""
 
     model_config = ConfigDict(extra="forbid")
-
-    type: Literal["IndyAgent", "did-communication", "DIDCommMessaging"] = (
+    type: Union[DIDCOMM_V1_TYPE_STRINGS, List[DIDCOMM_V1_TYPE_STRINGS]] = (
         "did-communication"
     )
     service_endpoint: EndpointStrings
@@ -54,8 +56,9 @@ class DIDCommV2Service(Service):
     """DID Communication V2 Service."""
 
     model_config = ConfigDict(extra="forbid")
-
-    type: Literal["DIDCommMessaging"] = "DIDCommMessaging"
+    type: Union[DIDCOMM_V2_TYPE_STRINGS, List[DIDCOMM_V2_TYPE_STRINGS]] = (
+        "DIDCommMessaging"
+    )
     service_endpoint: Union[List[DIDCommV2ServiceEndpoint], DIDCommV2ServiceEndpoint]
 
 

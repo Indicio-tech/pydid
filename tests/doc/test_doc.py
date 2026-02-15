@@ -15,7 +15,7 @@ from pydid.doc.doc import (
     IDNotFoundError,
     NonconformantDocument,
 )
-from pydid.service import DIDCommService, DIDCommV2Service, Service
+from pydid.service import DIDCommV1Service, DIDCommV2Service, Service
 from pydid.verification_method import (
     Ed25519VerificationKey2018,
     VerificationMaterial,
@@ -426,10 +426,10 @@ def test_extra_preserved():
     assert "additionalAttribute" in doc.serialize()
 
 
-def test_didcomm_service_deserialized():
+def test_didcommv1_service_deserialized():
     """Test whether a DIDCommService is returned when deserialized."""
     doc = DIDDocument.deserialize(DOC7)
-    assert isinstance(doc.service[0], DIDCommService)
+    assert isinstance(doc.service[0], DIDCommV1Service)
 
 
 def test_didcommv2_service_deserialized():
@@ -444,6 +444,49 @@ def test_didcommv2_service_dereference():
     assert isinstance(
         doc.dereference_as(DIDCommV2Service, DOC8["service"][0]["id"]), DIDCommV2Service
     )
+
+
+def test_service_type_list_deserializes_to_v1_and_v2():
+    """Ensure services that declare `type` as a list are parsed into the
+    appropriate DIDComm V1 or V2 service objects."""
+    # V1 as list
+    doc_v1 = {
+        "@context": ["https://www.w3.org/ns/did/v1"],
+        "id": "did:example:xyz",
+        "service": [
+            {
+                "id": "did:example:xyz#s-1",
+                "type": ["did-communication"],
+                "serviceEndpoint": "https://agents.example.com",
+                "recipientKeys": ["did:example:xyz#keys-1"],
+                "routingKeys": [],
+                "priority": 0,
+            }
+        ],
+    }
+
+    parsed_v1 = DIDDocument.deserialize(doc_v1)
+    assert isinstance(parsed_v1.service[0], DIDCommV1Service)
+
+    # V2 as list
+    doc_v2 = {
+        "@context": ["https://www.w3.org/ns/did/v1"],
+        "id": "did:example:xyz",
+        "service": [
+            {
+                "id": "did:example:xyz#s-2",
+                "type": ["DIDCommMessaging"],
+                "serviceEndpoint": {
+                    "uri": "https://v2.example.com/path",
+                    "accept": ["didcomm/v2"],
+                    "routingKeys": [],
+                },
+            }
+        ],
+    }
+
+    parsed_v2 = DIDDocument.deserialize(doc_v2)
+    assert isinstance(parsed_v2.service[0], DIDCommV2Service)
 
 
 def test_programmatic_construction():
@@ -468,13 +511,13 @@ def test_programmatic_construction_didcomm():
     )
     another_route = DIDUrl("did:example:123#key-5")
     yet_another_route = "did:example:123#key-6"
-    builder.service.add_didcomm(
+    builder.service.add_didcomm_v1(
         service_endpoint="https://example.com",
         recipient_keys=[key],
         routing_keys=[route],
         accept=["didcomm/aip2;env=rfc19"],
     )
-    builder.service.add_didcomm(
+    builder.service.add_didcomm_v1(
         service_endpoint="https://example.com",
         recipient_keys=[key],
         routing_keys=[route, another_route, yet_another_route],
@@ -522,6 +565,63 @@ def test_programmatic_construction_didcomm():
     }
 
 
+def test_programmatic_construction_didcomm_v2_and_versioning():
+    """Test builder produces DIDComm V2 when autodetected or forced.
+
+    Covers:
+    - autodetection via accept containing "didcomm/v2"
+    - explicit version=2 parameter
+    - direct add_didcomm_v2 call
+    """
+    builder = DIDDocumentBuilder("did:example:123")
+    key = builder.verification_method.add(
+        ExampleVerificationMethod, public_key_example="1234"
+    )
+    route = builder.verification_method.add(
+        ExampleVerificationMethod, public_key_example="abcd"
+    )
+
+    # Autodetect V2 via accept
+    builder.service.add_didcomm(
+        service_endpoint="https://v2.example.com/auto",
+        recipient_keys=[key],
+        routing_keys=[route],
+        accept=["didcomm/v2", "didcomm/aip2;env=rfc587"],
+    )
+
+    # Explicit version=2
+    builder.service.add_didcomm(
+        service_endpoint="https://v2.example.com/explicit",
+        recipient_keys=[key],
+        routing_keys=[route],
+        accept=["didcomm/v2"],
+        version=2,
+    )
+
+    # Direct V2 helper
+    builder.service.add_didcomm_v2(
+        service_endpoint="https://v2.example.com/direct",
+        recipient_keys=[key],
+        routing_keys=[route],
+        accept=["didcomm/v2"],
+    )
+
+    serialized = builder.build().serialize()
+    services = serialized["service"]
+
+    # Expect three services, all of type DIDCommMessaging and with structured endpoints
+    assert len(services) == 3
+    for svc in services:
+        assert svc["type"] == "DIDCommMessaging"
+        # serviceEndpoint should be an object (not a string)
+        ep = svc["serviceEndpoint"]
+        # Pydantic by-alias produces camelCase routingKeys
+        assert isinstance(ep, dict)
+        assert "uri" in ep
+        assert "accept" in ep
+        assert "routingKeys" in ep
+
+
 def test_all_relationship_builders():
     builder = DIDDocumentBuilder("did:example:123")
     vmethod = builder.verification_method.add(
@@ -530,9 +630,7 @@ def test_all_relationship_builders():
     builder.authentication.reference(vmethod.id)
     builder.authentication.embed(ExampleVerificationMethod, public_key_example="auth")
     builder.assertion_method.reference(vmethod.id)
-    builder.assertion_method.embed(
-        ExampleVerificationMethod, public_key_example="assert"
-    )
+    builder.assertion_method.embed(ExampleVerificationMethod, public_key_example="assert")
     builder.key_agreement.reference(vmethod.id)
     builder.key_agreement.embed(
         ExampleVerificationMethod, public_key_example="key_agreement"
@@ -614,9 +712,7 @@ def test_relationship_builder_ref_x():
 def test_builder_from_doc():
     doc = DIDDocument.deserialize(DOC6)
     builder = DIDDocumentBuilder.from_doc(doc)
-    builder.verification_method.add(
-        ExampleVerificationMethod, public_key_example="1234"
-    )
+    builder.verification_method.add(ExampleVerificationMethod, public_key_example="1234")
     assert len(builder.build().serialize()["verificationMethod"]) == 2
 
 

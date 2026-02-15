@@ -4,8 +4,14 @@ from typing import Iterator, List, Optional, Type, Union
 
 from ..did import DID
 from ..did_url import DIDUrl
-from ..service import DIDCommService, Service
+from ..service import (
+    DIDCommV1Service,
+    DIDCommV2Service,
+    DIDCommV2ServiceEndpoint,
+    Service,
+)
 from ..verification_method import VerificationMethod
+import warnings
 from .doc import DIDDocument
 
 
@@ -115,7 +121,7 @@ class ServiceBuilder:
                 [
                     service.priority
                     for service in self.services
-                    if isinstance(service, DIDCommService)
+                    if isinstance(service, DIDCommV1Service)
                 ]
             )
             + 1
@@ -137,6 +143,73 @@ class ServiceBuilder:
         self.services.append(service)
         return service
 
+    def add_didcomm_v1(
+        self,
+        service_endpoint: str,
+        recipient_keys: List[Union[VerificationMethod, DIDUrl, str]],
+        routing_keys: Optional[List[Union[VerificationMethod, DIDUrl, str]]] = None,
+        *,
+        priority: Optional[int] = None,
+        type_: Optional[Union[str, List[str]]] = None,
+        ident: Optional[str] = None,
+        accept: Optional[List[str]] = None,
+    ):
+        """Add DIDComm V1 (did-communication) service."""
+        ident = ident or next(self._id_generator)
+        routing_keys = routing_keys or []
+        priority = priority or self._determine_next_priority()
+
+        routing_key_ids = [
+            vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
+            for vmethod in routing_keys
+        ]
+        recipient_key_ids = [
+            vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
+            for vmethod in recipient_keys
+        ]
+
+        svc_type = type_
+        service = DIDCommV1Service.make(
+            id=self._did.ref(ident),
+            service_endpoint=service_endpoint,
+            recipient_keys=recipient_key_ids,
+            routing_keys=routing_key_ids,
+            type=svc_type,
+            priority=priority,
+            accept=accept,
+        )
+        self.services.append(service)
+        return service
+
+    def add_didcomm_v2(
+        self,
+        service_endpoint: str,
+        recipient_keys: List[Union[VerificationMethod, DIDUrl, str]],
+        routing_keys: Optional[List[Union[VerificationMethod, DIDUrl, str]]] = None,
+        *,
+        type_: Optional[Union[str, List[str]]] = None,
+        ident: Optional[str] = None,
+        accept: Optional[List[str]] = None,
+    ):
+        """Add DIDComm V2 (DIDCommMessaging) service."""
+        ident = ident or next(self._id_generator)
+        routing_keys = routing_keys or []
+
+        routing_key_ids = [
+            vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
+            for vmethod in routing_keys
+        ]
+
+        endpoint = DIDCommV2ServiceEndpoint.make(
+            uri=service_endpoint, accept=accept, routing_keys=routing_key_ids
+        )
+        svc_type = type_ or "DIDCommMessaging"
+        service = DIDCommV2Service.make(
+            id=self._did.ref(ident), service_endpoint=endpoint, type=svc_type
+        )
+        self.services.append(service)
+        return service
+
     def add_didcomm(
         self,
         service_endpoint: str,
@@ -147,28 +220,55 @@ class ServiceBuilder:
         type_: Optional[str] = None,
         ident: Optional[str] = None,
         accept: Optional[List[str]] = None,
+        version: Optional[int] = None,
     ):
-        """Add DIDComm Service."""
-        ident = ident or next(self._id_generator)
-        routing_keys = routing_keys or []
-        priority = priority or self._determine_next_priority()
-        service = DIDCommService.make(
-            id=self._did.ref(ident),
-            service_endpoint=service_endpoint,
-            recipient_keys=[
-                vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
-                for vmethod in recipient_keys
-            ],
-            routing_keys=[
-                vmethod.id if isinstance(vmethod, VerificationMethod) else vmethod
-                for vmethod in routing_keys
-            ],
-            type=type_,
-            priority=priority,
-            accept=accept,
+        """Autodetect DIDComm version and delegate to the appropriate helper.
+
+        DEPRECATION: This convenience wrapper should get deprecated. Call
+        `add_didcomm_v1` or `add_didcomm_v2` explicitly to construct the
+        desired service type. This wrapper will be removed in a future
+        release.
+        """
+        warnings.warn(
+            "ServiceBuilder.add_didcomm will be deprecated; use "
+            + "ServiceBuilder.add_didcomm_v1 or ServiceBuilder.add_didcomm_v2",
+            DeprecationWarning,
+            stacklevel=2,
         )
-        self.services.append(service)
-        return service
+        # Autodetect when version not provided
+        if version is None:
+            if (
+                accept
+                and any(
+                    a for a in accept if isinstance(a, str) and a.startswith("didcomm/v2")
+                )
+            ):
+                version = 2
+            else:
+                version = 1
+
+        # Match DIDComm version
+        if version == 1:
+            return self.add_didcomm_v1(
+                service_endpoint,
+                recipient_keys,
+                routing_keys,
+                priority=priority,
+                type_=type_,
+                ident=ident,
+                accept=accept,
+            )
+        elif version == 2:
+            return self.add_didcomm_v2(
+                service_endpoint,
+                recipient_keys,
+                routing_keys,
+                type_=type_,
+                ident=ident,
+                accept=accept,
+            )
+        else:
+            raise NotImplementedError(f"DIDComm version {version} not supported.")
 
     def remove(self, service: Service):
         """Remove service from builder."""
