@@ -2,9 +2,7 @@ name: Upload PyDID To PyPI
 
 on:
   release:
-    types: [ created ]
-  push:
-    branches: [ "main" ]
+    types: [created]
 
 jobs:
   deploy:
