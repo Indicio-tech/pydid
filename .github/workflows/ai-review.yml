@@ -1,0 +1,23 @@
+name: AI review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: PR to review (defaults to current PR for pull_request events)
+        required: false
+        type: string
+
+jobs:
+  ai-review:
+    uses: Indicio-tech/ai-review-action/.github/workflows/ai-review.yml@v1
+    with:
+      pr-number: ${{ inputs.pr-number }}
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      action-repo-token: ${{ secrets.AI_ACTION_TOKEN }}
