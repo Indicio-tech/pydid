@@ -30,7 +30,9 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history for accurate blame / new-code detection
       - name: Install poetry
         run: pipx install poetry
       - name: Set up Python ${{ matrix.python-version }}
@@ -41,4 +43,10 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Run pytest
-        run: poetry run pytest
+        run: poetry run pytest --cov-report=xml
+
+      - uses: SonarSource/sonarqube-scan-action@v8
+        if: matrix.python-version == '3.12'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
